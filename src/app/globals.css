@@ -1,26 +1,77 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --canvas: #0D1117;
+  --surface: #161B22;
+  --surface-hover: #1C2128;
+  --surface-elevated: #21262D;
+  --border: #30363D;
+  --border-subtle: #21262D;
+  
+  --primary: #818CF8;
+  --primary-hover: #6366F1;
+  --primary-muted: rgba(129, 140, 248, 0.12);
+  
+  --text-primary: #F0F6FC;
+  --text-secondary: #8B949E;
+  --text-muted: #484F58;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --semantic-success: #3FB950;
+  --semantic-success-muted: rgba(63, 185, 80, 0.15);
+  --semantic-warning: #D29922;
+  --semantic-warning-muted: rgba(210, 153, 34, 0.15);
+  --semantic-danger: #F85149;
+  --semantic-danger-muted: rgba(248, 81, 73, 0.15);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--canvas);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
 }
+
+/* Custom editorial scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--canvas);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Base utility classes */
+.bg-canvas { background-color: var(--canvas); }
+.bg-surface { background-color: var(--surface); }
+.bg-surface-hover { background-color: var(--surface-hover); }
+.bg-surface-elevated { background-color: var(--surface-elevated); }
+
+.border-subtle { border-color: var(--border-subtle); }
+.border-line { border-color: var(--border); }
+
+.text-main { color: var(--text-primary); }
+.text-sub { color: var(--text-secondary); }
+.text-dim { color: var(--text-muted); }
+
+.text-accent { color: var(--primary); }
+.bg-accent { background-color: var(--primary); }
+.bg-accent-muted { background-color: var(--primary-muted); }
+
+.text-success { color: var(--semantic-success); }
+.bg-success-muted { background-color: var(--semantic-success-muted); }
+
+.text-warning { color: var(--semantic-warning); }
+.bg-warning-muted { background-color: var(--semantic-warning-muted); }
+
+.text-danger { color: var(--semantic-danger); }
+.bg-danger-muted { background-color: var(--semantic-danger-muted); }

@@ -1,0 +1,260 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum GoalType {
+  MEASURABLE
+  MILESTONE
+  HYBRID
+}
+
+enum GoalStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum ProgressMode {
+  NUMERIC
+  FINANCE
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum HabitSource {
+  MANUAL
+  ACTIVITY
+}
+
+model User {
+  id             String          @id @default(cuid())
+  email          String          @unique
+  name           String?
+  passwordHash   String?
+  timezone       String          @default("Asia/Jakarta")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  financeProfile FinanceProfile?
+  goals          Goal[]
+  activities     Activity[]
+  learnings      Learning[]
+  habits         Habit[]
+  transactions   Transaction[]
+  budgets        Budget[]
+  reflections    Reflection[]
+
+  @@map("users")
+}
+
+model FinanceProfile {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startingBalance        Decimal  @default(0) @db.Decimal(15, 2)
+  startingBalanceDate    DateTime @default(now())
+  actualBalance          Decimal  @default(0) @db.Decimal(15, 2)
+  actualBalanceUpdatedAt DateTime @default(now())
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("finance_profiles")
+}
+
+model Goal {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?       @db.Text
+  type         GoalType
+  status       GoalStatus    @default(NOT_STARTED)
+  progressMode ProgressMode?
+
+  currentValue Decimal?      @default(0) @db.Decimal(15, 2)
+  targetValue  Decimal?      @db.Decimal(15, 2)
+  unit         String?
+
+  deadline     DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  milestones   GoalMilestone[]
+  activities   Activity[]
+  learnings    Learning[]
+  habits       Habit[]
+  transactions Transaction[]
+
+  @@index([userId, status])
+  @@map("goals")
+}
+
+model GoalMilestone {
+  id          String    @id @default(cuid())
+  goalId      String
+  goal        Goal      @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  title       String
+  isCompleted Boolean   @default(false)
+  order       Int       @default(0)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([goalId, order])
+  @@map("goal_milestones")
+}
+
+model Activity {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title           String
+  startedAt       DateTime
+  endedAt         DateTime
+  durationMinutes Int
+  note            String?          @db.Text
+
+  goalId          String?
+  goal            Goal?            @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  habitId         String?
+
+  deletedAt       DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  learnings       Learning[]
+  habitCompletion HabitCompletion?
+
+  @@index([userId, startedAt])
+  @@index([userId, deletedAt])
+  @@map("activities")
+}
+
+model Learning {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic      String
+  takeaways  String?   @db.Text
+  date       DateTime  @default(now())
+  source     String?
+
+  activityId String?
+  activity   Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  goalId     String?
+  goal       Goal?     @relation(fields: [goalId], references: [id], onDelete: SetNull)
+
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId, date])
+  @@index([userId, deletedAt])
+  @@map("learnings")
+}
+
+model Habit {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?           @db.Text
+  isActive    Boolean           @default(true)
+  goalId      String?
+  goal        Goal?             @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  completions HabitCompletion[]
+
+  @@index([userId, isActive])
+  @@map("habits")
+}
+
+model HabitCompletion {
+  id          String      @id @default(cuid())
+  habitId     String
+  habit       Habit       @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  date        String      // Format: "YYYY-MM-DD" waktu user (Asia/Jakarta)
+  source      HabitSource @default(MANUAL)
+  activityId  String?     @unique
+  activity    Activity?   @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  completedAt DateTime    @default(now())
+
+  @@unique([habitId, date])
+  @@index([habitId, date])
+  @@map("habit_completions")
+}
+
+model Transaction {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      TransactionType
+  amount    Decimal         @db.Decimal(15, 2)
+  category  String
+  date      DateTime        @default(now())
+  note      String?         @db.Text
+
+  goalId    String?
+  goal      Goal?           @relation(fields: [goalId], references: [id], onDelete: SetNull)
+
+  deletedAt DateTime?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([userId, date])
+  @@index([userId, deletedAt])
+  @@map("transactions")
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    String
+  amount      Decimal  @db.Decimal(15, 2)
+  periodStart DateTime
+  periodEnd   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, category, periodStart, periodEnd])
+  @@map("budgets")
+}
+
+model Reflection {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekStart    DateTime  // Selalu hari Senin pukul 00:00:00
+
+  whatHappened String    @db.Text
+  whatLearned  String    @db.Text
+  whatChanged  String    @db.Text
+
+  wentWell     String?   @db.Text
+  wentWrong    String?   @db.Text
+  selfInsight  String?   @db.Text
+  notes        String?   @db.Text
+
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([userId, weekStart])
+  @@index([userId, weekStart])
+  @@map("reflections")
+}
