@@ -134,6 +134,25 @@ export interface Translations {
     backToLearning: string;
     topic: string;
     noLearnings: string;
+    folders: string;
+    notes: string;
+    newFolder: string;
+    folderName: string;
+    createFolder: string;
+    folderPlaceholder: string;
+    rootFolder: string;
+    selectFolder: string;
+    noFolder: string;
+    emptyFolder: string;
+    emptyFolderDesc: string;
+    attachMedia: string;
+    addPhoto: string;
+    addVideo: string;
+    photoUrlOrUpload: string;
+    videoUrlOrUpload: string;
+    mediaGallery: string;
+    fileCount: string;
+    deleteFolderConfirm: string;
   };
   finance: {
     title: string;
@@ -337,6 +356,25 @@ export const translations: Record<Locale, Translations> = {
       backToLearning: "Back to Learning",
       topic: "Topic",
       noLearnings: "No learnings recorded yet. Document key concepts, mental models, and takeaways.",
+      folders: "Folders",
+      notes: "Notes",
+      newFolder: "New Folder",
+      folderName: "Folder Name",
+      createFolder: "Create Folder",
+      folderPlaceholder: "e.g. React & Next.js, System Architecture",
+      rootFolder: "All Notes (Root)",
+      selectFolder: "Select Folder",
+      noFolder: "No Folder (Root)",
+      emptyFolder: "This folder is empty",
+      emptyFolderDesc: "No notes or files created in this folder yet.",
+      attachMedia: "Attach Photos & Videos",
+      addPhoto: "Add Photo",
+      addVideo: "Add Video",
+      photoUrlOrUpload: "Upload image or enter image URL",
+      videoUrlOrUpload: "Upload video clip or enter video URL",
+      mediaGallery: "Attached Media (Photos & Videos)",
+      fileCount: "files",
+      deleteFolderConfirm: "Are you sure you want to delete this folder?",
     },
     finance: {
       title: "Finance",
@@ -539,6 +577,25 @@ export const translations: Record<Locale, Translations> = {
       backToLearning: "Zurück zu Lernen",
       topic: "Thema",
       noLearnings: "Noch keine Lernerkenntnisse erfasst. Halte Schlüsselkonzepte und Erkenntnisse fest.",
+      folders: "Ordner",
+      notes: "Notizen",
+      newFolder: "Neuer Ordner",
+      folderName: "Ordnername",
+      createFolder: "Ordner erstellen",
+      folderPlaceholder: "z.B. React & Next.js, Systemarchitektur",
+      rootFolder: "Alle Notizen (Hauptverzeichnis)",
+      selectFolder: "Ordner auswählen",
+      noFolder: "Kein Ordner (Hauptverzeichnis)",
+      emptyFolder: "Dieser Ordner ist leer",
+      emptyFolderDesc: "In diesem Ordner wurden noch keine Notizen erstellt.",
+      attachMedia: "Fotos & Videos anhängen",
+      addPhoto: "Foto hinzufügen",
+      addVideo: "Video hinzufügen",
+      photoUrlOrUpload: "Bild hochladen oder Bild-URL eingeben",
+      videoUrlOrUpload: "Videoclip hochladen oder Video-URL eingeben",
+      mediaGallery: "Angehängte Medien (Fotos & Videos)",
+      fileCount: "Dateien",
+      deleteFolderConfirm: "Möchtest du diesen Ordner wirklich löschen?",
     },
     finance: {
       title: "Finanzen",
@@ -741,6 +798,25 @@ export const translations: Record<Locale, Translations> = {
       backToLearning: "Kembali ke Pembelajaran",
       topic: "Topik",
       noLearnings: "Belum ada catatan pembelajaran. Dokumentasikan konsep, pemahaman, dan intisari belajarmu.",
+      folders: "Folder",
+      notes: "Catatan",
+      newFolder: "Folder Baru",
+      folderName: "Nama Folder",
+      createFolder: "Buat Folder",
+      folderPlaceholder: "misal: Frontend, Backend, Arsitektur Sistem",
+      rootFolder: "Semua Catatan (Utama)",
+      selectFolder: "Pilih Folder",
+      noFolder: "Tanpa Folder (Utama)",
+      emptyFolder: "Folder ini masih kosong",
+      emptyFolderDesc: "Belum ada catatan atau materi pembelajaran di dalam folder ini.",
+      attachMedia: "Lampirkan Foto & Video",
+      addPhoto: "Tambah Foto",
+      addVideo: "Tambah Video",
+      photoUrlOrUpload: "Unggah gambar atau masukkan URL gambar",
+      videoUrlOrUpload: "Unggah klip video atau masukkan URL video",
+      mediaGallery: "Media Terlampir (Foto & Video)",
+      fileCount: "catatan",
+      deleteFolderConfirm: "Apakah kamu yakin ingin menghapus folder ini?",
     },
     finance: {
       title: "Keuangan",
