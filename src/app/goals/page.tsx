@@ -59,8 +59,10 @@ export default function GoalsPage() {
   const { t } = useLanguage();
 
   // Real-time ticking clock (updates every second)
+  const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState<Date>(new Date());
   useEffect(() => {
+    setMounted(true);
     const timer = setInterval(() => {
       setNow(new Date());
     }, 1000);
@@ -472,7 +474,9 @@ export default function GoalsPage() {
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
           <span className="font-mono text-sub font-medium">LIVE TIME:</span>
-          <span className="font-mono text-main">{format(now, "EEEE, d MMM yyyy · HH:mm:ss")}</span>
+          <span className="font-mono text-main" suppressHydrationWarning>
+            {mounted ? format(now, "EEEE, d MMM yyyy · HH:mm:ss") : "--:--:--"}
+          </span>
         </div>
         <span className="text-[11px] text-dim hidden sm:inline">ORBIT Real-time Engine</span>
       </div>
@@ -1031,9 +1035,9 @@ export default function GoalsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-sm font-semibold text-main">{t.goals.createGoal}</h2>
-                <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1 mt-0.5">
+                <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1 mt-0.5" suppressHydrationWarning>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  {format(now, "HH:mm:ss")} · {format(now, "d MMM yyyy")}
+                  {mounted ? `${format(now, "HH:mm:ss")} · ${format(now, "d MMM yyyy")}` : "--:--:--"}
                 </span>
               </div>
               <button

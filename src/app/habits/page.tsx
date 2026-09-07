@@ -36,8 +36,10 @@ export default function HabitsPage() {
   const { t, locale } = useLanguage();
 
   // Real-time ticking clock
+  const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState<Date>(new Date());
   useEffect(() => {
+    setMounted(true);
     const timer = setInterval(() => {
       setNow(new Date());
     }, 1000);
@@ -211,8 +213,8 @@ export default function HabitsPage() {
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
           <span className="font-mono text-sub font-medium">HARI INI:</span>
-          <span className="font-mono text-main font-semibold">
-            {format(now, "EEEE, d MMM yyyy · HH:mm:ss")}
+          <span className="font-mono text-main font-semibold" suppressHydrationWarning>
+            {mounted ? format(now, "EEEE, d MMM yyyy · HH:mm:ss") : "--:--:--"}
           </span>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-accent font-medium">

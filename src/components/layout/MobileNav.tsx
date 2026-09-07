@@ -47,7 +47,7 @@ export function MobileNav({ onOpenQuickAdd }: MobileNavProps) {
         <button
           onClick={onOpenQuickAdd}
           aria-label="Add new record"
-          className="w-11 h-11 -mt-5 rounded-full bg-accent text-white flex items-center justify-center shadow-lg hover:opacity-90 active:scale-95 transition-transform cursor-pointer border-2 border-canvas"
+          className="w-11 h-11 -mt-5 rounded-full bg-gradient-to-tr from-cyan-600 to-cyan-400 text-white flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.35)] active:scale-95 transition-transform cursor-pointer border-2 border-canvas"
         >
           <Plus className="w-6 h-6 stroke-[2.5]" />
         </button>

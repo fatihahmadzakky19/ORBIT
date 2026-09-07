@@ -7,6 +7,7 @@ import { MobileNav } from "./MobileNav";
 import { GlobalAddModal } from "./GlobalAddModal";
 import { CheckCircle2 } from "lucide-react";
 import { LanguageProvider } from "@/lib/i18n/context";
+import { PageTransition } from "@/components/motion/PageTransition";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
@@ -21,37 +22,42 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <LanguageProvider>
-      <div className="min-h-screen flex bg-canvas text-main font-sans selection:bg-accent/30">
-      {/* Desktop Sidebar */}
-      <Sidebar onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
+      <div className="min-h-screen flex bg-canvas text-main font-sans selection:bg-accent/30 relative overflow-x-hidden">
+        {/* Ambient atmospheric lighting */}
+        <div className="fixed -top-24 -right-24 ambient-glow-indigo z-0 opacity-80" />
+        <div className="fixed top-1/2 -left-28 ambient-glow-cyan z-0 opacity-60" />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
-        <Header onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
+        {/* Desktop Sidebar */}
+        <Sidebar onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
 
-        <main className="flex-1 px-4 py-6 md:px-8 md:py-8 max-w-5xl mx-auto w-full">
-          {children}
-        </main>
-      </div>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0 relative z-10">
+          <Header onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
 
-      {/* Mobile Bottom Navigation */}
-      <MobileNav onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
-
-      {/* Global Quick Add Modal */}
-      <GlobalAddModal
-        isOpen={isQuickAddOpen}
-        onClose={() => setIsQuickAddOpen(false)}
-        onSuccess={(_, msg) => showToast(msg)}
-      />
-
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-surface-elevated border border-line shadow-xl text-xs text-main animate-in slide-in-from-bottom-2 fade-in duration-200">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>{toastMessage}</span>
+          <main className="flex-1 px-4 py-6 md:px-8 md:py-8 max-w-5xl mx-auto w-full">
+            <PageTransition>{children}</PageTransition>
+          </main>
         </div>
-      )}
-    </div>
-  </LanguageProvider>
+
+        {/* Mobile Bottom Navigation */}
+        <MobileNav onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
+
+        {/* Global Quick Add Modal */}
+        <GlobalAddModal
+          isOpen={isQuickAddOpen}
+          onClose={() => setIsQuickAddOpen(false)}
+          onSuccess={(_, msg) => showToast(msg)}
+        />
+
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-surface-elevated/90 backdrop-blur-md border border-line shadow-2xl text-xs text-main animate-in slide-in-from-bottom-2 fade-in duration-200">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+      </div>
+    </LanguageProvider>
   );
 }
+
