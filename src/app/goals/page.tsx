@@ -73,7 +73,10 @@ const INITIAL_GOALS: GoalItem[] = [
   },
 ];
 
+import { useLanguage } from "@/lib/i18n/context";
+
 export default function GoalsPage() {
+  const { t } = useLanguage();
   const [goals, setGoals] = useState<GoalItem[]>(INITIAL_GOALS);
   const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "COMPLETED" | "PAUSED" | "CANCELLED">("ACTIVE");
   const [selectedGoal, setSelectedGoal] = useState<GoalItem | null>(null);
@@ -94,6 +97,22 @@ export default function GoalsPage() {
   const completedCount = goals.filter((g) => g.status === "COMPLETED").length;
   const pausedCount = goals.filter((g) => g.status === "PAUSED").length;
   const cancelledCount = goals.filter((g) => g.status === "CANCELLED").length;
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "IN_PROGRESS":
+      case "NOT_STARTED":
+        return t.common.inProgress;
+      case "COMPLETED":
+        return t.common.completed;
+      case "PAUSED":
+        return t.common.paused;
+      case "CANCELLED":
+        return t.common.cancelled;
+      default:
+        return status;
+    }
+  };
 
   const handleCreateGoal = (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,7 +150,7 @@ export default function GoalsPage() {
             className="flex items-center gap-1.5 text-xs text-dim hover:text-main transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Goals</span>
+            <span>{t.goals.backToGoals}</span>
           </button>
 
           {/* Goal Header */}
@@ -139,10 +158,10 @@ export default function GoalsPage() {
             <div className="flex items-start justify-between mb-2">
               <div>
                 <h1 className="text-xl font-semibold text-main">{selectedGoal.title}</h1>
-                <p className="text-xs text-dim mt-1">Deadline: {selectedGoal.deadline ?? "None"}</p>
+                <p className="text-xs text-dim mt-1">{t.common.deadline}: {selectedGoal.deadline ?? "None"}</p>
               </div>
               <span className="text-xs px-2.5 py-1 rounded bg-accent-muted text-accent font-medium">
-                {selectedGoal.status}
+                {getStatusLabel(selectedGoal.status)}
               </span>
             </div>
 
@@ -153,7 +172,7 @@ export default function GoalsPage() {
             {/* Progress Bar */}
             <div className="mt-5">
               <div className="flex justify-between text-xs mb-1.5 font-mono">
-                <span className="text-dim">Progress</span>
+                <span className="text-dim">{t.common.progress}</span>
                 <span className="text-main font-semibold">{selectedGoal.percent}%</span>
               </div>
               <div className="w-full h-2 rounded-full bg-canvas overflow-hidden">
@@ -169,7 +188,7 @@ export default function GoalsPage() {
           {selectedGoal.milestones && selectedGoal.milestones.length > 0 && (
             <div className="p-6 rounded-xl bg-surface border border-line">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-4">
-                Milestones
+                {t.goals.milestones}
               </h2>
               <div className="space-y-2">
                 {selectedGoal.milestones.map((m, idx) => (
@@ -194,32 +213,32 @@ export default function GoalsPage() {
           {/* Related Journey context */}
           <div className="p-6 rounded-xl bg-surface border border-line">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-4">
-              Related Journey Context
+              {t.goals.relatedJourney}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
               <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
                 <div className="text-lg font-mono font-semibold text-main">
                   {selectedGoal.relatedCounts?.activities ?? 0}
                 </div>
-                <div className="text-[11px] text-dim mt-0.5">Activities</div>
+                <div className="text-[11px] text-dim mt-0.5">{t.goals.activities}</div>
               </div>
               <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
                 <div className="text-lg font-mono font-semibold text-main">
                   {selectedGoal.relatedCounts?.learning ?? 0}
                 </div>
-                <div className="text-[11px] text-dim mt-0.5">Learning</div>
+                <div className="text-[11px] text-dim mt-0.5">{t.goals.learning}</div>
               </div>
               <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
                 <div className="text-lg font-mono font-semibold text-main">
                   {selectedGoal.relatedCounts?.habits ?? 0}
                 </div>
-                <div className="text-[11px] text-dim mt-0.5">Habits</div>
+                <div className="text-[11px] text-dim mt-0.5">{t.goals.habits}</div>
               </div>
               <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
                 <div className="text-lg font-mono font-semibold text-main">
                   {selectedGoal.relatedCounts?.reflections ?? 0}
                 </div>
-                <div className="text-[11px] text-dim mt-0.5">Reflections</div>
+                <div className="text-[11px] text-dim mt-0.5">{t.goals.reflections}</div>
               </div>
             </div>
           </div>
@@ -229,9 +248,9 @@ export default function GoalsPage() {
           {/* Top Bar with Filter & Create Button */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl font-semibold text-main">Goals</h1>
+              <h1 className="text-xl font-semibold text-main">{t.goals.title}</h1>
               <p className="text-xs text-dim mt-0.5">
-                Set direction, break down milestones, and document honest progress.
+                {t.goals.subtitle}
               </p>
             </div>
             <button
@@ -239,7 +258,7 @@ export default function GoalsPage() {
               className="inline-flex items-center gap-1.5 py-2 px-3.5 rounded-lg bg-accent text-white text-xs font-medium hover:opacity-90 active:scale-95 transition-all cursor-pointer w-fit"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Create Goal</span>
+              <span>{t.goals.createGoal}</span>
             </button>
           </div>
 
@@ -253,7 +272,7 @@ export default function GoalsPage() {
                   : "text-dim hover:text-sub"
               }`}
             >
-              Active ({activeCount})
+              {t.common.active} ({activeCount})
             </button>
             <button
               onClick={() => setStatusFilter("COMPLETED")}
@@ -263,7 +282,7 @@ export default function GoalsPage() {
                   : "text-dim hover:text-sub"
               }`}
             >
-              Completed ({completedCount})
+              {t.common.completed} ({completedCount})
             </button>
             <button
               onClick={() => setStatusFilter("PAUSED")}
@@ -273,7 +292,7 @@ export default function GoalsPage() {
                   : "text-dim hover:text-sub"
               }`}
             >
-              Paused ({pausedCount})
+              {t.common.paused} ({pausedCount})
             </button>
             <button
               onClick={() => setStatusFilter("CANCELLED")}
@@ -283,7 +302,7 @@ export default function GoalsPage() {
                   : "text-dim hover:text-sub"
               }`}
             >
-              Cancelled ({cancelledCount})
+              {t.common.cancelled} ({cancelledCount})
             </button>
           </div>
 
@@ -301,8 +320,8 @@ export default function GoalsPage() {
                       {goal.title}
                     </h3>
                     <div className="flex items-center gap-3 text-xs text-dim mt-1">
-                      <span>{goal.status}</span>
-                      {goal.deadline && <span>· Deadline {goal.deadline}</span>}
+                      <span>{getStatusLabel(goal.status)}</span>
+                      {goal.deadline && <span>· {t.common.deadline} {goal.deadline}</span>}
                     </div>
                   </div>
                   <span className="text-xs font-mono text-sub">{goal.percent}%</span>
@@ -319,7 +338,7 @@ export default function GoalsPage() {
 
             {filteredGoals.length === 0 && (
               <div className="p-8 text-center rounded-xl bg-surface border border-line">
-                <p className="text-xs text-dim">No goals found in this view.</p>
+                <p className="text-xs text-dim">{t.goals.noGoals}</p>
               </div>
             )}
           </div>
@@ -331,7 +350,7 @@ export default function GoalsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-2xl p-6 text-main">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-main">Create Goal</h2>
+              <h2 className="text-sm font-semibold text-main">{t.goals.createGoal}</h2>
               <button
                 onClick={() => setIsCreating(false)}
                 className="p-1 rounded text-dim hover:text-main cursor-pointer"
@@ -343,7 +362,7 @@ export default function GoalsPage() {
             <form onSubmit={handleCreateGoal} className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  What do you want to achieve? *
+                  {t.goals.whatToAchieve}
                 </label>
                 <input
                   type="text"
@@ -357,7 +376,7 @@ export default function GoalsPage() {
 
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  Description
+                  {t.goals.description}
                 </label>
                 <textarea
                   rows={2}
@@ -370,21 +389,21 @@ export default function GoalsPage() {
 
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  Goal Type *
+                  {t.goals.goalType}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {(["MILESTONE", "MEASURABLE", "HYBRID"] as const).map((t) => (
+                  {(["MILESTONE", "MEASURABLE", "HYBRID"] as const).map((tType) => (
                     <button
-                      key={t}
+                      key={tType}
                       type="button"
-                      onClick={() => setNewType(t)}
+                      onClick={() => setNewType(tType)}
                       className={`py-1.5 px-2 rounded-md border text-xs font-medium transition-all ${
-                        newType === t
+                        newType === tType
                           ? "border-accent bg-accent-muted text-accent"
                           : "border-border-subtle bg-canvas text-dim hover:text-sub"
                       }`}
                     >
-                      {t}
+                      {tType}
                     </button>
                   ))}
                 </div>
@@ -392,7 +411,7 @@ export default function GoalsPage() {
 
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  Deadline
+                  {t.common.deadline}
                 </label>
                 <input
                   type="date"
@@ -408,14 +427,14 @@ export default function GoalsPage() {
                   onClick={() => setIsCreating(false)}
                   className="px-3 py-2 rounded-md text-xs text-sub hover:text-main cursor-pointer"
                 >
-                  Cancel
+                  {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={!newTitle.trim()}
                   className="px-4 py-2 rounded-md bg-accent text-white text-xs font-medium hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 >
-                  Create Goal
+                  {t.goals.createGoal}
                 </button>
               </div>
             </form>

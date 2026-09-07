@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Shield, User, Clock, Check } from "lucide-react";
+import { Download, Shield, User, Clock, Check, Globe } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/context";
+import { Locale } from "@/lib/i18n/translations";
 
 export default function SettingsPage() {
+  const { t, locale, setLocale } = useLanguage();
   const [name, setName] = useState("Alex");
   const [email, setEmail] = useState("alex@example.com");
   const [timezone, setTimezone] = useState("Asia/Jakarta");
@@ -18,7 +21,7 @@ export default function SettingsPage() {
       // Generate sample JSON export download
       const sampleExport = {
         exportedAt: new Date().toISOString(),
-        user: { name, email, timezone },
+        user: { name, email, timezone, locale },
         version: "0.2.0",
         summary: "ORBIT Full Personal Life Evolution Archive",
       };
@@ -34,12 +37,18 @@ export default function SettingsPage() {
     }, 600);
   };
 
+  const languages: { code: Locale; label: string; flag: string }[] = [
+    { code: "id", label: "Bahasa Indonesia", flag: "🇮🇩" },
+    { code: "en", label: "English", flag: "🇬🇧" },
+    { code: "de", label: "Deutsch", flag: "🇩🇪" },
+  ];
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200 max-w-2xl">
       <div>
-        <h1 className="text-xl font-semibold text-main">Settings</h1>
+        <h1 className="text-xl font-semibold text-main">{t.settings.title}</h1>
         <p className="text-xs text-dim mt-0.5">
-          Manage your personal preferences, privacy, and full data archive ownership.
+          {t.settings.subtitle}
         </p>
       </div>
 
@@ -47,12 +56,12 @@ export default function SettingsPage() {
       <div className="p-6 rounded-xl bg-surface border border-line space-y-4">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-dim">
           <User className="w-4 h-4" />
-          <span>Account Profile</span>
+          <span>{t.settings.accountProfile}</span>
         </div>
 
         <div className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-sub mb-1">Name</label>
+            <label className="block text-xs font-medium text-sub mb-1">{t.settings.name}</label>
             <input
               type="text"
               value={name}
@@ -62,7 +71,7 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-sub mb-1">Email</label>
+            <label className="block text-xs font-medium text-sub mb-1">{t.settings.email}</label>
             <input
               type="email"
               value={email}
@@ -73,16 +82,44 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Preferences & Timezone */}
-      <div className="p-6 rounded-xl bg-surface border border-line space-y-4">
+      {/* Preferences & Language */}
+      <div className="p-6 rounded-xl bg-surface border border-line space-y-5">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-dim">
-          <Clock className="w-4 h-4" />
-          <span>Preferences & Timezone</span>
+          <Globe className="w-4 h-4" />
+          <span>{t.settings.preferences}</span>
         </div>
 
+        {/* Language Selection */}
         <div>
           <label className="block text-xs font-medium text-sub mb-1">
-            Timezone (Crucial for Daily Habits & Monday Week Cycles)
+            {t.settings.language}
+          </label>
+          <p className="text-[11px] text-dim mb-3">
+            {t.settings.languageDesc}
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => setLocale(lang.code)}
+                className={`py-2 px-3 rounded-lg border text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  locale === lang.code
+                    ? "border-accent bg-accent-muted text-accent font-semibold shadow-xs"
+                    : "border-border-subtle bg-canvas text-sub hover:text-main hover:border-line"
+                }`}
+              >
+                <span>{lang.flag}</span>
+                <span>{lang.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Timezone */}
+        <div className="pt-4 border-t border-border-subtle">
+          <label className="block text-xs font-medium text-sub mb-1">
+            {t.settings.timezone} (Crucial for Daily Habits & Monday Week Cycles)
           </label>
           <select
             value={timezone}
@@ -92,6 +129,7 @@ export default function SettingsPage() {
             <option value="Asia/Jakarta">Asia/Jakarta (WIB - UTC+7)</option>
             <option value="Asia/Makassar">Asia/Makassar (WITA - UTC+8)</option>
             <option value="Asia/Jayapura">Asia/Jayapura (WIT - UTC+9)</option>
+            <option value="Europe/Berlin">Europe/Berlin (CET - UTC+1)</option>
             <option value="UTC">UTC</option>
           </select>
         </div>
@@ -101,11 +139,11 @@ export default function SettingsPage() {
       <div className="p-6 rounded-xl bg-surface border border-line space-y-4">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-dim">
           <Shield className="w-4 h-4" />
-          <span>Data Ownership & Long-Term Archive</span>
+          <span>{t.settings.dataOwnership}</span>
         </div>
 
         <p className="text-xs text-sub leading-relaxed">
-          ORBIT is built to preserve your life records for 5+ years. You can export your entire database records (Activities, Learning, Goals, Habits, Finance, Reflections) as raw JSON at any time.
+          {t.settings.dataOwnershipDesc}
         </p>
 
         <button
@@ -116,12 +154,12 @@ export default function SettingsPage() {
           {exported ? (
             <>
               <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Archive Exported Successfully</span>
+              <span>{t.settings.exportedSuccess}</span>
             </>
           ) : (
             <>
               <Download className="w-3.5 h-3.5" />
-              <span>{isExporting ? "Exporting..." : "Export Full Data (JSON)"}</span>
+              <span>{isExporting ? t.common.saving : t.settings.exportButton}</span>
             </>
           )}
         </button>
@@ -130,7 +168,7 @@ export default function SettingsPage() {
       {/* Logout */}
       <div className="pt-2">
         <button className="text-xs text-rose-400 hover:underline cursor-pointer">
-          Log out of ORBIT
+          {t.settings.logout}
         </button>
       </div>
     </div>

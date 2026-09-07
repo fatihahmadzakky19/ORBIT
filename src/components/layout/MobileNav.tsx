@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Compass, Target, Repeat, Wallet, Plus } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/context";
 
 interface MobileNavProps {
   onOpenQuickAdd: () => void;
@@ -10,13 +11,14 @@ interface MobileNavProps {
 
 export function MobileNav({ onOpenQuickAdd }: MobileNavProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   const items = [
-    { label: "Home", href: "/", icon: Home },
-    { label: "Journey", href: "/journey", icon: Compass },
-    { label: "Goals", href: "/goals", icon: Target },
-    { label: "Habits", href: "/habits", icon: Repeat },
-    { label: "Finance", href: "/finance", icon: Wallet },
+    { label: t.nav.home, href: "/", icon: Home },
+    { label: t.nav.journey, href: "/journey", icon: Compass },
+    { label: t.nav.goals, href: "/goals", icon: Target },
+    { label: t.nav.habits, href: "/habits", icon: Repeat },
+    { label: t.nav.finance, href: "/finance", icon: Wallet },
   ];
 
   return (

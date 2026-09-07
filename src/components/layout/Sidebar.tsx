@@ -12,6 +12,7 @@ import {
   Settings,
   Plus,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/context";
 
 interface SidebarProps {
   onOpenQuickAdd: () => void;
@@ -19,24 +20,25 @@ interface SidebarProps {
 
 export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   const navItems = [
-    { label: "Home", href: "/", icon: Home },
+    { label: t.nav.home, href: "/", icon: Home },
     {
-      label: "Journey",
+      label: t.nav.journey,
       href: "/journey",
       icon: Compass,
       subItems: [
-        { label: "Timeline", href: "/journey/timeline" },
-        { label: "Progress", href: "/journey/progress" },
-        { label: "Compare", href: "/journey/compare" },
-        { label: "Reflections", href: "/journey/reflections" },
+        { label: t.nav.timeline, href: "/journey/timeline" },
+        { label: t.nav.progress, href: "/journey/progress" },
+        { label: t.nav.compare, href: "/journey/compare" },
+        { label: t.nav.reflections, href: "/journey/reflections" },
       ],
     },
-    { label: "Goals", href: "/goals", icon: Target },
-    { label: "Habits", href: "/habits", icon: Repeat },
-    { label: "Learning", href: "/learning", icon: BookOpen },
-    { label: "Finance", href: "/finance", icon: Wallet },
+    { label: t.nav.goals, href: "/goals", icon: Target },
+    { label: t.nav.habits, href: "/habits", icon: Repeat },
+    { label: t.nav.learning, href: "/learning", icon: BookOpen },
+    { label: t.nav.finance, href: "/finance", icon: Wallet },
   ];
 
   return (
@@ -60,7 +62,7 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
         className="w-full mb-6 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-accent text-white font-medium text-sm shadow-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer"
       >
         <Plus className="w-4 h-4 stroke-[2.5]" />
-        <span>Add Record</span>
+        <span>{t.nav.addRecord}</span>
       </button>
 
       {/* Navigation */}
@@ -122,7 +124,7 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
           }`}
         >
           <Settings className="w-4 h-4 text-dim" />
-          <span>Settings</span>
+          <span>{t.nav.settings}</span>
         </Link>
       </div>
     </aside>

@@ -73,11 +73,26 @@ const INITIAL_HABITS: HabitItem[] = [
   },
 ];
 
+import { useLanguage } from "@/lib/i18n/context";
+
 export default function HabitsPage() {
+  const { t, locale } = useLanguage();
   const [habits, setHabits] = useState<HabitItem[]>(INITIAL_HABITS);
   const [selectedHabit, setSelectedHabit] = useState<HabitItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [newHabitName, setNewHabitName] = useState("");
+
+  const getDayName = (day: string) => {
+    if (locale === "de") {
+      const deMap: Record<string, string> = { Mon: "Mo", Tue: "Di", Wed: "Mi", Thu: "Do", Fri: "Fr", Sat: "Sa", Sun: "So" };
+      return deMap[day] || day;
+    }
+    if (locale === "id") {
+      const idMap: Record<string, string> = { Mon: "Sen", Tue: "Sel", Wed: "Rab", Thu: "Kam", Fri: "Jum", Sat: "Sab", Sun: "Min" };
+      return idMap[day] || day;
+    }
+    return day;
+  };
 
   const toggleToday = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -129,7 +144,7 @@ export default function HabitsPage() {
             className="flex items-center gap-1.5 text-xs text-dim hover:text-main transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Habits</span>
+            <span>{t.habits.backToHabits}</span>
           </button>
 
           {/* Habit Header */}
@@ -137,22 +152,22 @@ export default function HabitsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h1 className="text-xl font-semibold text-main">{selectedHabit.name}</h1>
-                <p className="text-xs text-dim mt-0.5">Daily · Active</p>
+                <p className="text-xs text-dim mt-0.5">Daily · {t.common.active}</p>
               </div>
               <span className="text-xs font-mono text-sub bg-surface-elevated px-2.5 py-1 rounded">
-                This week: {selectedHabit.thisWeekRatio} days
+                {t.habits.thisWeek}: {selectedHabit.thisWeekRatio}
               </span>
             </div>
 
             {/* This Week Days Breakdown */}
             <div className="pt-4 border-t border-border-subtle">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-3">
-                This Week Rhythm
+                {t.habits.rhythm}
               </h2>
               <div className="grid grid-cols-7 gap-2 text-center">
                 {selectedHabit.daysWeek.map((d, i) => (
                   <div key={i} className="p-2.5 rounded-lg bg-canvas border border-border-subtle">
-                    <div className="text-xs text-dim mb-1">{d.day}</div>
+                    <div className="text-xs text-dim mb-1">{getDayName(d.day)}</div>
                     <div className="text-sm font-semibold">
                       {d.status === "DONE" && <span className="text-emerald-400">✓</span>}
                       {d.status === "MISSED" && <span className="text-dim">✕</span>}
@@ -167,7 +182,7 @@ export default function HabitsPage() {
           {/* Evidence from Activities */}
           <div className="p-6 rounded-xl bg-surface border border-line">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-3">
-              Evidence (Linked Activities)
+              {t.habits.evidence}
             </h2>
             {selectedHabit.evidence.length > 0 ? (
               <div className="space-y-2">
@@ -185,7 +200,7 @@ export default function HabitsPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-dim">No activities linked yet as evidence.</p>
+              <p className="text-xs text-dim">{t.habits.noEvidence}</p>
             )}
           </div>
         </div>
@@ -194,9 +209,9 @@ export default function HabitsPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl font-semibold text-main">Habits</h1>
+              <h1 className="text-xl font-semibold text-main">{t.habits.title}</h1>
               <p className="text-xs text-dim mt-0.5">
-                Daily patterns maintained through real actions. No streaks, no arbitrary score.
+                {t.habits.subtitle}
               </p>
             </div>
             <button
@@ -204,14 +219,14 @@ export default function HabitsPage() {
               className="inline-flex items-center gap-1.5 py-2 px-3.5 rounded-lg bg-accent text-white text-xs font-medium hover:opacity-90 active:scale-95 transition-all cursor-pointer w-fit"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Create Habit</span>
+              <span>{t.habits.createHabit}</span>
             </button>
           </div>
 
           {/* Habit List */}
           <div className="space-y-3">
             <div className="text-xs uppercase tracking-wider font-semibold text-dim">
-              Today
+              {t.habits.today}
             </div>
 
             {habits.map((habit) => (
@@ -225,7 +240,7 @@ export default function HabitsPage() {
                     {habit.name}
                   </h3>
                   <div className="text-xs font-mono text-dim mt-1">
-                    This week: {habit.thisWeekRatio} days
+                    {t.habits.thisWeek}: {habit.thisWeekRatio}
                   </div>
                 </div>
 
@@ -241,12 +256,12 @@ export default function HabitsPage() {
                   {habit.completedToday ? (
                     <>
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Completed</span>
+                      <span>{t.common.completed}</span>
                     </>
                   ) : (
                     <>
                       <Circle className="w-3.5 h-3.5" />
-                      <span>Mark as done</span>
+                      <span>{t.common.markDone}</span>
                     </>
                   )}
                 </button>
@@ -261,7 +276,7 @@ export default function HabitsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="w-full max-w-sm bg-surface border border-line rounded-xl shadow-2xl p-6 text-main">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-main">Create Habit</h2>
+              <h2 className="text-sm font-semibold text-main">{t.habits.createHabit}</h2>
               <button
                 onClick={() => setIsCreating(false)}
                 className="p-1 rounded text-dim hover:text-main cursor-pointer"
@@ -273,7 +288,7 @@ export default function HabitsPage() {
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  Habit Name *
+                  {t.habits.habitName}
                 </label>
                 <input
                   type="text"
@@ -291,14 +306,14 @@ export default function HabitsPage() {
                   onClick={() => setIsCreating(false)}
                   className="px-3 py-2 rounded-md text-xs text-sub hover:text-main cursor-pointer"
                 >
-                  Cancel
+                  {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={!newHabitName.trim()}
                   className="px-4 py-2 rounded-md bg-accent text-white text-xs font-medium hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 >
-                  Save Habit
+                  {t.habits.saveHabit}
                 </button>
               </div>
             </form>

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { JourneyTabs } from "@/components/layout/JourneyTabs";
 import { ArrowLeft, Sparkles, Calendar, BookOpen, Target, Award } from "lucide-react";
 
+import { useLanguage } from "@/lib/i18n/context";
+
 interface TimelineEvent {
   id: string;
   date: string;
@@ -78,17 +80,25 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
 ];
 
 export default function TimelinePage() {
+  const { t, locale } = useLanguage();
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
 
   // Group events by Month
   const months = ["September", "August"];
 
+  const getMonthName = (month: string) => {
+    if (locale === "id") {
+      if (month === "August") return "Agustus";
+    }
+    return month;
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div>
-        <h1 className="text-xl font-semibold text-main">Journey</h1>
+        <h1 className="text-xl font-semibold text-main">{t.journey.title}</h1>
         <p className="text-xs text-dim mt-0.5">
-          Meaningful milestones across your life. Curated moments, not noisy database logs.
+          {t.journey.subtitle}
         </p>
       </div>
 
@@ -101,7 +111,7 @@ export default function TimelinePage() {
             className="flex items-center gap-1.5 text-xs text-dim hover:text-main cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Timeline</span>
+            <span>{t.journey.backToTimeline}</span>
           </button>
 
           <div className="p-6 rounded-xl bg-surface border border-line space-y-4">
@@ -120,13 +130,13 @@ export default function TimelinePage() {
               <div className="pt-3 border-t border-border-subtle space-y-2 text-xs">
                 {selectedEvent.relatedActivity && (
                   <div>
-                    <span className="text-[11px] text-dim block">Related Activity</span>
+                    <span className="text-[11px] text-dim block">{t.learning.relatedActivity}</span>
                     <span className="text-main font-medium">{selectedEvent.relatedActivity}</span>
                   </div>
                 )}
                 {selectedEvent.relatedGoal && (
                   <div>
-                    <span className="text-[11px] text-dim block">Related Goal</span>
+                    <span className="text-[11px] text-dim block">{t.learning.relatedGoal}</span>
                     <span className="text-accent font-medium">{selectedEvent.relatedGoal}</span>
                   </div>
                 )}
@@ -144,7 +154,7 @@ export default function TimelinePage() {
             return (
               <div key={month} className="space-y-3">
                 <h3 className="text-xs uppercase tracking-wider font-semibold text-dim pl-1">
-                  {month}
+                  {getMonthName(month)}
                 </h3>
 
                 <div className="border-l-2 border-line ml-3 pl-5 space-y-4">

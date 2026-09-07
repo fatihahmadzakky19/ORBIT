@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, ArrowDownCircle, ArrowUpCircle, X } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
+import { useLanguage } from "@/lib/i18n/context";
 
 interface TransactionItem {
   id: string;
@@ -51,6 +52,7 @@ const INITIAL_TRANSACTIONS: TransactionItem[] = [
 ];
 
 export default function FinancePage() {
+  const { t } = useLanguage();
   const [actualBalance, setActualBalance] = useState(4750000);
   const [calculatedBalance, setCalculatedBalance] = useState(4800000);
   const [transactions, setTransactions] = useState<TransactionItem[]>(INITIAL_TRANSACTIONS);
@@ -113,9 +115,9 @@ export default function FinancePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-main">Finance</h1>
+          <h1 className="text-xl font-semibold text-main">{t.finance.title}</h1>
           <p className="text-xs text-dim mt-0.5">
-            Honest financial tracking. Actual vs Calculated balances displayed side-by-side.
+            {t.finance.subtitle}
           </p>
         </div>
         <button
@@ -123,7 +125,7 @@ export default function FinancePage() {
           className="inline-flex items-center gap-1.5 py-2 px-3.5 rounded-lg bg-accent text-white text-xs font-medium hover:opacity-90 active:scale-95 transition-all cursor-pointer w-fit"
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-          <span>Add Transaction</span>
+          <span>{t.finance.addTransaction}</span>
         </button>
       </div>
 
@@ -133,13 +135,13 @@ export default function FinancePage() {
         <div className="p-5 rounded-xl bg-surface border border-line flex flex-col justify-between">
           <div>
             <div className="text-xs font-semibold uppercase tracking-wider text-dim mb-1">
-              Actual Balance
+              {t.common.actualBalance}
             </div>
             <div className="text-2xl font-mono font-semibold text-main">
               {formatCurrency(actualBalance)}
             </div>
             <p className="text-xs text-dim mt-1">
-              Physical cash & bank accounts you verified today.
+              {t.finance.actualDesc}
             </p>
           </div>
           <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between">
@@ -150,9 +152,9 @@ export default function FinancePage() {
               }}
               className="text-xs text-accent hover:underline cursor-pointer"
             >
-              Update Actual Balance
+              {t.finance.updateActual}
             </button>
-            <span className="text-[11px] font-mono text-dim">Updated today</span>
+            <span className="text-[11px] font-mono text-dim">{t.finance.updatedToday}</span>
           </div>
         </div>
 
@@ -160,17 +162,17 @@ export default function FinancePage() {
         <div className="p-5 rounded-xl bg-surface border border-line flex flex-col justify-between">
           <div>
             <div className="text-xs font-semibold uppercase tracking-wider text-dim mb-1">
-              Calculated Balance
+              {t.common.calculatedBalance}
             </div>
             <div className="text-2xl font-mono font-semibold text-main">
               {formatCurrency(calculatedBalance)}
             </div>
             <p className="text-xs text-dim mt-1">
-              Starting balance + recorded Incomes - recorded Expenses.
+              {t.finance.calculatedDesc}
             </p>
           </div>
           <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between text-xs font-mono">
-            <span className="text-dim">Difference:</span>
+            <span className="text-dim">{t.common.difference}:</span>
             <span className={difference < 0 ? "text-rose-400" : "text-emerald-400"}>
               {difference >= 0 ? `+${formatCurrency(difference)}` : formatCurrency(difference)}
             </span>
@@ -181,23 +183,23 @@ export default function FinancePage() {
       {/* THIS MONTH METRICS */}
       <div className="p-5 rounded-xl bg-surface border border-line">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-4">
-          September 2026 Net Flow
+          September 2026 {t.finance.netFlow}
         </h2>
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
-            <div className="text-xs text-dim mb-1">Income</div>
+            <div className="text-xs text-dim mb-1">{t.common.income}</div>
             <div className="text-sm md:text-base font-mono font-semibold text-emerald-400">
               +Rp 3.000.000
             </div>
           </div>
           <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
-            <div className="text-xs text-dim mb-1">Expense</div>
+            <div className="text-xs text-dim mb-1">{t.common.expense}</div>
             <div className="text-sm md:text-base font-mono font-semibold text-rose-400">
               -Rp 1.250.000
             </div>
           </div>
           <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
-            <div className="text-xs text-dim mb-1">Net Flow</div>
+            <div className="text-xs text-dim mb-1">{t.finance.netFlow}</div>
             <div className="text-sm md:text-base font-mono font-semibold text-accent">
               +Rp 1.750.000
             </div>
@@ -208,7 +210,7 @@ export default function FinancePage() {
       {/* BUDGETS */}
       <div className="p-5 rounded-xl bg-surface border border-line">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-4">
-          September Budgets
+          September {t.finance.budgets}
         </h2>
         <div className="space-y-4">
           <div>
@@ -247,7 +249,7 @@ export default function FinancePage() {
       <div className="p-5 rounded-xl bg-surface border border-line">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-dim">
-            Transactions
+            {t.finance.transactions}
           </h2>
           <div className="flex items-center gap-1.5 text-xs">
             {(["ALL", "INCOME", "EXPENSE"] as const).map((f) => (
@@ -260,7 +262,7 @@ export default function FinancePage() {
                     : "text-dim hover:text-sub"
                 }`}
               >
-                {f}
+                {f === "ALL" ? t.common.all : f === "INCOME" ? t.common.income : t.common.expense}
               </button>
             ))}
           </div>
@@ -318,7 +320,7 @@ export default function FinancePage() {
       {isUpdatingActual && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="w-full max-w-xs bg-surface border border-line rounded-xl shadow-2xl p-6 text-main">
-            <h2 className="text-sm font-semibold text-main mb-3">Update Actual Balance</h2>
+            <h2 className="text-sm font-semibold text-main mb-3">{t.finance.updateBalanceTitle}</h2>
             <form onSubmit={handleUpdateActual} className="space-y-3">
               <input
                 type="number"
@@ -333,13 +335,13 @@ export default function FinancePage() {
                   onClick={() => setIsUpdatingActual(false)}
                   className="px-3 py-1.5 rounded-md text-xs text-sub hover:text-main cursor-pointer"
                 >
-                  Cancel
+                  {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   className="px-3.5 py-1.5 rounded-md bg-accent text-white text-xs font-medium hover:opacity-90 cursor-pointer"
                 >
-                  Save
+                  {t.common.save}
                 </button>
               </div>
             </form>
@@ -352,7 +354,7 @@ export default function FinancePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="w-full max-w-sm bg-surface border border-line rounded-xl shadow-2xl p-6 text-main">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-main">Add Transaction</h2>
+              <h2 className="text-sm font-semibold text-main">{t.finance.addTransaction}</h2>
               <button
                 onClick={() => setIsAddingTx(false)}
                 className="p-1 rounded text-dim hover:text-main cursor-pointer"
@@ -372,7 +374,7 @@ export default function FinancePage() {
                       : "border-border-subtle text-dim"
                   }`}
                 >
-                  Expense
+                  {t.common.expense}
                 </button>
                 <button
                   type="button"
@@ -383,12 +385,12 @@ export default function FinancePage() {
                       : "border-border-subtle text-dim"
                   }`}
                 >
-                  Income
+                  {t.common.income}
                 </button>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-sub mb-1">Amount (Rp) *</label>
+                <label className="block text-xs font-medium text-sub mb-1">{t.common.amount} (Rp) *</label>
                 <input
                   type="number"
                   required
@@ -402,7 +404,7 @@ export default function FinancePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-sub mb-1">Category</label>
+                <label className="block text-xs font-medium text-sub mb-1">{t.common.category}</label>
                 <input
                   type="text"
                   value={newTxCat}
@@ -412,7 +414,7 @@ export default function FinancePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-sub mb-1">Note (optional)</label>
+                <label className="block text-xs font-medium text-sub mb-1">{t.common.note} ({t.common.optional})</label>
                 <input
                   type="text"
                   placeholder="Notes..."
@@ -428,13 +430,13 @@ export default function FinancePage() {
                   onClick={() => setIsAddingTx(false)}
                   className="px-3 py-1.5 rounded-md text-xs text-sub hover:text-main cursor-pointer"
                 >
-                  Cancel
+                  {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   className="px-3.5 py-1.5 rounded-md bg-accent text-white text-xs font-medium hover:opacity-90 cursor-pointer"
                 >
-                  Save Transaction
+                  {t.common.save}
                 </button>
               </div>
             </form>

@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/lib/i18n/context";
 
 export function JourneyTabs() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   const tabs = [
-    { label: "Timeline", href: "/journey/timeline" },
-    { label: "Progress", href: "/journey/progress" },
-    { label: "Compare", href: "/journey/compare" },
-    { label: "Reflections", href: "/journey/reflections" },
+    { label: t.nav.timeline, href: "/journey/timeline" },
+    { label: t.nav.progress, href: "/journey/progress" },
+    { label: t.nav.compare, href: "/journey/compare" },
+    { label: t.nav.reflections, href: "/journey/reflections" },
   ];
 
   return (

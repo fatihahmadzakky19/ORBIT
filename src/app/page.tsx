@@ -11,9 +11,11 @@ import {
   BookOpen,
   Wallet,
 } from "lucide-react";
-import { formatFullDate, getGreeting, formatWeekRange, getMondayOfWeek } from "@/lib/date";
+import { formatWeekRange, getMondayOfWeek } from "@/lib/date";
+import { useLanguage } from "@/lib/i18n/context";
 
 export default function HomePage() {
+  const { t, locale } = useLanguage();
   const [habits, setHabits] = useState([
     { id: "h1", name: "Coding Practice", completed: true },
     { id: "h2", name: "Exercise 30 min", completed: false },
@@ -27,8 +29,23 @@ export default function HomePage() {
   };
 
   const completedHabitsCount = habits.filter((h) => h.completed).length;
-  const todayFormatted = formatFullDate(new Date());
-  const greeting = getGreeting();
+
+  const dateLocaleStr = locale === "id" ? "id-ID" : locale === "de" ? "de-DE" : "en-US";
+  const todayFormatted = new Intl.DateTimeFormat(dateLocaleStr, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
+
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12
+      ? t.home.greetingMorning
+      : hour < 17
+      ? t.home.greetingAfternoon
+      : t.home.greetingEvening;
+
   const currentWeekRange = formatWeekRange(getMondayOfWeek(new Date()));
 
   return (
@@ -47,10 +64,10 @@ export default function HomePage() {
       <section className="p-5 rounded-xl bg-surface border border-line shadow-sm">
         <div className="flex items-center justify-between mb-3.5">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-dim">
-            Today
+            {t.home.today}
           </h2>
           <span className="text-xs font-mono text-sub">
-            {completedHabitsCount} / {habits.length} habits
+            {completedHabitsCount} / {habits.length} {t.home.habitsCount}
           </span>
         </div>
 
@@ -76,7 +93,7 @@ export default function HomePage() {
                 </span>
               </div>
               <span className="text-[11px] text-dim opacity-0 group-hover:opacity-100 transition-opacity">
-                {habit.completed ? "Done" : "Mark done"}
+                {habit.completed ? t.common.done : t.common.markDone}
               </span>
             </button>
           ))}
@@ -87,13 +104,13 @@ export default function HomePage() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-dim">
-            Current Focus
+            {t.home.currentFocus}
           </h2>
           <Link
             href="/goals"
             className="text-xs text-sub hover:text-main flex items-center gap-1 transition-colors"
           >
-            <span>All goals</span>
+            <span>{t.home.allGoals}</span>
             <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
@@ -118,8 +135,8 @@ export default function HomePage() {
               />
             </div>
             <div className="flex items-center justify-between text-xs text-dim">
-              <span>In Progress</span>
-              <span>Deadline 30 Nov 2026</span>
+              <span>{t.common.inProgress}</span>
+              <span>{t.common.deadline} 30 Nov 2026</span>
             </div>
           </Link>
 
@@ -142,7 +159,7 @@ export default function HomePage() {
               />
             </div>
             <div className="flex items-center justify-between text-xs text-dim">
-              <span>In Progress</span>
+              <span>{t.common.inProgress}</span>
               <span className="font-mono">Rp4M / Rp10M</span>
             </div>
           </Link>
@@ -157,7 +174,7 @@ export default function HomePage() {
             <div className="flex items-center gap-2 mb-3 text-dim">
               <BookOpen className="w-3.5 h-3.5" />
               <h2 className="text-xs font-semibold uppercase tracking-wider">
-                Recent Learning
+                {t.home.recentLearning}
               </h2>
             </div>
             <h3 className="text-sm font-medium text-main mb-1">
@@ -172,7 +189,7 @@ export default function HomePage() {
               href="/learning"
               className="text-xs text-accent hover:underline flex items-center gap-1"
             >
-              <span>View learning</span>
+              <span>{t.home.viewLearning}</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -184,15 +201,15 @@ export default function HomePage() {
             <div className="flex items-center gap-2 mb-3 text-dim">
               <Wallet className="w-3.5 h-3.5" />
               <h2 className="text-xs font-semibold uppercase tracking-wider">
-                Finance
+                {t.home.financeSnapshot}
               </h2>
             </div>
-            <div className="text-xs text-dim mb-0.5">Actual Balance</div>
+            <div className="text-xs text-dim mb-0.5">{t.common.actualBalance}</div>
             <div className="text-xl font-mono font-semibold text-main">
               Rp 4.750.000
             </div>
             <div className="text-xs text-dim mt-1">
-              Calculated: <span className="font-mono text-sub">Rp 4.800.000</span>
+              {t.common.calculatedBalance}: <span className="font-mono text-sub">Rp 4.800.000</span>
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-border-subtle">
@@ -200,7 +217,7 @@ export default function HomePage() {
               href="/finance"
               className="text-xs text-accent hover:underline flex items-center gap-1"
             >
-              <span>View finance</span>
+              <span>{t.home.viewFinance}</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -213,19 +230,19 @@ export default function HomePage() {
           <div className="flex items-center gap-2 text-accent mb-1">
             <Sparkles className="w-3.5 h-3.5" />
             <h2 className="text-xs font-semibold uppercase tracking-wider">
-              Weekly Reflection
+              {t.home.weeklyReflection}
             </h2>
           </div>
           <p className="text-xs font-mono text-dim mb-1">{currentWeekRange}</p>
           <p className="text-xs text-sub">
-            Reflection hasn&apos;t been completed yet. Take a moment to reflect on your week.
+            {t.home.reflectionPending}
           </p>
         </div>
         <Link
           href="/journey/reflections/new"
           className="inline-flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-surface-elevated border border-border-subtle hover:border-accent text-xs font-medium text-main hover:text-accent transition-all shrink-0 cursor-pointer"
         >
-          <span>Reflect this week</span>
+          <span>{t.home.reflectThisWeek}</span>
           <ArrowRight className="w-3 h-3" />
         </Link>
       </section>

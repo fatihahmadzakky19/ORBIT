@@ -1,40 +1,68 @@
 "use client";
 
 import { JourneyTabs } from "@/components/layout/JourneyTabs";
-import Link from "next/link";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/context";
 
 export default function ProgressPage() {
+  const { t, locale } = useLanguage();
+
   const currentGoals = [
     {
       title: "Get First Job",
-      status: "In Progress",
+      status: t.common.inProgress,
       percent: 65,
-      detail: "Milestones: 3 / 5",
+      detail: locale === "id" ? "Tahapan: 3 / 5" : locale === "de" ? "Meilensteine: 3 / 5" : "Milestones: 3 / 5",
       color: "bg-accent",
     },
     {
       title: "Save Rp10M",
-      status: "In Progress",
+      status: t.common.inProgress,
       percent: 40,
       detail: "Rp4M / Rp10M",
       color: "bg-cyan-400",
     },
     {
       title: "Portfolio Website v1",
-      status: "Completed",
+      status: t.common.completed,
       percent: 100,
-      detail: "Deployed to Vercel",
+      detail: locale === "id" ? "Dirilis di Vercel" : locale === "de" ? "Auf Vercel bereitgestellt" : "Deployed to Vercel",
       color: "bg-emerald-400",
+    },
+  ];
+
+  const milestones = [
+    {
+      month: locale === "de" ? "Jan" : locale === "id" ? "Jan" : "Jan",
+      label: locale === "id" ? "Masa sekolah" : locale === "de" ? "Schulzeit" : "School term",
+      isNow: false,
+    },
+    {
+      month: locale === "de" ? "Mär" : locale === "id" ? "Mar" : "Mar",
+      label: locale === "id" ? "Persiapan ujian" : locale === "de" ? "Prüfungsvorbereitung" : "Final exam prep",
+      isNow: false,
+    },
+    {
+      month: locale === "de" ? "Jun" : locale === "id" ? "Jun" : "Jun",
+      label: locale === "id" ? "Kelulusan" : locale === "de" ? "Abschluss" : "Graduation",
+      isNow: false,
+    },
+    {
+      month: locale === "id" ? "Sep (Kini)" : locale === "de" ? "Sep (Jetzt)" : "Sep (Now)",
+      label: locale === "id" ? "Mencari kerja & ORBIT" : locale === "de" ? "Jobsuche & ORBIT" : "Job hunt & ORBIT",
+      isNow: true,
     },
   ];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div>
-        <h1 className="text-xl font-semibold text-main">Journey</h1>
+        <h1 className="text-xl font-semibold text-main">{t.journey.title}</h1>
         <p className="text-xs text-dim mt-0.5">
-          Evaluate directional progress towards your core goals.
+          {locale === "id"
+            ? "Evaluasi kemajuan terarah menuju target-target utamamu."
+            : locale === "de"
+            ? "Bewerte den zielgerichteten Fortschritt deiner Kernziele."
+            : "Evaluate directional progress towards your core goals."}
         </p>
       </div>
 
@@ -43,7 +71,7 @@ export default function ProgressPage() {
       {/* Current Goals Progress */}
       <div className="p-6 rounded-xl bg-surface border border-line space-y-5">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-dim">
-          Current Goals
+          {t.journey.currentGoals}
         </h2>
 
         <div className="space-y-4">
@@ -71,47 +99,37 @@ export default function ProgressPage() {
       {/* Progress Over Time Milestone Map */}
       <div className="p-6 rounded-xl bg-surface border border-line">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-4">
-          Progress Over Time (2026)
+          {t.journey.progressOverTime}
         </h2>
 
         <div className="flex items-center justify-between py-6 px-4 rounded-lg bg-canvas border border-border-subtle relative">
           <div className="absolute left-6 right-6 top-1/2 h-0.5 bg-line -translate-y-1/2 z-0" />
 
-          {/* Jan */}
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="w-4 h-4 rounded-full bg-surface-elevated border-2 border-line mb-2" />
-            <span className="text-xs font-mono text-dim">Jan</span>
-            <span className="text-[10px] text-dim text-center mt-1 hidden sm:block">
-              School term
-            </span>
-          </div>
-
-          {/* Mar */}
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="w-4 h-4 rounded-full bg-surface-elevated border-2 border-line mb-2" />
-            <span className="text-xs font-mono text-dim">Mar</span>
-            <span className="text-[10px] text-dim text-center mt-1 hidden sm:block">
-              Final exam prep
-            </span>
-          </div>
-
-          {/* Jun */}
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="w-4 h-4 rounded-full bg-surface-elevated border-2 border-line mb-2" />
-            <span className="text-xs font-mono text-dim">Jun</span>
-            <span className="text-[10px] text-dim text-center mt-1 hidden sm:block">
-              Graduation
-            </span>
-          </div>
-
-          {/* Sep */}
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="w-4 h-4 rounded-full bg-accent border-2 border-canvas mb-2 shadow-sm" />
-            <span className="text-xs font-mono text-accent font-semibold">Sep (Now)</span>
-            <span className="text-[10px] text-sub text-center mt-1 hidden sm:block">
-              Job hunt & ORBIT
-            </span>
-          </div>
+          {milestones.map((m, idx) => (
+            <div key={idx} className="relative z-10 flex flex-col items-center">
+              <div
+                className={`w-4 h-4 rounded-full mb-2 ${
+                  m.isNow
+                    ? "bg-accent border-2 border-canvas shadow-sm"
+                    : "bg-surface-elevated border-2 border-line"
+                }`}
+              />
+              <span
+                className={`text-xs font-mono ${
+                  m.isNow ? "text-accent font-semibold" : "text-dim"
+                }`}
+              >
+                {m.month}
+              </span>
+              <span
+                className={`text-[10px] text-center mt-1 hidden sm:block ${
+                  m.isNow ? "text-sub font-medium" : "text-dim"
+                }`}
+              >
+                {m.label}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

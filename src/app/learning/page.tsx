@@ -46,7 +46,10 @@ const INITIAL_LEARNINGS: LearningItem[] = [
   },
 ];
 
+import { useLanguage } from "@/lib/i18n/context";
+
 export default function LearningPage() {
+  const { t } = useLanguage();
   const [learnings, setLearnings] = useState<LearningItem[]>(INITIAL_LEARNINGS);
   const [selectedLearning, setSelectedLearning] = useState<LearningItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -86,7 +89,7 @@ export default function LearningPage() {
             className="flex items-center gap-1.5 text-xs text-dim hover:text-main transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Learning</span>
+            <span>{t.learning.backToLearning}</span>
           </button>
 
           <div className="p-6 rounded-xl bg-surface border border-line space-y-6">
@@ -98,7 +101,7 @@ export default function LearningPage() {
             {/* What I Understood */}
             <div>
               <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-2">
-                What I Understood
+                {t.learning.whatUnderstood}
               </h2>
               <div className="p-4 rounded-lg bg-canvas border border-border-subtle text-xs text-sub leading-relaxed whitespace-pre-line">
                 {selectedLearning.understood}
@@ -109,7 +112,7 @@ export default function LearningPage() {
             {selectedLearning.source && (
               <div>
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-1">
-                  Source / Context
+                  {t.learning.sourceContext}
                 </h2>
                 <p className="text-xs text-main">{selectedLearning.source}</p>
               </div>
@@ -120,7 +123,7 @@ export default function LearningPage() {
               <div className="pt-4 border-t border-border-subtle grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {selectedLearning.relatedActivity && (
                   <div>
-                    <span className="text-[11px] text-dim block mb-0.5">Related Activity</span>
+                    <span className="text-[11px] text-dim block mb-0.5">{t.learning.relatedActivity}</span>
                     <span className="text-xs text-main font-medium">
                       {selectedLearning.relatedActivity}
                     </span>
@@ -128,7 +131,7 @@ export default function LearningPage() {
                 )}
                 {selectedLearning.relatedGoal && (
                   <div>
-                    <span className="text-[11px] text-dim block mb-0.5">Related Goal</span>
+                    <span className="text-[11px] text-dim block mb-0.5">{t.learning.relatedGoal}</span>
                     <span className="text-xs text-accent font-medium">
                       {selectedLearning.relatedGoal}
                     </span>
@@ -143,7 +146,7 @@ export default function LearningPage() {
                 onClick={() => handleDelete(selectedLearning.id)}
                 className="px-3 py-1.5 rounded-md text-xs text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
               >
-                Delete
+                {t.common.delete}
               </button>
             </div>
           </div>
@@ -153,9 +156,9 @@ export default function LearningPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl font-semibold text-main">Learning</h1>
+              <h1 className="text-xl font-semibold text-main">{t.learning.title}</h1>
               <p className="text-xs text-dim mt-0.5">
-                Separate from activity. Documents what you actually understood, not just what you did.
+                {t.learning.subtitle}
               </p>
             </div>
             <button
@@ -163,14 +166,14 @@ export default function LearningPage() {
               className="inline-flex items-center gap-1.5 py-2 px-3.5 rounded-lg bg-accent text-white text-xs font-medium hover:opacity-90 active:scale-95 transition-all cursor-pointer w-fit"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Add Learning</span>
+              <span>{t.learning.addLearning}</span>
             </button>
           </div>
 
           {/* Learning Cards List */}
           <div className="space-y-3">
             <div className="text-xs uppercase tracking-wider font-semibold text-dim">
-              Recent
+              {t.learning.recent}
             </div>
 
             {learnings.map((item) => (
@@ -204,7 +207,7 @@ export default function LearningPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-2xl p-6 text-main">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-main">Add Learning</h2>
+              <h2 className="text-sm font-semibold text-main">{t.learning.addLearning}</h2>
               <button
                 onClick={() => setIsCreating(false)}
                 className="p-1 rounded text-dim hover:text-main cursor-pointer"
@@ -216,7 +219,7 @@ export default function LearningPage() {
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  Topic *
+                  {t.learning.topic} *
                 </label>
                 <input
                   type="text"
@@ -230,7 +233,7 @@ export default function LearningPage() {
 
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  What did you understand?
+                  {t.quickAdd.whatDidYouUnderstand}
                 </label>
                 <textarea
                   rows={3}
@@ -243,7 +246,7 @@ export default function LearningPage() {
 
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  Source / Context (optional)
+                  {t.learning.sourceContext} ({t.common.optional})
                 </label>
                 <input
                   type="text"
@@ -260,14 +263,14 @@ export default function LearningPage() {
                   onClick={() => setIsCreating(false)}
                   className="px-3 py-2 rounded-md text-xs text-sub hover:text-main cursor-pointer"
                 >
-                  Cancel
+                  {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={!newTopic.trim()}
                   className="px-4 py-2 rounded-md bg-accent text-white text-xs font-medium hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 >
-                  Save Learning
+                  {t.quickAdd.saveLearning}
                 </button>
               </div>
             </form>

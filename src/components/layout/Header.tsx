@@ -3,12 +3,15 @@
 import { Bell, Plus, User } from "lucide-react";
 import Link from "next/link";
 import { formatShortDate } from "@/lib/date";
+import { LanguageSelector } from "@/components/ui/LanguageSelector";
+import { useLanguage } from "@/lib/i18n/context";
 
 interface HeaderProps {
   onOpenQuickAdd: () => void;
 }
 
 export function Header({ onOpenQuickAdd }: HeaderProps) {
+  const { t } = useLanguage();
   const todayStr = formatShortDate(new Date());
 
   return (
@@ -26,14 +29,16 @@ export function Header({ onOpenQuickAdd }: HeaderProps) {
         </span>
       </div>
 
-      {/* Right side: Bell, Profile & Global Add Button */}
+      {/* Right side: Language Selector, Bell, Profile & Global Add Button */}
       <div className="flex items-center gap-2.5">
+        <LanguageSelector variant="compact" />
+
         <button
           onClick={onOpenQuickAdd}
           className="hidden sm:flex items-center gap-1.5 py-1.5 px-3 rounded-md bg-accent text-white text-xs font-medium hover:opacity-90 active:scale-95 transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-          <span>Add</span>
+          <span>{t.nav.addRecord}</span>
         </button>
 
         <button

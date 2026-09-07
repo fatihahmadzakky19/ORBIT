@@ -14,6 +14,7 @@ import { getCalendarDateString } from "@/lib/date";
 import { createActivityAction } from "@/features/activities/server/actions";
 import { createLearningAction } from "@/features/learning/server/actions";
 import { createTransactionAction } from "@/features/finance/server/actions";
+import { useLanguage } from "@/lib/i18n/context";
 
 interface GlobalAddModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ interface GlobalAddModalProps {
 type RecordType = "NONE" | "ACTIVITY" | "LEARNING" | "EXPENSE" | "INCOME";
 
 export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalProps) {
+  const { t } = useLanguage();
   const [selectedType, setSelectedType] = useState<RecordType>("NONE");
 
   // Activity State
@@ -68,20 +70,17 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
     if (!activityTitle.trim()) return;
     setIsSubmitting(true);
     try {
-      const res = await createActivityAction({
+      await createActivityAction({
         title: activityTitle,
         date: activityDate,
         time: activityTime,
         durationMinutes: Number(activityDuration) || 60,
         note: activityNote,
       });
-      if (res && !res.success) {
-        // graceful feedback
-      }
     } catch {
-      // ignore if db not configured yet
+      // Graceful fallback
     }
-    onSuccess?.("activity", `Activity "${activityTitle}" recorded.`);
+    onSuccess?.("activity", `${t.quickAdd.activityTitle}: "${activityTitle}"`);
     handleReset();
   };
 
@@ -96,9 +95,9 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
         source: learningSource,
       });
     } catch {
-      // ignore if db not configured yet
+      // Graceful fallback
     }
-    onSuccess?.("learning", `Learning "${learningTopic}" recorded.`);
+    onSuccess?.("learning", `${t.quickAdd.learningTitle}: "${learningTopic}"`);
     handleReset();
   };
 
@@ -113,11 +112,11 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
         note: txNote,
       });
     } catch {
-      // ignore if db not configured yet
+      // Graceful fallback
     }
     onSuccess?.(
       type.toLowerCase(),
-      `${type === "EXPENSE" ? "Expense" : "Income"} recorded.`
+      type === "EXPENSE" ? t.quickAdd.expenseTitle : t.quickAdd.incomeTitle
     );
     handleReset();
   };
@@ -129,7 +128,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
         {selectedType === "NONE" && (
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-main">Add Record</h2>
+              <h2 className="text-base font-semibold text-main">{t.quickAdd.title}</h2>
               <button
                 onClick={handleReset}
                 className="p-1 rounded text-dim hover:text-main hover:bg-surface-elevated transition-colors cursor-pointer"
@@ -137,7 +136,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-sub mb-4">What do you want to record?</p>
+            <p className="text-xs text-sub mb-4">{t.quickAdd.subtitle}</p>
 
             <div className="space-y-2.5">
               <button
@@ -149,9 +148,9 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 </div>
                 <div>
                   <div className="text-sm font-medium text-main group-hover:text-accent transition-colors">
-                    Activity
+                    {t.quickAdd.activityTitle}
                   </div>
-                  <div className="text-xs text-dim">What I did</div>
+                  <div className="text-xs text-dim">{t.quickAdd.activityDesc}</div>
                 </div>
               </button>
 
@@ -164,9 +163,9 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 </div>
                 <div>
                   <div className="text-sm font-medium text-main group-hover:text-cyan-400 transition-colors">
-                    Learning
+                    {t.quickAdd.learningTitle}
                   </div>
-                  <div className="text-xs text-dim">What I learned</div>
+                  <div className="text-xs text-dim">{t.quickAdd.learningDesc}</div>
                 </div>
               </button>
 
@@ -182,9 +181,9 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 </div>
                 <div>
                   <div className="text-sm font-medium text-main group-hover:text-rose-400 transition-colors">
-                    Expense
+                    {t.quickAdd.expenseTitle}
                   </div>
-                  <div className="text-xs text-dim">Money I spent</div>
+                  <div className="text-xs text-dim">{t.quickAdd.expenseDesc}</div>
                 </div>
               </button>
 
@@ -200,9 +199,9 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 </div>
                 <div>
                   <div className="text-sm font-medium text-main group-hover:text-emerald-400 transition-colors">
-                    Income
+                    {t.quickAdd.incomeTitle}
                   </div>
-                  <div className="text-xs text-dim">Money I received</div>
+                  <div className="text-xs text-dim">{t.quickAdd.incomeDesc}</div>
                 </div>
               </button>
             </div>
@@ -212,7 +211,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 onClick={handleReset}
                 className="text-xs text-dim hover:text-sub px-3 py-1.5 rounded transition-colors cursor-pointer"
               >
-                Cancel
+                {t.common.cancel}
               </button>
             </div>
           </div>
@@ -228,9 +227,9 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 className="flex items-center gap-1 text-xs text-dim hover:text-main transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back</span>
+                <span>{t.common.back}</span>
               </button>
-              <h2 className="text-sm font-semibold text-main">Add Activity</h2>
+              <h2 className="text-sm font-semibold text-main">{t.quickAdd.activityTitle}</h2>
               <button
                 type="button"
                 onClick={handleReset}
@@ -243,12 +242,12 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  What did you do? *
+                  {t.quickAdd.whatDidYouDo}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Belajar JavaScript"
+                  placeholder={t.quickAdd.activityPlaceholder}
                   value={activityTitle}
                   onChange={(e) => setActivityTitle(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-canvas border border-line text-sm text-main placeholder:text-dim focus:outline-none focus:border-accent transition-colors"
@@ -258,7 +257,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-sub mb-1">
-                    Date *
+                    {t.common.date} *
                   </label>
                   <input
                     type="date"
@@ -270,7 +269,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-sub mb-1">
-                    Time
+                    {t.common.time}
                   </label>
                   <input
                     type="time"
@@ -283,7 +282,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
 
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  Duration (minutes)
+                  {t.common.duration} ({t.common.minutes})
                 </label>
                 <input
                   type="number"
@@ -295,7 +294,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 />
               </div>
 
-              {/* Progressive Disclosure: Add Context */}
+              {/* Progressive Disclosure */}
               <div>
                 <button
                   type="button"
@@ -307,14 +306,16 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                       showActivityContext ? "rotate-180" : ""
                     }`}
                   />
-                  <span>{showActivityContext ? "Hide context" : "Add context +"}</span>
+                  <span>
+                    {showActivityContext ? t.quickAdd.hideContext : t.quickAdd.addContext}
+                  </span>
                 </button>
 
                 {showActivityContext && (
                   <div className="mt-3 p-3 rounded-lg bg-canvas border border-border-subtle space-y-3 animate-in fade-in duration-100">
                     <div>
                       <label className="block text-[11px] text-dim mb-1">
-                        Optional Note
+                        {t.common.note} ({t.common.optional})
                       </label>
                       <textarea
                         rows={2}
@@ -335,14 +336,14 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 onClick={handleReset}
                 className="px-3 py-2 rounded-md text-xs text-sub hover:text-main hover:bg-surface-elevated transition-colors cursor-pointer"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !activityTitle.trim()}
                 className="px-4 py-2 rounded-md bg-accent text-white text-xs font-medium hover:opacity-90 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
               >
-                {isSubmitting ? "Saving..." : "Save Activity"}
+                {isSubmitting ? t.common.saving : t.quickAdd.saveActivity}
               </button>
             </div>
           </form>
@@ -358,9 +359,9 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 className="flex items-center gap-1 text-xs text-dim hover:text-main transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back</span>
+                <span>{t.common.back}</span>
               </button>
-              <h2 className="text-sm font-semibold text-main">Add Learning</h2>
+              <h2 className="text-sm font-semibold text-main">{t.quickAdd.learningTitle}</h2>
               <button
                 type="button"
                 onClick={handleReset}
@@ -373,12 +374,12 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  What did you learn? (Topic) *
+                  {t.quickAdd.whatDidYouLearn}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Array Methods"
+                  placeholder={t.quickAdd.topicPlaceholder}
                   value={learningTopic}
                   onChange={(e) => setLearningTopic(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-canvas border border-line text-sm text-main placeholder:text-dim focus:outline-none focus:border-accent"
@@ -387,11 +388,11 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
 
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  What did you understand?
+                  {t.quickAdd.whatDidYouUnderstand}
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="e.g. map() transforms items, filter() selects items based on condition..."
+                  placeholder={t.quickAdd.understoodPlaceholder}
                   value={learningUnderstood}
                   onChange={(e) => setLearningUnderstood(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-canvas border border-line text-xs text-main placeholder:text-dim focus:outline-none focus:border-accent"
@@ -400,11 +401,11 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
 
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  Source / Context (optional)
+                  {t.common.source} ({t.common.optional})
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Documentation, YouTube tutorial, Project bug"
+                  placeholder={t.quickAdd.sourcePlaceholder}
                   value={learningSource}
                   onChange={(e) => setLearningSource(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-canvas border border-line text-xs text-main placeholder:text-dim focus:outline-none focus:border-accent"
@@ -418,14 +419,14 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 onClick={handleReset}
                 className="px-3 py-2 rounded-md text-xs text-sub hover:text-main hover:bg-surface-elevated transition-colors cursor-pointer"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !learningTopic.trim()}
                 className="px-4 py-2 rounded-md bg-accent text-white text-xs font-medium hover:opacity-90 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
               >
-                {isSubmitting ? "Saving..." : "Save Learning"}
+                {isSubmitting ? t.common.saving : t.quickAdd.saveLearning}
               </button>
             </div>
           </form>
@@ -447,10 +448,12 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 className="flex items-center gap-1 text-xs text-dim hover:text-main transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back</span>
+                <span>{t.common.back}</span>
               </button>
               <h2 className="text-sm font-semibold text-main">
-                {selectedType === "EXPENSE" ? "Add Expense" : "Add Income"}
+                {selectedType === "EXPENSE"
+                  ? t.quickAdd.expenseTitle
+                  : t.quickAdd.incomeTitle}
               </h2>
               <button
                 type="button"
@@ -464,7 +467,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  Amount (Rp) *
+                  {t.common.amount} (Rp) *
                 </label>
                 <input
                   type="number"
@@ -481,7 +484,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-sub mb-1">
-                    Category *
+                    {t.common.category} *
                   </label>
                   <select
                     value={txCategory}
@@ -490,20 +493,20 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                   >
                     {selectedType === "EXPENSE" ? (
                       <>
-                        <option value="Food">Food</option>
+                        <option value="Food">Food / Makanan</option>
                         <option value="Transport">Transport</option>
-                        <option value="Education">Education</option>
+                        <option value="Education">Education / Belajar</option>
                         <option value="Internet">Internet</option>
-                        <option value="Health">Health</option>
-                        <option value="Other">Other</option>
+                        <option value="Health">Health / Kesehatan</option>
+                        <option value="Other">Other / Lainnya</option>
                       </>
                     ) : (
                       <>
-                        <option value="Salary">Salary</option>
+                        <option value="Salary">Salary / Gaji</option>
                         <option value="Freelance">Freelance</option>
-                        <option value="Gift">Gift</option>
-                        <option value="Investment">Investment</option>
-                        <option value="Other">Other</option>
+                        <option value="Gift">Gift / Hadiah</option>
+                        <option value="Investment">Investment / Investasi</option>
+                        <option value="Other">Other / Lainnya</option>
                       </>
                     )}
                   </select>
@@ -511,7 +514,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
 
                 <div>
                   <label className="block text-xs font-medium text-sub mb-1">
-                    Date *
+                    {t.common.date} *
                   </label>
                   <input
                     type="date"
@@ -525,11 +528,11 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
 
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
-                  Note (optional)
+                  {t.common.note} ({t.common.optional})
                 </label>
                 <input
                   type="text"
-                  placeholder={selectedType === "EXPENSE" ? "e.g. Lunch with team" : "e.g. Monthly salary"}
+                  placeholder="Catatan..."
                   value={txNote}
                   onChange={(e) => setTxNote(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-canvas border border-line text-xs text-main placeholder:text-dim focus:outline-none focus:border-accent"
@@ -543,7 +546,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 onClick={handleReset}
                 className="px-3 py-2 rounded-md text-xs text-sub hover:text-main hover:bg-surface-elevated transition-colors cursor-pointer"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="submit"
@@ -551,10 +554,10 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 className="px-4 py-2 rounded-md bg-accent text-white text-xs font-medium hover:opacity-90 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
               >
                 {isSubmitting
-                  ? "Saving..."
+                  ? t.common.saving
                   : selectedType === "EXPENSE"
-                  ? "Save Expense"
-                  : "Save Income"}
+                  ? t.quickAdd.saveExpense
+                  : t.quickAdd.saveIncome}
               </button>
             </div>
           </form>

@@ -6,6 +6,7 @@ import { Header } from "./Header";
 import { MobileNav } from "./MobileNav";
 import { GlobalAddModal } from "./GlobalAddModal";
 import { CheckCircle2 } from "lucide-react";
+import { LanguageProvider } from "@/lib/i18n/context";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
@@ -19,7 +20,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-canvas text-main font-sans selection:bg-accent/30">
+    <LanguageProvider>
+      <div className="min-h-screen flex bg-canvas text-main font-sans selection:bg-accent/30">
       {/* Desktop Sidebar */}
       <Sidebar onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
 
@@ -50,5 +52,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
     </div>
+  </LanguageProvider>
   );
 }
