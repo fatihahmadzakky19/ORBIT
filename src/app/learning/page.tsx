@@ -13,38 +13,7 @@ interface LearningItem {
   relatedGoal?: string;
 }
 
-const INITIAL_LEARNINGS: LearningItem[] = [
-  {
-    id: "l1",
-    topic: "Array Methods",
-    date: "06 September 2026 · 19:30",
-    understood:
-      "map() transforms each item into a new array.\nfilter() selects items based on a true/false condition.\nreduce() accumulates values into a single result without mutating.",
-    source: "YouTube tutorial & MDN docs",
-    relatedActivity: "Belajar JavaScript",
-    relatedGoal: "Get First Job",
-  },
-  {
-    id: "l2",
-    topic: "JavaScript Functions & Closures",
-    date: "04 September 2026 · 20:15",
-    understood:
-      "Learned callback functions and how scope retains access to variables declared in parent scopes.",
-    source: "JavaScript The Definitive Guide",
-    relatedActivity: "Frontend practice",
-    relatedGoal: "Get First Job",
-  },
-  {
-    id: "l3",
-    topic: "Git Branching & Merge Conflicts",
-    date: "02 September 2026 · 16:00",
-    understood:
-      "Understanding branch isolation and resolving merge conflicts systematically in VS Code.",
-    source: "Project bug fix",
-    relatedActivity: "Portfolio development",
-    relatedGoal: "Build Portfolio v1",
-  },
-];
+const INITIAL_LEARNINGS: LearningItem[] = [];
 
 import { useLanguage } from "@/lib/i18n/context";
 
@@ -172,32 +141,47 @@ export default function LearningPage() {
 
           {/* Learning Cards List */}
           <div className="space-y-3">
-            <div className="text-xs uppercase tracking-wider font-semibold text-dim">
-              {t.learning.recent}
-            </div>
-
-            {learnings.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => setSelectedLearning(item)}
-                className="p-5 rounded-xl bg-surface border border-line hover:border-accent/40 transition-all cursor-pointer group"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-sm font-medium text-main group-hover:text-accent transition-colors">
-                      {item.topic}
-                    </h3>
-                    <p className="text-xs text-sub mt-1 line-clamp-2 leading-relaxed">
-                      {item.understood}
-                    </p>
-                    <span className="inline-block text-[11px] font-mono text-dim mt-2">
-                      {item.date}
-                    </span>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-dim group-hover:text-main shrink-0 mt-1 transition-transform group-hover:translate-x-0.5" />
-                </div>
+            {learnings.length > 0 && (
+              <div className="text-xs uppercase tracking-wider font-semibold text-dim">
+                {t.learning.recent}
               </div>
-            ))}
+            )}
+
+            {learnings.length === 0 ? (
+              <div className="p-8 text-center rounded-xl bg-surface border border-dashed border-border-subtle">
+                <p className="text-xs text-dim mb-3">{t.learning.noLearnings}</p>
+                <button
+                  onClick={() => setIsCreating(true)}
+                  className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-sub hover:text-main transition-all cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{t.learning.addLearning}</span>
+                </button>
+              </div>
+            ) : (
+              learnings.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => setSelectedLearning(item)}
+                  className="p-5 rounded-xl bg-surface border border-line hover:border-accent/40 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-main group-hover:text-accent transition-colors">
+                        {item.topic}
+                      </h3>
+                      <p className="text-xs text-sub mt-1 line-clamp-2 leading-relaxed">
+                        {item.understood}
+                      </p>
+                      <span className="inline-block text-[11px] font-mono text-dim mt-2">
+                        {item.date}
+                      </span>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-dim group-hover:text-main shrink-0 mt-1 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </>
       )}

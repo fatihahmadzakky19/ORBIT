@@ -57,21 +57,21 @@ export default function NewReflectionPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
           <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
-            <div className="text-base font-mono font-semibold text-main">14</div>
+            <div className="text-base font-mono font-semibold text-main">0</div>
             <div className="text-[11px] text-dim mt-0.5">{t.goals.activities}</div>
           </div>
           <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
-            <div className="text-base font-mono font-semibold text-main">7</div>
+            <div className="text-base font-mono font-semibold text-main">0</div>
             <div className="text-[11px] text-dim mt-0.5">{t.goals.learning}</div>
           </div>
           <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
-            <div className="text-base font-mono font-semibold text-main">5 / 7</div>
+            <div className="text-base font-mono font-semibold text-main">0 / 7</div>
             <div className="text-[11px] text-dim mt-0.5">
               {t.habits.title} {locale === "id" ? "Hari" : locale === "de" ? "Tage" : "Days"}
             </div>
           </div>
           <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
-            <div className="text-base font-mono font-semibold text-main">3</div>
+            <div className="text-base font-mono font-semibold text-main">0</div>
             <div className="text-[11px] text-dim mt-0.5">
               {t.common.active} {t.goals.title}
             </div>

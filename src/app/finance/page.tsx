@@ -15,47 +15,14 @@ interface TransactionItem {
   goalAllocation?: string;
 }
 
-const INITIAL_TRANSACTIONS: TransactionItem[] = [
-  {
-    id: "tx1",
-    type: "EXPENSE",
-    amount: 25000,
-    category: "Food",
-    date: "06 Sep 2026",
-    note: "Lunch",
-  },
-  {
-    id: "tx2",
-    type: "INCOME",
-    amount: 3000000,
-    category: "Salary",
-    date: "05 Sep 2026",
-    note: "Monthly stipend / salary",
-    goalAllocation: "Save Rp10M",
-  },
-  {
-    id: "tx3",
-    type: "EXPENSE",
-    amount: 15000,
-    category: "Transport",
-    date: "04 Sep 2026",
-    note: "Bus fare",
-  },
-  {
-    id: "tx4",
-    type: "EXPENSE",
-    amount: 150000,
-    category: "Internet",
-    date: "02 Sep 2026",
-    note: "Monthly fiber broadband",
-  },
-];
+const INITIAL_TRANSACTIONS: TransactionItem[] = [];
 
 export default function FinancePage() {
   const { t } = useLanguage();
-  const [actualBalance, setActualBalance] = useState(4750000);
-  const [calculatedBalance, setCalculatedBalance] = useState(4800000);
+  const [actualBalance, setActualBalance] = useState(0);
+  const [calculatedBalance, setCalculatedBalance] = useState(0);
   const [transactions, setTransactions] = useState<TransactionItem[]>(INITIAL_TRANSACTIONS);
+  const [budgets] = useState<{ category: string; spent: number; limit: number }[]>([]);
   const [filterType, setFilterType] = useState<"ALL" | "INCOME" | "EXPENSE">("ALL");
 
   const [isUpdatingActual, setIsUpdatingActual] = useState(false);
@@ -74,6 +41,14 @@ export default function FinancePage() {
   });
 
   const difference = actualBalance - calculatedBalance;
+
+  const totalIncome = transactions
+    .filter((tx) => tx.type === "INCOME")
+    .reduce((acc, tx) => acc + tx.amount, 0);
+  const totalExpense = transactions
+    .filter((tx) => tx.type === "EXPENSE")
+    .reduce((acc, tx) => acc + tx.amount, 0);
+  const netFlow = totalIncome - totalExpense;
 
   const handleUpdateActual = (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,19 +164,19 @@ export default function FinancePage() {
           <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
             <div className="text-xs text-dim mb-1">{t.common.income}</div>
             <div className="text-sm md:text-base font-mono font-semibold text-emerald-400">
-              +Rp 3.000.000
+              +{formatCurrency(totalIncome)}
             </div>
           </div>
           <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
             <div className="text-xs text-dim mb-1">{t.common.expense}</div>
             <div className="text-sm md:text-base font-mono font-semibold text-rose-400">
-              -Rp 1.250.000
+              -{formatCurrency(totalExpense)}
             </div>
           </div>
           <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
             <div className="text-xs text-dim mb-1">{t.finance.netFlow}</div>
             <div className="text-sm md:text-base font-mono font-semibold text-accent">
-              +Rp 1.750.000
+              {netFlow >= 0 ? `+${formatCurrency(netFlow)}` : formatCurrency(netFlow)}
             </div>
           </div>
         </div>
@@ -212,37 +187,25 @@ export default function FinancePage() {
         <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-4">
           September {t.finance.budgets}
         </h2>
-        <div className="space-y-4">
-          <div>
-            <div className="flex justify-between text-xs mb-1.5 font-mono">
-              <span className="text-main font-medium">Food</span>
-              <span className="text-sub">Rp 750.000 / Rp 1.000.000 (75%)</span>
-            </div>
-            <div className="w-full h-1.5 rounded-full bg-canvas overflow-hidden">
-              <div className="h-full bg-amber-400 rounded-full" style={{ width: "75%" }} />
-            </div>
+        {budgets.length === 0 ? (
+          <div className="py-6 px-4 text-center rounded-lg border border-dashed border-border-subtle bg-canvas/40">
+            <p className="text-xs text-dim">{t.finance.noBudgets}</p>
           </div>
-
-          <div>
-            <div className="flex justify-between text-xs mb-1.5 font-mono">
-              <span className="text-main font-medium">Transport</span>
-              <span className="text-sub">Rp 300.000 / Rp 500.000 (60%)</span>
-            </div>
-            <div className="w-full h-1.5 rounded-full bg-canvas overflow-hidden">
-              <div className="h-full bg-accent rounded-full" style={{ width: "60%" }} />
-            </div>
+        ) : (
+          <div className="space-y-4">
+            {budgets.map((b) => (
+              <div key={b.category}>
+                <div className="flex justify-between text-xs mb-1.5 font-mono">
+                  <span className="text-main font-medium">{b.category}</span>
+                  <span className="text-sub">{formatCurrency(b.spent)} / {formatCurrency(b.limit)}</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-canvas overflow-hidden">
+                  <div className="h-full bg-accent rounded-full" style={{ width: `${Math.min(100, (b.spent / b.limit) * 100)}%` }} />
+                </div>
+              </div>
+            ))}
           </div>
-
-          <div>
-            <div className="flex justify-between text-xs mb-1.5 font-mono">
-              <span className="text-main font-medium">Education</span>
-              <span className="text-sub">Rp 100.000 / Rp 500.000 (20%)</span>
-            </div>
-            <div className="w-full h-1.5 rounded-full bg-canvas overflow-hidden">
-              <div className="h-full bg-emerald-400 rounded-full" style={{ width: "20%" }} />
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* TRANSACTIONS LOG */}
@@ -268,7 +231,19 @@ export default function FinancePage() {
           </div>
         </div>
 
-        <div className="space-y-2">
+        {filteredTransactions.length === 0 ? (
+          <div className="p-8 text-center rounded-xl border border-dashed border-border-subtle">
+            <p className="text-xs text-dim mb-3">{t.finance.noTransactions}</p>
+            <button
+              onClick={() => setIsAddingTx(true)}
+              className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-sub hover:text-main transition-all cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t.finance.addTransaction}</span>
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
           {filteredTransactions.map((tx) => (
             <div
               key={tx.id}
@@ -314,7 +289,8 @@ export default function FinancePage() {
             </div>
           ))}
         </div>
-      </div>
+      )}
+    </div>
 
       {/* Update Actual Balance Modal */}
       {isUpdatingActual && (

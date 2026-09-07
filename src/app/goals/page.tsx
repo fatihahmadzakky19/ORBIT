@@ -18,60 +18,7 @@ interface GoalItem {
   relatedCounts?: { activities: number; learning: number; habits: number; reflections: number };
 }
 
-const INITIAL_GOALS: GoalItem[] = [
-  {
-    id: "g1",
-    title: "Get First Job",
-    description: "Prepare CV, portfolio, apply to frontend / fullstack roles, and pass technical interviews.",
-    type: "MILESTONE",
-    status: "IN_PROGRESS",
-    percent: 65,
-    deadline: "30 Nov 2026",
-    milestones: [
-      { title: "CV & Resume Review", completed: true },
-      { title: "Portfolio Website Complete", completed: true },
-      { title: "Apply to 20 Companies", completed: true },
-      { title: "Technical Interview Practice", completed: false },
-      { title: "Job Offer Accepted", completed: false },
-    ],
-    relatedCounts: { activities: 18, learning: 6, habits: 1, reflections: 4 },
-  },
-  {
-    id: "g2",
-    title: "Save Rp10M",
-    description: "Emergency fund and gear upgrade savings.",
-    type: "MEASURABLE",
-    status: "IN_PROGRESS",
-    progressMode: "FINANCE",
-    currentValue: 4000000,
-    targetValue: 10000000,
-    percent: 40,
-    deadline: "31 Dec 2026",
-    relatedCounts: { activities: 4, learning: 0, habits: 0, reflections: 2 },
-  },
-  {
-    id: "g3",
-    title: "Build Portfolio v1",
-    type: "MILESTONE",
-    status: "COMPLETED",
-    percent: 100,
-    deadline: "20 Aug 2026",
-    milestones: [
-      { title: "Design mockup", completed: true },
-      { title: "Deploy to Vercel", completed: true },
-    ],
-    relatedCounts: { activities: 12, learning: 4, habits: 1, reflections: 3 },
-  },
-  {
-    id: "g4",
-    title: "Learn Docker Basics",
-    type: "MILESTONE",
-    status: "PAUSED",
-    percent: 25,
-    deadline: "15 Oct 2026",
-    relatedCounts: { activities: 3, learning: 2, habits: 0, reflections: 1 },
-  },
-];
+const INITIAL_GOALS: GoalItem[] = [];
 
 import { useLanguage } from "@/lib/i18n/context";
 
@@ -337,8 +284,15 @@ export default function GoalsPage() {
             ))}
 
             {filteredGoals.length === 0 && (
-              <div className="p-8 text-center rounded-xl bg-surface border border-line">
-                <p className="text-xs text-dim">{t.goals.noGoals}</p>
+              <div className="p-8 text-center rounded-xl bg-surface border border-dashed border-border-subtle">
+                <p className="text-xs text-dim mb-3">{t.goals.noGoals}</p>
+                <button
+                  onClick={() => setIsCreating(true)}
+                  className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-sub hover:text-main transition-all cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{t.goals.createGoal}</span>
+                </button>
               </div>
             )}
           </div>

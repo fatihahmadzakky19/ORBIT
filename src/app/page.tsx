@@ -10,17 +10,17 @@ import {
   Sparkles,
   BookOpen,
   Wallet,
+  Plus,
 } from "lucide-react";
 import { formatWeekRange, getMondayOfWeek } from "@/lib/date";
 import { useLanguage } from "@/lib/i18n/context";
+import { formatCurrency } from "@/lib/format";
 
 export default function HomePage() {
   const { t, locale } = useLanguage();
-  const [habits, setHabits] = useState([
-    { id: "h1", name: "Coding Practice", completed: true },
-    { id: "h2", name: "Exercise 30 min", completed: false },
-    { id: "h3", name: "Reading 20 pages", completed: false },
-  ]);
+  const [habits, setHabits] = useState<{ id: string; name: string; completed: boolean }[]>([]);
+  const [focusGoals] = useState<any[]>([]);
+  const [recentLearning] = useState<any | null>(null);
 
   const toggleHabit = (id: string) => {
     setHabits((prev) =>
@@ -53,7 +53,7 @@ export default function HomePage() {
       {/* Greeting Header */}
       <div>
         <h1 className="text-xl md:text-2xl font-semibold text-main tracking-tight">
-          {greeting}, Alex
+          {greeting}
         </h1>
         <p className="text-xs md:text-sm text-dim font-mono mt-1">
           {todayFormatted}
@@ -66,38 +66,53 @@ export default function HomePage() {
           <h2 className="text-xs font-semibold uppercase tracking-wider text-dim">
             {t.home.today}
           </h2>
-          <span className="text-xs font-mono text-sub">
-            {completedHabitsCount} / {habits.length} {t.home.habitsCount}
-          </span>
+          {habits.length > 0 && (
+            <span className="text-xs font-mono text-sub">
+              {completedHabitsCount} / {habits.length} {t.home.habitsCount}
+            </span>
+          )}
         </div>
 
-        <div className="space-y-2">
-          {habits.map((habit) => (
-            <button
-              key={habit.id}
-              onClick={() => toggleHabit(habit.id)}
-              className="w-full flex items-center justify-between p-2.5 rounded-lg bg-canvas border border-border-subtle hover:border-line transition-all text-left group cursor-pointer"
+        {habits.length === 0 ? (
+          <div className="py-6 px-4 text-center rounded-lg border border-dashed border-border-subtle bg-canvas/40">
+            <p className="text-xs text-dim mb-3">{t.home.noHabitsToday}</p>
+            <Link
+              href="/habits"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-surface-elevated border border-border-subtle hover:border-line text-sub hover:text-main transition-colors"
             >
-              <div className="flex items-center gap-3">
-                {habit.completed ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                ) : (
-                  <Circle className="w-4 h-4 text-dim group-hover:text-sub shrink-0" />
-                )}
-                <span
-                  className={`text-sm transition-colors ${
-                    habit.completed ? "text-sub line-through" : "text-main"
-                  }`}
-                >
-                  {habit.name}
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t.habits.createHabit}</span>
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {habits.map((habit) => (
+              <button
+                key={habit.id}
+                onClick={() => toggleHabit(habit.id)}
+                className="w-full flex items-center justify-between p-2.5 rounded-lg bg-canvas border border-border-subtle hover:border-line transition-all text-left group cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  {habit.completed ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  ) : (
+                    <Circle className="w-4 h-4 text-dim group-hover:text-sub shrink-0" />
+                  )}
+                  <span
+                    className={`text-sm transition-colors ${
+                      habit.completed ? "text-sub line-through" : "text-main"
+                    }`}
+                  >
+                    {habit.name}
+                  </span>
+                </div>
+                <span className="text-[11px] text-dim opacity-0 group-hover:opacity-100 transition-opacity">
+                  {habit.completed ? t.common.done : t.common.markDone}
                 </span>
-              </div>
-              <span className="text-[11px] text-dim opacity-0 group-hover:opacity-100 transition-opacity">
-                {habit.completed ? t.common.done : t.common.markDone}
-              </span>
-            </button>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* CURRENT FOCUS (ACTIVE GOALS) */}
@@ -115,55 +130,45 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Goal 1 */}
-          <Link
-            href="/goals"
-            className="p-5 rounded-xl bg-surface border border-line hover:border-accent/40 transition-all group block"
-          >
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="text-sm font-medium text-main group-hover:text-accent transition-colors">
-                Get First Job
-              </h3>
-              <span className="text-xs font-mono text-sub">65%</span>
-            </div>
-            {/* Progress Bar */}
-            <div className="w-full h-1.5 rounded-full bg-canvas overflow-hidden mb-3">
-              <div
-                className="h-full bg-accent rounded-full transition-all duration-500"
-                style={{ width: "65%" }}
-              />
-            </div>
-            <div className="flex items-center justify-between text-xs text-dim">
-              <span>{t.common.inProgress}</span>
-              <span>{t.common.deadline} 30 Nov 2026</span>
-            </div>
-          </Link>
-
-          {/* Goal 2 */}
-          <Link
-            href="/goals"
-            className="p-5 rounded-xl bg-surface border border-line hover:border-accent/40 transition-all group block"
-          >
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="text-sm font-medium text-main group-hover:text-accent transition-colors">
-                Save Rp10M
-              </h3>
-              <span className="text-xs font-mono text-sub">40%</span>
-            </div>
-            {/* Progress Bar */}
-            <div className="w-full h-1.5 rounded-full bg-canvas overflow-hidden mb-3">
-              <div
-                className="h-full bg-cyan-400 rounded-full transition-all duration-500"
-                style={{ width: "40%" }}
-              />
-            </div>
-            <div className="flex items-center justify-between text-xs text-dim">
-              <span>{t.common.inProgress}</span>
-              <span className="font-mono">Rp4M / Rp10M</span>
-            </div>
-          </Link>
-        </div>
+        {focusGoals.length === 0 ? (
+          <div className="p-6 rounded-xl bg-surface border border-dashed border-border-subtle text-center">
+            <p className="text-xs text-dim mb-3">{t.home.noActiveGoals}</p>
+            <Link
+              href="/goals"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-surface-elevated border border-border-subtle hover:border-line text-sub hover:text-main transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t.goals.createGoal}</span>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {focusGoals.map((goal) => (
+              <Link
+                key={goal.id}
+                href="/goals"
+                className="p-5 rounded-xl bg-surface border border-line hover:border-accent/40 transition-all group block"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="text-sm font-medium text-main group-hover:text-accent transition-colors">
+                    {goal.title}
+                  </h3>
+                  <span className="text-xs font-mono text-sub">{goal.percent}%</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-canvas overflow-hidden mb-3">
+                  <div
+                    className="h-full bg-accent rounded-full transition-all duration-500"
+                    style={{ width: `${goal.percent}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-xs text-dim">
+                  <span>{t.common.inProgress}</span>
+                  {goal.deadline && <span>{t.common.deadline} {goal.deadline}</span>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* RECENT LEARNING & FINANCE SNAPSHOT */}
@@ -177,12 +182,20 @@ export default function HomePage() {
                 {t.home.recentLearning}
               </h2>
             </div>
-            <h3 className="text-sm font-medium text-main mb-1">
-              Array Methods
-            </h3>
-            <p className="text-xs text-sub line-clamp-2 leading-relaxed">
-              Understanding map(), filter(), and reduce() - transforming vs selecting elements without mutating state.
-            </p>
+            {recentLearning ? (
+              <>
+                <h3 className="text-sm font-medium text-main mb-1">
+                  {recentLearning.topic}
+                </h3>
+                <p className="text-xs text-sub line-clamp-2 leading-relaxed">
+                  {recentLearning.understood}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-dim leading-relaxed">
+                {t.home.noRecentLearning}
+              </p>
+            )}
           </div>
           <div className="mt-4 pt-3 border-t border-border-subtle">
             <Link
@@ -206,10 +219,10 @@ export default function HomePage() {
             </div>
             <div className="text-xs text-dim mb-0.5">{t.common.actualBalance}</div>
             <div className="text-xl font-mono font-semibold text-main">
-              Rp 4.750.000
+              {formatCurrency(0)}
             </div>
             <div className="text-xs text-dim mt-1">
-              {t.common.calculatedBalance}: <span className="font-mono text-sub">Rp 4.800.000</span>
+              {t.common.calculatedBalance}: <span className="font-mono text-sub">{formatCurrency(0)}</span>
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-border-subtle">

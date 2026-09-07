@@ -12,66 +12,7 @@ interface HabitItem {
   evidence: { date: string; title: string; duration: string }[];
 }
 
-const INITIAL_HABITS: HabitItem[] = [
-  {
-    id: "h1",
-    name: "Coding",
-    completedToday: true,
-    thisWeekRatio: "5 / 7",
-    daysWeek: [
-      { day: "Mon", status: "DONE" },
-      { day: "Tue", status: "DONE" },
-      { day: "Wed", status: "MISSED" },
-      { day: "Thu", status: "DONE" },
-      { day: "Fri", status: "DONE" },
-      { day: "Sat", status: "DONE" },
-      { day: "Sun", status: "EMPTY" },
-    ],
-    evidence: [
-      { date: "06 Sep", title: "Belajar JavaScript Array Methods", duration: "90 min" },
-      { date: "05 Sep", title: "Frontend development practice", duration: "120 min" },
-      { date: "04 Sep", title: "Refactoring components", duration: "60 min" },
-    ],
-  },
-  {
-    id: "h2",
-    name: "Exercise",
-    completedToday: false,
-    thisWeekRatio: "4 / 7",
-    daysWeek: [
-      { day: "Mon", status: "DONE" },
-      { day: "Tue", status: "DONE" },
-      { day: "Wed", status: "MISSED" },
-      { day: "Thu", status: "DONE" },
-      { day: "Fri", status: "MISSED" },
-      { day: "Sat", status: "DONE" },
-      { day: "Sun", status: "EMPTY" },
-    ],
-    evidence: [
-      { date: "05 Sep", title: "Morning run & stretching", duration: "30 min" },
-      { date: "03 Sep", title: "Bodyweight workout", duration: "45 min" },
-    ],
-  },
-  {
-    id: "h3",
-    name: "Reading",
-    completedToday: false,
-    thisWeekRatio: "6 / 7",
-    daysWeek: [
-      { day: "Mon", status: "DONE" },
-      { day: "Tue", status: "DONE" },
-      { day: "Wed", status: "DONE" },
-      { day: "Thu", status: "DONE" },
-      { day: "Fri", status: "DONE" },
-      { day: "Sat", status: "DONE" },
-      { day: "Sun", status: "EMPTY" },
-    ],
-    evidence: [
-      { date: "05 Sep", title: "Atomic Habits chapter 4", duration: "25 min" },
-      { date: "04 Sep", title: "System Design basics", duration: "30 min" },
-    ],
-  },
-];
+const INITIAL_HABITS: HabitItem[] = [];
 
 import { useLanguage } from "@/lib/i18n/context";
 
@@ -225,48 +166,63 @@ export default function HabitsPage() {
 
           {/* Habit List */}
           <div className="space-y-3">
-            <div className="text-xs uppercase tracking-wider font-semibold text-dim">
-              {t.habits.today}
-            </div>
+            {habits.length > 0 && (
+              <div className="text-xs uppercase tracking-wider font-semibold text-dim">
+                {t.habits.today}
+              </div>
+            )}
 
-            {habits.map((habit) => (
-              <div
-                key={habit.id}
-                onClick={() => setSelectedHabit(habit)}
-                className="p-5 rounded-xl bg-surface border border-line hover:border-accent/40 transition-all cursor-pointer group flex items-center justify-between"
-              >
-                <div>
-                  <h3 className="text-sm font-medium text-main group-hover:text-accent transition-colors">
-                    {habit.name}
-                  </h3>
-                  <div className="text-xs font-mono text-dim mt-1">
-                    {t.habits.thisWeek}: {habit.thisWeekRatio}
-                  </div>
-                </div>
-
+            {habits.length === 0 ? (
+              <div className="p-8 text-center rounded-xl bg-surface border border-dashed border-border-subtle">
+                <p className="text-xs text-dim mb-3">{t.habits.noHabits}</p>
                 <button
-                  type="button"
-                  onClick={(e) => toggleToday(habit.id, e)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                    habit.completedToday
-                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                      : "bg-surface-elevated text-sub hover:text-main border border-line"
-                  }`}
+                  onClick={() => setIsCreating(true)}
+                  className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-sub hover:text-main transition-all cursor-pointer"
                 >
-                  {habit.completedToday ? (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>{t.common.completed}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Circle className="w-3.5 h-3.5" />
-                      <span>{t.common.markDone}</span>
-                    </>
-                  )}
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{t.habits.createHabit}</span>
                 </button>
               </div>
-            ))}
+            ) : (
+              habits.map((habit) => (
+                <div
+                  key={habit.id}
+                  onClick={() => setSelectedHabit(habit)}
+                  className="p-5 rounded-xl bg-surface border border-line hover:border-accent/40 transition-all cursor-pointer group flex items-center justify-between"
+                >
+                  <div>
+                    <h3 className="text-sm font-medium text-main group-hover:text-accent transition-colors">
+                      {habit.name}
+                    </h3>
+                    <div className="text-xs font-mono text-dim mt-1">
+                      {t.habits.thisWeek}: {habit.thisWeekRatio}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => toggleToday(habit.id, e)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                      habit.completedToday
+                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                        : "bg-surface-elevated text-sub hover:text-main border border-line"
+                    }`}
+                  >
+                    {habit.completedToday ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>{t.common.completed}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Circle className="w-3.5 h-3.5" />
+                        <span>{t.common.markDone}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </>
       )}

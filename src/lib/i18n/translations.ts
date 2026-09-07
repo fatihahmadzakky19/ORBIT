@@ -62,6 +62,9 @@ export interface Translations {
     weeklyReflection: string;
     reflectionPending: string;
     reflectThisWeek: string;
+    noHabitsToday: string;
+    noActiveGoals: string;
+    noRecentLearning: string;
   };
   quickAdd: {
     title: string;
@@ -117,6 +120,7 @@ export interface Translations {
     noEvidence: string;
     backToHabits: string;
     rhythm: string;
+    noHabits: string;
   };
   learning: {
     title: string;
@@ -129,6 +133,7 @@ export interface Translations {
     relatedGoal: string;
     backToLearning: string;
     topic: string;
+    noLearnings: string;
   };
   finance: {
     title: string;
@@ -143,6 +148,8 @@ export interface Translations {
     budgets: string;
     transactions: string;
     filterAll: string;
+    noTransactions: string;
+    noBudgets: string;
   };
   reflections: {
     title: string;
@@ -158,6 +165,7 @@ export interface Translations {
     additionalNotes: string;
     saveReflection: string;
     backToReflections: string;
+    noReflections: string;
   };
   journey: {
     title: string;
@@ -172,6 +180,9 @@ export interface Translations {
     progressOverTime: string;
     reflectionExcerpts: string;
     backToTimeline: string;
+    noTimeline: string;
+    noProgress: string;
+    noCompare: string;
   };
   settings: {
     title: string;
@@ -254,6 +265,9 @@ export const translations: Record<Locale, Translations> = {
       weeklyReflection: "Weekly Reflection",
       reflectionPending: "Reflection hasn't been completed yet. Take a moment to reflect on your week.",
       reflectThisWeek: "Reflect this week",
+      noHabitsToday: "No habits tracked yet today. Start by creating a habit.",
+      noActiveGoals: "No active goals in progress. Define a core focus to orient your journey.",
+      noRecentLearning: "No learning insights recorded yet. Document what you understood today.",
     },
     quickAdd: {
       title: "Add Record",
@@ -309,6 +323,7 @@ export const translations: Record<Locale, Translations> = {
       noEvidence: "No activities linked yet as evidence.",
       backToHabits: "Back to Habits",
       rhythm: "This Week Rhythm",
+      noHabits: "No habits created yet. Build consistent rhythms with verifiable evidence.",
     },
     learning: {
       title: "Learning",
@@ -321,6 +336,7 @@ export const translations: Record<Locale, Translations> = {
       relatedGoal: "Related Goal",
       backToLearning: "Back to Learning",
       topic: "Topic",
+      noLearnings: "No learnings recorded yet. Document key concepts, mental models, and takeaways.",
     },
     finance: {
       title: "Finance",
@@ -335,6 +351,8 @@ export const translations: Record<Locale, Translations> = {
       budgets: "Budgets",
       transactions: "Transactions",
       filterAll: "All",
+      noTransactions: "No transactions recorded yet.",
+      noBudgets: "No budget allocations set for this month.",
     },
     reflections: {
       title: "Reflections",
@@ -350,6 +368,7 @@ export const translations: Record<Locale, Translations> = {
       additionalNotes: "Additional Notes (optional)",
       saveReflection: "Save Reflection",
       backToReflections: "Back to Reflections",
+      noReflections: "No reflections archived yet.",
     },
     journey: {
       title: "Journey",
@@ -364,6 +383,9 @@ export const translations: Record<Locale, Translations> = {
       progressOverTime: "Progress Over Time (2026)",
       reflectionExcerpts: "Reflection Excerpts",
       backToTimeline: "Back to Timeline",
+      noTimeline: "No timeline events recorded yet.",
+      noProgress: "No goals or milestones to track progress yet.",
+      noCompare: "No comparison data yet. Need at least 2 recorded periods.",
     },
     settings: {
       title: "Settings",
@@ -445,6 +467,9 @@ export const translations: Record<Locale, Translations> = {
       weeklyReflection: "Wöchentliche Reflexion",
       reflectionPending: "Reflexion für diese Woche steht noch aus. Nimm dir einen Moment Zeit zum Innehalten.",
       reflectThisWeek: "Diese Woche reflektieren",
+      noHabitsToday: "Heute noch keine Gewohnheiten erfasst. Erstelle deine erste Gewohnheit.",
+      noActiveGoals: "Keine aktiven Ziele vorhanden. Definiere einen Fokus für deine Reise.",
+      noRecentLearning: "Noch keine Lernerkenntnisse erfasst. Halte fest, was du heute verstanden hast.",
     },
     quickAdd: {
       title: "Eintrag hinzufügen",
@@ -500,6 +525,7 @@ export const translations: Record<Locale, Translations> = {
       noEvidence: "Noch keine Aktivitäten als Beweis verknüpft.",
       backToHabits: "Zurück zu Gewohnheiten",
       rhythm: "Rhythmus dieser Woche",
+      noHabits: "Noch keine Gewohnheiten erstellt. Baue nachhaltige Rhythmen mit echten Nachweisen auf.",
     },
     learning: {
       title: "Lernen",
@@ -512,6 +538,7 @@ export const translations: Record<Locale, Translations> = {
       relatedGoal: "Zugehöriges Ziel",
       backToLearning: "Zurück zu Lernen",
       topic: "Thema",
+      noLearnings: "Noch keine Lernerkenntnisse erfasst. Halte Schlüsselkonzepte und Erkenntnisse fest.",
     },
     finance: {
       title: "Finanzen",
@@ -526,6 +553,8 @@ export const translations: Record<Locale, Translations> = {
       budgets: "Budgets",
       transactions: "Transaktionen",
       filterAll: "Alle",
+      noTransactions: "Noch keine Transaktionen erfasst.",
+      noBudgets: "Keine Budgetzuweisungen für diesen Monat festgelegt.",
     },
     reflections: {
       title: "Reflexionen",
@@ -541,6 +570,7 @@ export const translations: Record<Locale, Translations> = {
       additionalNotes: "Zusätzliche Notizen (optional)",
       saveReflection: "Reflexion speichern",
       backToReflections: "Zurück zu Reflexionen",
+      noReflections: "Noch keine wöchentlichen Reflexionen archiviert.",
     },
     journey: {
       title: "Reise",
@@ -555,6 +585,9 @@ export const translations: Record<Locale, Translations> = {
       progressOverTime: "Fortschritt im Zeitverlauf (2026)",
       reflectionExcerpts: "Reflexionsauszüge",
       backToTimeline: "Zurück zur Zeitleiste",
+      noTimeline: "Noch keine Ereignisse auf der Zeitleiste vorhanden.",
+      noProgress: "Noch keine Ziele oder Meilensteine zur Fortschrittsverfolgung vorhanden.",
+      noCompare: "Noch keine Vergleichsdaten vorhanden. Mindestens 2 Zeiträume erforderlich.",
     },
     settings: {
       title: "Einstellungen",
@@ -636,6 +669,9 @@ export const translations: Record<Locale, Translations> = {
       weeklyReflection: "Refleksi Mingguan",
       reflectionPending: "Refleksi minggu ini belum diisi. Luangkan waktu sejenak untuk mengevaluasi perjalananmu.",
       reflectThisWeek: "Refleksi minggu ini",
+      noHabitsToday: "Belum ada kebiasaan yang dicatat hari ini. Mulai dengan membuat kebiasaan.",
+      noActiveGoals: "Belum ada target aktif. Tentukan fokus utama untuk memandu perjalananmu.",
+      noRecentLearning: "Belum ada catatan pemahaman. Tulis intisari yang kamu pahami hari ini.",
     },
     quickAdd: {
       title: "Tambah Catatan",
@@ -691,6 +727,7 @@ export const translations: Record<Locale, Translations> = {
       noEvidence: "Belum ada aktivitas yang ditautkan sebagai bukti.",
       backToHabits: "Kembali ke Kebiasaan",
       rhythm: "Ritme Minggu Ini",
+      noHabits: "Belum ada kebiasaan yang dibuat. Bangun ritme konsisten dengan bukti nyata.",
     },
     learning: {
       title: "Pembelajaran",
@@ -703,6 +740,7 @@ export const translations: Record<Locale, Translations> = {
       relatedGoal: "Target Terkait",
       backToLearning: "Kembali ke Pembelajaran",
       topic: "Topik",
+      noLearnings: "Belum ada catatan pembelajaran. Dokumentasikan konsep, pemahaman, dan intisari belajarmu.",
     },
     finance: {
       title: "Keuangan",
@@ -717,6 +755,8 @@ export const translations: Record<Locale, Translations> = {
       budgets: "Alokasi Anggaran (Budget)",
       transactions: "Riwayat Transaksi",
       filterAll: "Semua",
+      noTransactions: "Belum ada transaksi yang dicatat.",
+      noBudgets: "Belum ada alokasi anggaran untuk bulan ini.",
     },
     reflections: {
       title: "Refleksi Mingguan",
@@ -732,6 +772,7 @@ export const translations: Record<Locale, Translations> = {
       additionalNotes: "Catatan Tambahan (opsional)",
       saveReflection: "Simpan Refleksi",
       backToReflections: "Kembali ke Refleksi",
+      noReflections: "Belum ada arsip refleksi mingguan.",
     },
     journey: {
       title: "Perjalanan Hidup",
@@ -746,6 +787,9 @@ export const translations: Record<Locale, Translations> = {
       progressOverTime: "Kemajuan Seiring Waktu (2026)",
       reflectionExcerpts: "Kutipan Refleksi",
       backToTimeline: "Kembali ke Linimasa",
+      noTimeline: "Garis waktu perjalanan masih kosong.",
+      noProgress: "Belum ada target atau tahapan untuk melacak perkembangan.",
+      noCompare: "Belum ada data pembanding. Butuh minimal 2 periode yang tercatat.",
     },
     settings: {
       title: "Pengaturan",

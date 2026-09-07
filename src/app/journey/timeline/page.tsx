@@ -18,73 +18,14 @@ interface TimelineEvent {
   relatedGoal?: string;
 }
 
-const TIMELINE_EVENTS: TimelineEvent[] = [
-  {
-    id: "te1",
-    date: "06 September 2026",
-    month: "September",
-    year: "2026",
-    title: "Learned JavaScript Array Methods",
-    category: "LEARNING",
-    description: "Deepened understanding of map(), filter(), reduce() without mutating state.",
-    relatedActivity: "Belajar JavaScript (90 min)",
-    relatedGoal: "Get First Job",
-  },
-  {
-    id: "te2",
-    date: "05 September 2026",
-    month: "September",
-    year: "2026",
-    title: "Started applying for frontend developer roles",
-    category: "MILESTONE",
-    description: "Sent out first batch of 5 job applications with customized cover notes.",
-    relatedGoal: "Get First Job",
-  },
-  {
-    id: "te3",
-    date: "31 August 2026",
-    month: "August",
-    year: "2026",
-    title: "Weekly Reflection — Week 35",
-    category: "REFLECTION",
-    description: "Reflected on shift in confidence and sticking to morning routines.",
-  },
-  {
-    id: "te4",
-    date: "20 August 2026",
-    month: "August",
-    year: "2026",
-    title: "Completed Portfolio Website v1",
-    category: "GOAL",
-    description: "Fully responsive personal site showcasing fullstack and frontend projects.",
-    relatedGoal: "Build Portfolio v1",
-  },
-  {
-    id: "te5",
-    date: "10 August 2026",
-    month: "August",
-    year: "2026",
-    title: "Created first financial goal (Save Rp10M)",
-    category: "LIFE_EVENT",
-    description: "Committed to personal financial independence and consistent emergency savings.",
-  },
-  {
-    id: "te6",
-    date: "01 August 2026",
-    month: "August",
-    year: "2026",
-    title: "Graduated from SMK & Started ORBIT",
-    category: "LIFE_EVENT",
-    description: "Entered new life chapter and decided to actively document the journey.",
-  },
-];
+const TIMELINE_EVENTS: TimelineEvent[] = [];
 
 export default function TimelinePage() {
   const { t, locale } = useLanguage();
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
 
   // Group events by Month
-  const months = ["September", "August"];
+  const months: string[] = [];
 
   const getMonthName = (month: string) => {
     if (locale === "id") {
@@ -143,6 +84,18 @@ export default function TimelinePage() {
               </div>
             )}
           </div>
+        </div>
+      ) : TIMELINE_EVENTS.length === 0 ? (
+        <div className="p-12 text-center rounded-xl bg-surface border border-dashed border-border-subtle">
+          <Calendar className="w-8 h-8 text-dim mx-auto mb-3" />
+          <p className="text-sm font-medium text-main mb-1">{t.journey.noTimeline}</p>
+          <p className="text-xs text-dim max-w-sm mx-auto">
+            {locale === "id"
+              ? "Catat aktivitas, pembelajaran, atau buat target pertamamu untuk mulai membangun garis waktu hidupmu."
+              : locale === "de"
+              ? "Erfasse Aktivitäten, Erkenntnisse oder Meilensteine, um deine persönliche Zeitleiste zu starten."
+              : "Record activities, learnings, or create your first goal to start building your life timeline."}
+          </p>
         </div>
       ) : (
         <div className="space-y-8">

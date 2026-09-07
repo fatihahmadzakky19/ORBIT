@@ -7,8 +7,8 @@ import { Locale } from "@/lib/i18n/translations";
 
 export default function SettingsPage() {
   const { t, locale, setLocale } = useLanguage();
-  const [name, setName] = useState("Alex");
-  const [email, setEmail] = useState("alex@example.com");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [timezone, setTimezone] = useState("Asia/Jakarta");
   const [isExporting, setIsExporting] = useState(false);
   const [exported, setExported] = useState(false);

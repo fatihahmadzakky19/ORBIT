@@ -13,42 +13,7 @@ interface ReflectionArchiveItem {
   fullChanged?: string;
 }
 
-const REFLECTIONS_ARCHIVE: ReflectionArchiveItem[] = [
-  {
-    id: "ref-36",
-    weekLabel: "Week 36",
-    dateRange: "31 Aug — 6 Sep 2026",
-    excerpt:
-      "This week I worked on my portfolio and started applying for frontend jobs. I feel more confident about...",
-    fullHappened:
-      "Finalized the core layout of my portfolio project, practiced technical interview questions, and reviewed array methods.",
-    fullLearned:
-      "Understood how functional transformations in JavaScript keep code declarative and bug-free.",
-    fullChanged:
-      "I notice I hesitate less when starting new components and rely less on step-by-step video tutorials.",
-  },
-  {
-    id: "ref-35",
-    weekLabel: "Week 35",
-    dateRange: "24 Aug — 30 Aug 2026",
-    excerpt:
-      "I struggled with consistency earlier in the week, but picked up momentum after breaking goals down into smaller milestones...",
-    fullHappened:
-      "Missed workout sessions mid-week due to fatigue, but caught up over the weekend.",
-    fullLearned: "Consistent daily effort of 45 minutes beats a 4-hour weekend cram session.",
-    fullChanged: "Switched my practice schedule to mornings before distractions happen.",
-  },
-  {
-    id: "ref-34",
-    weekLabel: "Week 34",
-    dateRange: "17 Aug — 23 Aug 2026",
-    excerpt:
-      "I finally understood closures and asynchronous event loops. Celebrated completing my graduation project.",
-    fullHappened: "Graduation ceremony and first week setting up ORBIT system.",
-    fullLearned: "Mental models for asynchronous JavaScript and Promise chaining.",
-    fullChanged: "A clearer sense of direction for the next 6 months.",
-  },
-];
+const REFLECTIONS_ARCHIVE: ReflectionArchiveItem[] = [];
 
 import { useLanguage } from "@/lib/i18n/context";
 
@@ -82,47 +47,70 @@ export default function ReflectionsPage() {
 
       {/* Reflections List */}
       <div className="space-y-3">
-        {REFLECTIONS_ARCHIVE.map((ref) => (
-          <div
-            key={ref.id}
-            className="p-5 rounded-xl bg-surface border border-line hover:border-accent/40 transition-all group"
-          >
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-main">{getWeekLabel(ref.weekLabel)}</span>
-                  <span className="text-xs font-mono text-dim">· {ref.dateRange}</span>
-                </div>
-                <p className="text-xs text-sub mt-2 leading-relaxed italic font-serif">
-                  &ldquo;{ref.excerpt}&rdquo;
-                </p>
-              </div>
-            </div>
-
-            {ref.fullHappened && (
-              <div className="mt-4 pt-3 border-t border-border-subtle grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                <div>
-                  <span className="text-[11px] uppercase tracking-wider text-dim block mb-1">
-                    {t.reflections.whatHappened}
-                  </span>
-                  <p className="text-sub">{ref.fullHappened}</p>
-                </div>
-                <div>
-                  <span className="text-[11px] uppercase tracking-wider text-dim block mb-1">
-                    {t.reflections.whatLearned}
-                  </span>
-                  <p className="text-sub">{ref.fullLearned}</p>
-                </div>
-                <div>
-                  <span className="text-[11px] uppercase tracking-wider text-accent block mb-1">
-                    {t.reflections.whatChanged}
-                  </span>
-                  <p className="text-main font-medium">{ref.fullChanged}</p>
-                </div>
-              </div>
-            )}
+        {REFLECTIONS_ARCHIVE.length === 0 ? (
+          <div className="p-12 text-center rounded-xl bg-surface border border-dashed border-border-subtle">
+            <Sparkles className="w-8 h-8 text-dim mx-auto mb-3" />
+            <p className="text-sm font-medium text-main mb-1">
+              {t.reflections.noReflections}
+            </p>
+            <p className="text-xs text-dim max-w-sm mx-auto mb-4">
+              {locale === "id"
+                ? "Tulis refleksi mingguan pertamamu untuk mendokumentasikan apa yang terjadi, dipelajari, dan berubah."
+                : locale === "de"
+                ? "Schreibe deine erste wöchentliche Reflexion, um zu dokumentieren, was passiert ist, was du gelernt hast und was sich verändert hat."
+                : "Write your first weekly reflection to document what happened, what you learned, and what evolved."}
+            </p>
+            <Link
+              href="/journey/reflections/new"
+              className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-sub hover:text-main transition-all cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t.reflections.writeReflection}</span>
+            </Link>
           </div>
-        ))}
+        ) : (
+          REFLECTIONS_ARCHIVE.map((ref) => (
+            <div
+              key={ref.id}
+              className="p-5 rounded-xl bg-surface border border-line hover:border-accent/40 transition-all group"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-main">{getWeekLabel(ref.weekLabel)}</span>
+                    <span className="text-xs font-mono text-dim">· {ref.dateRange}</span>
+                  </div>
+                  <p className="text-xs text-sub mt-2 leading-relaxed italic font-serif">
+                    &ldquo;{ref.excerpt}&rdquo;
+                  </p>
+                </div>
+              </div>
+
+              {ref.fullHappened && (
+                <div className="mt-4 pt-3 border-t border-border-subtle grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <span className="text-[11px] uppercase tracking-wider text-dim block mb-1">
+                      {t.reflections.whatHappened}
+                    </span>
+                    <p className="text-sub">{ref.fullHappened}</p>
+                  </div>
+                  <div>
+                    <span className="text-[11px] uppercase tracking-wider text-dim block mb-1">
+                      {t.reflections.whatLearned}
+                    </span>
+                    <p className="text-sub">{ref.fullLearned}</p>
+                  </div>
+                  <div>
+                    <span className="text-[11px] uppercase tracking-wider text-accent block mb-1">
+                      {t.reflections.whatChanged}
+                    </span>
+                    <p className="text-main font-medium">{ref.fullChanged}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
