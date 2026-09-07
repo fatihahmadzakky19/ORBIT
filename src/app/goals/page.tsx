@@ -11,6 +11,11 @@ import {
   Edit2,
   Check,
   ChevronRight,
+  Repeat,
+  BookOpen,
+  CheckCircle2,
+  Circle,
+  ExternalLink,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
 import {
@@ -26,6 +31,7 @@ import {
   formatFullDate,
 } from "@/lib/date";
 import { format } from "date-fns";
+import Link from "next/link";
 
 export type GoalTimeframe = "DAY" | "WEEK" | "MONTH" | "YEAR" | "CUSTOM";
 
@@ -42,6 +48,8 @@ export interface GoalItem {
   percent: number;
   deadline?: string;
   milestones?: { title: string; completed: boolean }[];
+  linkedHabits?: string[];
+  linkedLearnings?: { topic: string; completed?: boolean }[];
   relatedCounts?: { activities: number; learning: number; habits: number; reflections: number };
 }
 
@@ -65,6 +73,10 @@ export default function GoalsPage() {
   const [selectedGoal, setSelectedGoal] = useState<GoalItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
+  // Available habits & learnings from localStorage for quick selection
+  const [existingHabits, setExistingHabits] = useState<string[]>([]);
+  const [existingLearnings, setExistingLearnings] = useState<string[]>([]);
+
   // New Goal Form State
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
@@ -72,19 +84,45 @@ export default function GoalsPage() {
   const [newTimeframe, setNewTimeframe] = useState<GoalTimeframe>("MONTH");
   const [newDeadline, setNewDeadline] = useState(getEndOfMonthDateString());
 
+  // Linked Habits & Learnings in Form
+  const [newLinkedHabits, setNewLinkedHabits] = useState<string[]>([]);
+  const [customHabitInput, setCustomHabitInput] = useState("");
+  const [newLinkedLearnings, setNewLinkedLearnings] = useState<{ topic: string; completed: boolean }[]>([]);
+  const [customLearningInput, setCustomLearningInput] = useState("");
+
   // Editing deadline state inside detail view
   const [isEditingDeadline, setIsEditingDeadline] = useState(false);
   const [editDeadlineValue, setEditDeadlineValue] = useState("");
 
-  // Load goals from localStorage on mount
+  // Inline add habit/learning inside detail view
+  const [inlineHabitInput, setInlineHabitInput] = useState("");
+  const [inlineLearningInput, setInlineLearningInput] = useState("");
+
+  // Load goals & other modules from localStorage on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("orbit_goals");
-      if (saved) {
-        setGoals(JSON.parse(saved));
+      const savedGoals = localStorage.getItem("orbit_goals");
+      if (savedGoals) {
+        setGoals(JSON.parse(savedGoals));
+      }
+
+      // Load habits for quick suggestions
+      const savedHabits = localStorage.getItem("orbit_habits");
+      if (savedHabits) {
+        const parsedHabits = JSON.parse(savedHabits);
+        const habitNames: string[] = parsedHabits.map((h: any) => h.name).filter(Boolean);
+        setExistingHabits(habitNames);
+      }
+
+      // Load learnings for quick suggestions
+      const savedLearnings = localStorage.getItem("orbit_learning_notes");
+      if (savedLearnings) {
+        const parsedLearnings = JSON.parse(savedLearnings);
+        const learningTopics: string[] = parsedLearnings.map((l: any) => l.topic).filter(Boolean);
+        setExistingLearnings(learningTopics);
       }
     } catch (e) {
-      console.error("Failed to load goals from localStorage", e);
+      console.error("Failed to load data from localStorage", e);
     }
   }, []);
 
@@ -134,6 +172,51 @@ export default function GoalsPage() {
   const handleAdjustDeadlineMonths = (months: number) => {
     setNewDeadline((prev) => addMonthsDateString(prev || getTodayDateString(now), months));
     setNewTimeframe("CUSTOM");
+  };
+
+  // Habit management in create modal
+  const handleToggleHabitSelection = (habitName: string) => {
+    if (newLinkedHabits.includes(habitName)) {
+      setNewLinkedHabits(newLinkedHabits.filter((h) => h !== habitName));
+    } else {
+      setNewLinkedHabits([...newLinkedHabits, habitName]);
+    }
+  };
+
+  const handleAddCustomHabit = () => {
+    if (!customHabitInput.trim()) return;
+    const name = customHabitInput.trim();
+    if (!newLinkedHabits.includes(name)) {
+      setNewLinkedHabits([...newLinkedHabits, name]);
+    }
+    setCustomHabitInput("");
+  };
+
+  const handleRemoveLinkedHabit = (name: string) => {
+    setNewLinkedHabits(newLinkedHabits.filter((h) => h !== name));
+  };
+
+  // Learning management in create modal
+  const handleToggleLearningSelection = (topic: string) => {
+    const exists = newLinkedLearnings.some((l) => l.topic === topic);
+    if (exists) {
+      setNewLinkedLearnings(newLinkedLearnings.filter((l) => l.topic !== topic));
+    } else {
+      setNewLinkedLearnings([...newLinkedLearnings, { topic, completed: false }]);
+    }
+  };
+
+  const handleAddCustomLearning = () => {
+    if (!customLearningInput.trim()) return;
+    const topic = customLearningInput.trim();
+    if (!newLinkedLearnings.some((l) => l.topic === topic)) {
+      setNewLinkedLearnings([...newLinkedLearnings, { topic, completed: false }]);
+    }
+    setCustomLearningInput("");
+  };
+
+  const handleRemoveLinkedLearning = (topic: string) => {
+    setNewLinkedLearnings(newLinkedLearnings.filter((l) => l.topic !== topic));
   };
 
   // Filtered goals
@@ -203,15 +286,6 @@ export default function GoalsPage() {
       );
     }
 
-    if (days === 0 && hours === 0 && minutes === 0) {
-      return (
-        <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse font-medium">
-          <Clock className="w-3 h-3 shrink-0" />
-          <span>{seconds}s tersisa!</span>
-        </span>
-      );
-    }
-
     if (compact) {
       return (
         <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-surface-elevated text-sub border border-border-subtle font-medium">
@@ -241,6 +315,10 @@ export default function GoalsPage() {
     setNewType("MILESTONE");
     setNewTimeframe("MONTH");
     setNewDeadline(getEndOfMonthDateString(now));
+    setNewLinkedHabits([]);
+    setCustomHabitInput("");
+    setNewLinkedLearnings([]);
+    setCustomLearningInput("");
     setIsCreating(true);
   };
 
@@ -257,6 +335,8 @@ export default function GoalsPage() {
       timeframe: newTimeframe,
       percent: 0,
       deadline: newDeadline,
+      linkedHabits: newLinkedHabits.length > 0 ? newLinkedHabits : undefined,
+      linkedLearnings: newLinkedLearnings.length > 0 ? newLinkedLearnings : undefined,
       milestones:
         newType !== "MEASURABLE"
           ? [
@@ -264,7 +344,12 @@ export default function GoalsPage() {
               { title: "Core Milestone", completed: false },
             ]
           : undefined,
-      relatedCounts: { activities: 0, learning: 0, habits: 0, reflections: 0 },
+      relatedCounts: {
+        activities: 0,
+        learning: newLinkedLearnings.length,
+        habits: newLinkedHabits.length,
+        reflections: 0,
+      },
     };
 
     const updated = [newGoal, ...goals];
@@ -309,6 +394,75 @@ export default function GoalsPage() {
     const updated = goals.map((g) => (g.id === selectedGoal.id ? updatedGoal : g));
     saveGoals(updated);
     setSelectedGoal(updatedGoal);
+  };
+
+  // Toggle completed status for a linked learning in detail view
+  const handleToggleLearningComplete = (topic: string) => {
+    if (!selectedGoal || !selectedGoal.linkedLearnings) return;
+    const updatedLearnings = selectedGoal.linkedLearnings.map((l) =>
+      l.topic === topic ? { ...l, completed: !l.completed } : l
+    );
+
+    const updatedGoal: GoalItem = {
+      ...selectedGoal,
+      linkedLearnings: updatedLearnings,
+    };
+
+    const updated = goals.map((g) => (g.id === selectedGoal.id ? updatedGoal : g));
+    saveGoals(updated);
+    setSelectedGoal(updatedGoal);
+  };
+
+  // Inline add habit in detail view
+  const handleAddInlineHabit = () => {
+    if (!selectedGoal || !inlineHabitInput.trim()) return;
+    const habit = inlineHabitInput.trim();
+    const current = selectedGoal.linkedHabits || [];
+    if (current.includes(habit)) return;
+
+    const updatedHabits = [...current, habit];
+    const updatedGoal: GoalItem = {
+      ...selectedGoal,
+      linkedHabits: updatedHabits,
+      relatedCounts: {
+        ...selectedGoal.relatedCounts,
+        activities: selectedGoal.relatedCounts?.activities ?? 0,
+        learning: selectedGoal.linkedLearnings?.length ?? 0,
+        habits: updatedHabits.length,
+        reflections: selectedGoal.relatedCounts?.reflections ?? 0,
+      },
+    };
+
+    const updated = goals.map((g) => (g.id === selectedGoal.id ? updatedGoal : g));
+    saveGoals(updated);
+    setSelectedGoal(updatedGoal);
+    setInlineHabitInput("");
+  };
+
+  // Inline add learning in detail view
+  const handleAddInlineLearning = () => {
+    if (!selectedGoal || !inlineLearningInput.trim()) return;
+    const topic = inlineLearningInput.trim();
+    const current = selectedGoal.linkedLearnings || [];
+    if (current.some((l) => l.topic === topic)) return;
+
+    const updatedLearnings = [...current, { topic, completed: false }];
+    const updatedGoal: GoalItem = {
+      ...selectedGoal,
+      linkedLearnings: updatedLearnings,
+      relatedCounts: {
+        ...selectedGoal.relatedCounts,
+        activities: selectedGoal.relatedCounts?.activities ?? 0,
+        learning: updatedLearnings.length,
+        habits: selectedGoal.linkedHabits?.length ?? 0,
+        reflections: selectedGoal.relatedCounts?.reflections ?? 0,
+      },
+    };
+
+    const updated = goals.map((g) => (g.id === selectedGoal.id ? updatedGoal : g));
+    saveGoals(updated);
+    setSelectedGoal(updatedGoal);
+    setInlineLearningInput("");
   };
 
   return (
@@ -476,7 +630,160 @@ export default function GoalsPage() {
             </div>
           </div>
 
-          {/* Milestones if applicable */}
+          {/* SECTION 1: SUPPORTING HABITS FOR THIS GOAL */}
+          <div className="p-6 rounded-xl bg-surface border border-line space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Repeat className="w-4 h-4 text-accent" />
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-main">
+                  {t.goals.supportingHabits}
+                </h2>
+                <span className="text-[11px] text-dim font-mono">
+                  ({selectedGoal.linkedHabits?.length || 0})
+                </span>
+              </div>
+
+              <Link
+                href="/habits"
+                className="text-xs text-accent hover:underline flex items-center gap-1"
+              >
+                <span>Buka Menu Kebiasaan</span>
+                <ExternalLink className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {selectedGoal.linkedHabits && selectedGoal.linkedHabits.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {selectedGoal.linkedHabits.map((habit, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3 rounded-lg bg-canvas border border-border-subtle flex items-center justify-between gap-2"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-6 h-6 rounded bg-accent/10 text-accent flex items-center justify-center shrink-0 text-xs font-mono">
+                        🔁
+                      </div>
+                      <span className="text-xs font-medium text-main truncate">{habit}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-dim italic">{t.goals.noLinkedHabits}</p>
+            )}
+
+            {/* Inline add supporting habit */}
+            <div className="pt-2 flex items-center gap-2">
+              <input
+                type="text"
+                placeholder={t.goals.addHabitPlaceholder}
+                value={inlineHabitInput}
+                onChange={(e) => setInlineHabitInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddInlineHabit();
+                  }
+                }}
+                className="flex-1 px-3 py-1.5 rounded-lg bg-canvas border border-line text-xs text-main placeholder:text-dim focus:outline-none focus:border-accent"
+              />
+              <button
+                type="button"
+                onClick={handleAddInlineHabit}
+                disabled={!inlineHabitInput.trim()}
+                className="px-3 py-1.5 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs text-main font-medium disabled:opacity-50 cursor-pointer"
+              >
+                + Tambah
+              </button>
+            </div>
+          </div>
+
+          {/* SECTION 2: REQUIRED LEARNINGS / TOPICS TO STUDY */}
+          <div className="p-6 rounded-xl bg-surface border border-line space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-accent" />
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-main">
+                  {t.goals.requiredLearnings}
+                </h2>
+                <span className="text-[11px] text-dim font-mono">
+                  ({selectedGoal.linkedLearnings?.length || 0})
+                </span>
+              </div>
+
+              <Link
+                href="/learning"
+                className="text-xs text-accent hover:underline flex items-center gap-1"
+              >
+                <span>Buka Catatan Belajar</span>
+                <ExternalLink className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {selectedGoal.linkedLearnings && selectedGoal.linkedLearnings.length > 0 ? (
+              <div className="space-y-2">
+                {selectedGoal.linkedLearnings.map((learning, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => handleToggleLearningComplete(learning.topic)}
+                    className="flex items-center justify-between p-3 rounded-lg bg-canvas border border-border-subtle hover:border-accent/40 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`w-4 h-4 rounded flex items-center justify-center text-[10px] border transition-colors ${
+                          learning.completed
+                            ? "bg-emerald-500 border-emerald-500 text-white"
+                            : "border-border-subtle text-transparent"
+                        }`}
+                      >
+                        ✓
+                      </div>
+                      <span
+                        className={`text-xs ${
+                          learning.completed ? "line-through text-dim" : "text-main font-medium"
+                        }`}
+                      >
+                        {learning.topic}
+                      </span>
+                    </div>
+
+                    <span className="text-[11px] font-mono text-dim">
+                      {learning.completed ? "Selesai dipelajari" : "Perlu dipelajari"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-dim italic">{t.goals.noLinkedLearnings}</p>
+            )}
+
+            {/* Inline add learning topic */}
+            <div className="pt-2 flex items-center gap-2">
+              <input
+                type="text"
+                placeholder={t.goals.addLearningPlaceholder}
+                value={inlineLearningInput}
+                onChange={(e) => setInlineLearningInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddInlineLearning();
+                  }
+                }}
+                className="flex-1 px-3 py-1.5 rounded-lg bg-canvas border border-line text-xs text-main placeholder:text-dim focus:outline-none focus:border-accent"
+              />
+              <button
+                type="button"
+                onClick={handleAddInlineLearning}
+                disabled={!inlineLearningInput.trim()}
+                className="px-3 py-1.5 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs text-main font-medium disabled:opacity-50 cursor-pointer"
+              >
+                + Tambah
+              </button>
+            </div>
+          </div>
+
+          {/* SECTION 3: MILESTONES */}
           {selectedGoal.milestones && selectedGoal.milestones.length > 0 && (
             <div className="p-6 rounded-xl bg-surface border border-line">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-4">
@@ -524,14 +831,14 @@ export default function GoalsPage() {
                 <div className="text-[11px] text-dim mt-0.5">{t.goals.activities}</div>
               </div>
               <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
-                <div className="text-lg font-mono font-semibold text-main">
-                  {selectedGoal.relatedCounts?.learning ?? 0}
+                <div className="text-lg font-mono font-semibold text-accent">
+                  {selectedGoal.linkedLearnings?.length ?? 0}
                 </div>
                 <div className="text-[11px] text-dim mt-0.5">{t.goals.learning}</div>
               </div>
               <div className="p-3 rounded-lg bg-canvas border border-border-subtle">
-                <div className="text-lg font-mono font-semibold text-main">
-                  {selectedGoal.relatedCounts?.habits ?? 0}
+                <div className="text-lg font-mono font-semibold text-accent">
+                  {selectedGoal.linkedHabits?.length ?? 0}
                 </div>
                 <div className="text-[11px] text-dim mt-0.5">{t.goals.habits}</div>
               </div>
@@ -633,51 +940,73 @@ export default function GoalsPage() {
 
           {/* Goal Cards List */}
           <div className="space-y-3">
-            {filteredGoals.map((goal) => (
-              <div
-                key={goal.id}
-                onClick={() => setSelectedGoal(goal)}
-                className="p-5 rounded-xl bg-surface border border-line hover:border-accent/40 transition-all cursor-pointer group"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="space-y-1.5 flex-1 min-w-0 pr-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-sm font-medium text-main group-hover:text-accent transition-colors truncate">
-                        {goal.title}
-                      </h3>
-                      {goal.timeframe && (
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20 shrink-0">
-                          {getTimeframeLabel(goal.timeframe)}
-                        </span>
-                      )}
+            {filteredGoals.map((goal) => {
+              const habitCount = goal.linkedHabits?.length || 0;
+              const learningCount = goal.linkedLearnings?.length || 0;
+
+              return (
+                <div
+                  key={goal.id}
+                  onClick={() => setSelectedGoal(goal)}
+                  className="p-5 rounded-xl bg-surface border border-line hover:border-accent/40 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="space-y-1.5 flex-1 min-w-0 pr-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-sm font-medium text-main group-hover:text-accent transition-colors truncate">
+                          {goal.title}
+                        </h3>
+                        {goal.timeframe && (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20 shrink-0">
+                            {getTimeframeLabel(goal.timeframe)}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-dim mt-1 flex-wrap">
+                        <span>{getStatusLabel(goal.status)}</span>
+                        {goal.deadline && (
+                          <>
+                            <span>·</span>
+                            <span className="font-mono">{formatShortDate(goal.deadline)}</span>
+                            {renderLiveCountdown(goal.deadline, true)}
+                          </>
+                        )}
+                        {/* Linked Habits & Learnings indicators */}
+                        {(habitCount > 0 || learningCount > 0) && (
+                          <div className="flex items-center gap-2 ml-1">
+                            {habitCount > 0 && (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-sub bg-canvas px-1.5 py-0.5 rounded border border-border-subtle">
+                                <Repeat className="w-2.5 h-2.5 text-accent" />
+                                <span>{habitCount} Kebiasaan</span>
+                              </span>
+                            )}
+                            {learningCount > 0 && (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-sub bg-canvas px-1.5 py-0.5 rounded border border-border-subtle">
+                                <BookOpen className="w-2.5 h-2.5 text-accent" />
+                                <span>{learningCount} Pelajaran</span>
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs text-dim mt-1 flex-wrap">
-                      <span>{getStatusLabel(goal.status)}</span>
-                      {goal.deadline && (
-                        <>
-                          <span>·</span>
-                          <span className="font-mono">{formatShortDate(goal.deadline)}</span>
-                          {renderLiveCountdown(goal.deadline, true)}
-                        </>
-                      )}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs font-mono text-sub font-semibold">{goal.percent}%</span>
+                      <ChevronRight className="w-4 h-4 text-dim group-hover:text-main transition-transform group-hover:translate-x-0.5" />
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs font-mono text-sub font-semibold">{goal.percent}%</span>
-                    <ChevronRight className="w-4 h-4 text-dim group-hover:text-main transition-transform group-hover:translate-x-0.5" />
+                  <div className="w-full h-1.5 rounded-full bg-canvas overflow-hidden mt-3">
+                    <div
+                      className="h-full bg-accent rounded-full transition-all duration-300"
+                      style={{ width: `${goal.percent}%` }}
+                    />
                   </div>
                 </div>
-
-                <div className="w-full h-1.5 rounded-full bg-canvas overflow-hidden mt-3">
-                  <div
-                    className="h-full bg-accent rounded-full transition-all duration-300"
-                    style={{ width: `${goal.percent}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
 
             {filteredGoals.length === 0 && (
               <div className="p-8 text-center rounded-xl bg-surface border border-dashed border-border-subtle">
@@ -695,10 +1024,10 @@ export default function GoalsPage() {
         </>
       )}
 
-      {/* CREATE GOAL MODAL WITH REAL-TIME DATE & TIME CONTROLS */}
+      {/* CREATE GOAL MODAL WITH LINKED HABITS & LEARNINGS */}
       {isCreating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-2xl p-6 text-main my-8 max-h-[92vh] overflow-y-auto">
+          <div className="w-full max-w-lg bg-surface border border-line rounded-xl shadow-2xl p-6 text-main my-8 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-sm font-semibold text-main">{t.goals.createGoal}</h2>
@@ -724,7 +1053,7 @@ export default function GoalsPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Get my first job"
+                  placeholder="e.g. Get my first job as Fullstack Developer"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-canvas border border-line text-sm text-main placeholder:text-dim focus:outline-none focus:border-accent"
@@ -810,11 +1139,9 @@ export default function GoalsPage() {
                     <Calendar className="w-3.5 h-3.5 text-accent" />
                     <span>{t.common.deadline}</span>
                   </label>
-                  {/* Live ticking counter */}
                   <div>{renderLiveCountdown(newDeadline, true)}</div>
                 </div>
 
-                {/* Date Input */}
                 <input
                   type="date"
                   value={newDeadline}
@@ -825,7 +1152,7 @@ export default function GoalsPage() {
                   className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-xs font-mono text-main focus:outline-none focus:border-accent cursor-pointer"
                 />
 
-                {/* Quick Interactive Adjustments (Bisa langsung diubah secara real-time) */}
+                {/* Quick Interactive Adjustments */}
                 <div className="pt-1">
                   <span className="text-[10px] text-dim block mb-1.5">
                     Ubah tenggat waktu secara instan:
@@ -861,6 +1188,174 @@ export default function GoalsPage() {
                     </button>
                   </div>
                 </div>
+              </div>
+
+              {/* NEW SECTION: SUPPORTING HABITS (KEBIASAAN PENDUKUNG) */}
+              <div className="p-3.5 rounded-xl bg-canvas border border-line space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-main flex items-center gap-1.5">
+                    <Repeat className="w-3.5 h-3.5 text-accent" />
+                    <span>{t.goals.supportingHabits}</span>
+                  </label>
+                  <span className="text-[10px] text-dim">Rutinitas harian menuju target</span>
+                </div>
+
+                {/* Quick suggestions from existing habits */}
+                {existingHabits.length > 0 && (
+                  <div>
+                    <span className="text-[10px] text-dim block mb-1.5">Pilih dari kebiasaan Anda:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {existingHabits.map((habit) => {
+                        const isSelected = newLinkedHabits.includes(habit);
+                        return (
+                          <button
+                            key={habit}
+                            type="button"
+                            onClick={() => handleToggleHabitSelection(habit)}
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer border ${
+                              isSelected
+                                ? "bg-accent text-white border-accent shadow-xs"
+                                : "bg-surface border-border-subtle text-sub hover:border-line hover:text-main"
+                            }`}
+                          >
+                            {isSelected ? "✓ " : "+ "}
+                            {habit}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add Custom Habit input */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder={t.goals.addHabitPlaceholder}
+                    value={customHabitInput}
+                    onChange={(e) => setCustomHabitInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCustomHabit();
+                      }
+                    }}
+                    className="flex-1 px-2.5 py-1.5 rounded-md bg-surface border border-line text-xs text-main placeholder:text-dim focus:outline-none focus:border-accent"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomHabit}
+                    disabled={!customHabitInput.trim()}
+                    className="px-3 py-1.5 rounded-md bg-surface-elevated border border-border-subtle hover:border-line text-xs text-main font-medium disabled:opacity-50 cursor-pointer"
+                  >
+                    Tambah
+                  </button>
+                </div>
+
+                {/* Selected Habits tags */}
+                {newLinkedHabits.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {newLinkedHabits.map((h) => (
+                      <span
+                        key={h}
+                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-accent/10 border border-accent/20 text-accent text-xs font-medium"
+                      >
+                        <span>🔁 {h}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLinkedHabit(h)}
+                          className="hover:text-rose-400 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* NEW SECTION: REQUIRED LEARNINGS (PELAJARAN YANG HARUS DITEMPUH) */}
+              <div className="p-3.5 rounded-xl bg-canvas border border-line space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-main flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5 text-accent" />
+                    <span>{t.goals.requiredLearnings}</span>
+                  </label>
+                  <span className="text-[10px] text-dim">Materi / topik yang perlu dikuasai</span>
+                </div>
+
+                {/* Quick suggestions from existing learnings */}
+                {existingLearnings.length > 0 && (
+                  <div>
+                    <span className="text-[10px] text-dim block mb-1.5">Pilih dari catatan belajar:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {existingLearnings.map((topic) => {
+                        const isSelected = newLinkedLearnings.some((l) => l.topic === topic);
+                        return (
+                          <button
+                            key={topic}
+                            type="button"
+                            onClick={() => handleToggleLearningSelection(topic)}
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer border ${
+                              isSelected
+                                ? "bg-accent text-white border-accent shadow-xs"
+                                : "bg-surface border-border-subtle text-sub hover:border-line hover:text-main"
+                            }`}
+                          >
+                            {isSelected ? "✓ " : "+ "}
+                            {topic}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add Custom Learning input */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder={t.goals.addLearningPlaceholder}
+                    value={customLearningInput}
+                    onChange={(e) => setCustomLearningInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCustomLearning();
+                      }
+                    }}
+                    className="flex-1 px-2.5 py-1.5 rounded-md bg-surface border border-line text-xs text-main placeholder:text-dim focus:outline-none focus:border-accent"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomLearning}
+                    disabled={!customLearningInput.trim()}
+                    className="px-3 py-1.5 rounded-md bg-surface-elevated border border-border-subtle hover:border-line text-xs text-main font-medium disabled:opacity-50 cursor-pointer"
+                  >
+                    Tambah
+                  </button>
+                </div>
+
+                {/* Selected Learnings tags */}
+                {newLinkedLearnings.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {newLinkedLearnings.map((l) => (
+                      <span
+                        key={l.topic}
+                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-accent/10 border border-accent/20 text-accent text-xs font-medium"
+                      >
+                        <span>📚 {l.topic}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLinkedLearning(l.topic)}
+                          className="hover:text-rose-400 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}

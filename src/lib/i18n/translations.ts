@@ -127,6 +127,12 @@ export interface Translations {
     hours: string;
     minutes: string;
     seconds: string;
+    supportingHabits: string;
+    requiredLearnings: string;
+    addHabitPlaceholder: string;
+    addLearningPlaceholder: string;
+    noLinkedHabits: string;
+    noLinkedLearnings: string;
   };
   habits: {
     title: string;
@@ -385,6 +391,12 @@ export const translations: Record<Locale, Translations> = {
       hours: "hrs",
       minutes: "mins",
       seconds: "secs",
+      supportingHabits: "Supporting Habits",
+      requiredLearnings: "Required Learnings & Topics",
+      addHabitPlaceholder: "Add supporting habit (e.g. Code 1 hour daily)...",
+      addLearningPlaceholder: "Add topic to study (e.g. System Design)...",
+      noLinkedHabits: "No habits linked to this goal yet.",
+      noLinkedLearnings: "No learnings linked to this goal yet.",
     },
     habits: {
       title: "Habits",
@@ -642,6 +654,12 @@ export const translations: Record<Locale, Translations> = {
       hours: "Std",
       minutes: "Min",
       seconds: "Sek",
+      supportingHabits: "Unterstützende Gewohnheiten",
+      requiredLearnings: "Erforderliche Lerninhalte & Themen",
+      addHabitPlaceholder: "Gewohnheit hinzufügen (z.B. 1 Std. täglich programmieren)...",
+      addLearningPlaceholder: "Lerninhalt hinzufügen (z.B. Systemarchitektur)...",
+      noLinkedHabits: "Noch keine Gewohnheiten mit diesem Ziel verknüpft.",
+      noLinkedLearnings: "Noch keine Lerninhalte mit diesem Ziel verknüpft.",
     },
     habits: {
       title: "Gewohnheiten",
@@ -899,6 +917,12 @@ export const translations: Record<Locale, Translations> = {
       hours: "jam",
       minutes: "menit",
       seconds: "detik",
+      supportingHabits: "Kebiasaan Pendukung",
+      requiredLearnings: "Pelajaran yang Harus Ditempuh",
+      addHabitPlaceholder: "Tambah kebiasaan pendukung (misal: Coding 1 jam sehari)...",
+      addLearningPlaceholder: "Tambah materi/topik yang harus dipelajari...",
+      noLinkedHabits: "Belum ada kebiasaan yang ditautkan ke target ini.",
+      noLinkedLearnings: "Belum ada materi pembelajaran yang ditautkan ke target ini.",
     },
     habits: {
       title: "Kebiasaan",

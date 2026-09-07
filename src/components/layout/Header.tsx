@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Plus, User } from "lucide-react";
+import { Plus, User } from "lucide-react";
 import Link from "next/link";
 import { formatShortDate } from "@/lib/date";
 import { LanguageSelector } from "@/components/ui/LanguageSelector";
@@ -29,7 +29,7 @@ export function Header({ onOpenQuickAdd }: HeaderProps) {
         </span>
       </div>
 
-      {/* Right side: Language Selector, Bell, Profile & Global Add Button */}
+      {/* Right side: Language Selector, Profile & Global Add Button */}
       <div className="flex items-center gap-2.5">
         <LanguageSelector variant="compact" />
 
@@ -39,13 +39,6 @@ export function Header({ onOpenQuickAdd }: HeaderProps) {
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
           <span>{t.nav.addRecord}</span>
-        </button>
-
-        <button
-          aria-label="Notifications"
-          className="p-2 rounded-md text-sub hover:text-main hover:bg-surface-elevated transition-colors cursor-pointer"
-        >
-          <Bell className="w-4 h-4" />
         </button>
 
         <Link
