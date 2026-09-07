@@ -156,3 +156,32 @@ export function addMonthsDateString(dateStr: string, months: number): string {
   const base = dateStr ? parseISO(dateStr) : new Date();
   return format(addMonths(base, months), "yyyy-MM-dd");
 }
+
+export interface WeekDayInfo {
+  dateStr: string; // YYYY-MM-DD
+  dayName: string; // "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
+  dayNum: number;  // 1..31
+  isToday: boolean;
+}
+
+/**
+ * Returns array of 7 days for current week (Mon -> Sun) with dateStr, dayNum, and isToday flag
+ */
+export function getCurrentWeekDays(now: Date = new Date()): WeekDayInfo[] {
+  const monday = getMondayOfWeek(now);
+  const todayStr = format(now, "yyyy-MM-dd");
+  const days: WeekDayInfo[] = [];
+  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(monday, i);
+    const dateStr = format(d, "yyyy-MM-dd");
+    days.push({
+      dateStr,
+      dayName: dayNames[i],
+      dayNum: d.getDate(),
+      isToday: dateStr === todayStr,
+    });
+  }
+  return days;
+}

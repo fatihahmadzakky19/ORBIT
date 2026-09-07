@@ -142,6 +142,10 @@ export interface Translations {
     backToHabits: string;
     rhythm: string;
     noHabits: string;
+    deleteHabit: string;
+    deleteHabitConfirm: string;
+    completedToday: string;
+    completedAt: string;
   };
   learning: {
     title: string;
@@ -393,6 +397,10 @@ export const translations: Record<Locale, Translations> = {
       backToHabits: "Back to Habits",
       rhythm: "This Week Rhythm",
       noHabits: "No habits created yet. Build consistent rhythms with verifiable evidence.",
+      deleteHabit: "Delete Habit",
+      deleteHabitConfirm: "Are you sure you want to delete this habit?",
+      completedToday: "Completed Today",
+      completedAt: "Completed at",
     },
     learning: {
       title: "Learning",
@@ -643,6 +651,10 @@ export const translations: Record<Locale, Translations> = {
       backToHabits: "Zurück zu Gewohnheiten",
       rhythm: "Rhythmus dieser Woche",
       noHabits: "Noch keine Gewohnheiten erstellt. Baue nachhaltige Rhythmen mit echten Nachweisen auf.",
+      deleteHabit: "Gewohnheit löschen",
+      deleteHabitConfirm: "Möchtest du diese Gewohnheit wirklich löschen?",
+      completedToday: "Heute erledigt",
+      completedAt: "Erledigt um",
     },
     learning: {
       title: "Lernen",
@@ -893,6 +905,10 @@ export const translations: Record<Locale, Translations> = {
       backToHabits: "Kembali ke Kebiasaan",
       rhythm: "Ritme Minggu Ini",
       noHabits: "Belum ada kebiasaan yang dibuat. Bangun ritme konsisten dengan bukti nyata.",
+      deleteHabit: "Hapus Kebiasaan",
+      deleteHabitConfirm: "Apakah kamu yakin ingin menghapus kebiasaan ini?",
+      completedToday: "Selesai Hari Ini",
+      completedAt: "Selesai pukul",
     },
     learning: {
       title: "Pembelajaran",
