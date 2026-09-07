@@ -106,6 +106,27 @@ export interface Translations {
     reflections: string;
     noGoals: string;
     backToGoals: string;
+    timeframe: string;
+    timeframeDay: string;
+    timeframeWeek: string;
+    timeframeMonth: string;
+    timeframeYear: string;
+    timeframeCustom: string;
+    allTimeframes: string;
+    daysLeft: string;
+    today: string;
+    tomorrow: string;
+    overdue: string;
+    editDeadline: string;
+    deleteGoal: string;
+    deleteGoalConfirm: string;
+    currentTime: string;
+    liveCountdown: string;
+    quickShortcuts: string;
+    days: string;
+    hours: string;
+    minutes: string;
+    seconds: string;
   };
   habits: {
     title: string;
@@ -328,6 +349,27 @@ export const translations: Record<Locale, Translations> = {
       reflections: "Reflections",
       noGoals: "No goals found in this view.",
       backToGoals: "Back to Goals",
+      timeframe: "Timeframe Limit",
+      timeframeDay: "Day",
+      timeframeWeek: "Week",
+      timeframeMonth: "Month",
+      timeframeYear: "Year",
+      timeframeCustom: "Custom",
+      allTimeframes: "All Horizons",
+      daysLeft: "{count} days left",
+      today: "Today",
+      tomorrow: "Tomorrow",
+      overdue: "{count} days overdue",
+      editDeadline: "Change Deadline",
+      deleteGoal: "Delete Goal",
+      deleteGoalConfirm: "Are you sure you want to delete this goal?",
+      currentTime: "Current Time",
+      liveCountdown: "Live Countdown",
+      quickShortcuts: "Quick Adjust",
+      days: "days",
+      hours: "hrs",
+      minutes: "mins",
+      seconds: "secs",
     },
     habits: {
       title: "Habits",
@@ -549,6 +591,27 @@ export const translations: Record<Locale, Translations> = {
       reflections: "Reflexionen",
       noGoals: "Keine Ziele in dieser Ansicht gefunden.",
       backToGoals: "Zurück zu Zielen",
+      timeframe: "Zeitrahmen-Begrenzung",
+      timeframeDay: "Tag",
+      timeframeWeek: "Woche",
+      timeframeMonth: "Monat",
+      timeframeYear: "Jahr",
+      timeframeCustom: "Benutzerdefiniert",
+      allTimeframes: "Alle Zeithorizonte",
+      daysLeft: "Noch {count} Tage",
+      today: "Heute",
+      tomorrow: "Morgen",
+      overdue: "Seit {count} Tagen überfällig",
+      editDeadline: "Frist ändern",
+      deleteGoal: "Ziel löschen",
+      deleteGoalConfirm: "Möchtest du dieses Ziel wirklich löschen?",
+      currentTime: "Aktuelle Zeit",
+      liveCountdown: "Live-Countdown",
+      quickShortcuts: "Schnellanpassung",
+      days: "Tage",
+      hours: "Std",
+      minutes: "Min",
+      seconds: "Sek",
     },
     habits: {
       title: "Gewohnheiten",
@@ -770,6 +833,27 @@ export const translations: Record<Locale, Translations> = {
       reflections: "Refleksi",
       noGoals: "Belum ada target pada filter ini.",
       backToGoals: "Kembali ke Target",
+      timeframe: "Batasan Waktu",
+      timeframeDay: "Hari",
+      timeframeWeek: "Minggu",
+      timeframeMonth: "Bulan",
+      timeframeYear: "Tahun",
+      timeframeCustom: "Kustom",
+      allTimeframes: "Semua Rentang",
+      daysLeft: "Sisa {count} hari",
+      today: "Hari Ini",
+      tomorrow: "Besok",
+      overdue: "Terlewat {count} hari",
+      editDeadline: "Ubah Tenggat Waktu",
+      deleteGoal: "Hapus Target",
+      deleteGoalConfirm: "Apakah kamu yakin ingin menghapus target ini?",
+      currentTime: "Waktu Saat Ini",
+      liveCountdown: "Hitung Mundur Realtime",
+      quickShortcuts: "Atur Cepat",
+      days: "hari",
+      hours: "jam",
+      minutes: "menit",
+      seconds: "detik",
     },
     habits: {
       title: "Kebiasaan",

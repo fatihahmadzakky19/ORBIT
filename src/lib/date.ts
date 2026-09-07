@@ -9,6 +9,11 @@ import {
   isToday,
   isYesterday,
   parseISO,
+  differenceInCalendarDays,
+  endOfYear,
+  addDays,
+  addWeeks,
+  addMonths,
 } from "date-fns";
 
 export const DEFAULT_TIMEZONE = process.env.NEXT_PUBLIC_TIMEZONE || "Asia/Jakarta";
@@ -76,4 +81,78 @@ export function getGreeting(): string {
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
   return "Good evening";
+}
+
+/**
+ * Returns today's date formatted as YYYY-MM-DD
+ */
+export function getTodayDateString(date: Date = new Date()): string {
+  return format(date, "yyyy-MM-dd");
+}
+
+/**
+ * Returns end of current week (Sunday) formatted as YYYY-MM-DD
+ */
+export function getEndOfWeekDateString(date: Date = new Date()): string {
+  return format(getSundayOfWeek(date), "yyyy-MM-dd");
+}
+
+/**
+ * Returns end of current month formatted as YYYY-MM-DD
+ */
+export function getEndOfMonthDateString(date: Date = new Date()): string {
+  return format(endOfMonth(date), "yyyy-MM-dd");
+}
+
+/**
+ * Returns end of current year (Dec 31) formatted as YYYY-MM-DD
+ */
+export function getEndOfYearDateString(date: Date = new Date()): string {
+  return format(endOfYear(date), "yyyy-MM-dd");
+}
+
+/**
+ * Calculates days remaining between a deadline date string and current date
+ */
+export function getDaysRemaining(deadline: Date | string, fromDate: Date = new Date()): number {
+  const d = typeof deadline === "string" ? parseISO(deadline) : deadline;
+  return differenceInCalendarDays(d, fromDate);
+}
+
+/**
+ * Calculates high-precision countdown (days, hours, minutes, seconds)
+ * Target is set to end of that calendar day (23:59:59)
+ */
+export function getPreciseCountdown(deadline: Date | string, now: Date = new Date()) {
+  const dStr = typeof deadline === "string" ? deadline : format(deadline, "yyyy-MM-dd");
+  const target = new Date(`${dStr}T23:59:59`);
+  const diffMs = target.getTime() - now.getTime();
+  const isOverdue = diffMs < 0;
+  const absMs = Math.abs(diffMs);
+
+  const totalSeconds = Math.floor(absMs / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return { totalSeconds, isOverdue, days, hours, minutes, seconds };
+}
+
+/**
+ * Adds days/weeks/months to a date string YYYY-MM-DD
+ */
+export function addDaysDateString(dateStr: string, days: number): string {
+  const base = dateStr ? parseISO(dateStr) : new Date();
+  return format(addDays(base, days), "yyyy-MM-dd");
+}
+
+export function addWeeksDateString(dateStr: string, weeks: number): string {
+  const base = dateStr ? parseISO(dateStr) : new Date();
+  return format(addWeeks(base, weeks), "yyyy-MM-dd");
+}
+
+export function addMonthsDateString(dateStr: string, months: number): string {
+  const base = dateStr ? parseISO(dateStr) : new Date();
+  return format(addMonths(base, months), "yyyy-MM-dd");
 }
