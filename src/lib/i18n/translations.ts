@@ -174,6 +174,14 @@ export interface Translations {
     mediaGallery: string;
     fileCount: string;
     deleteFolderConfirm: string;
+    addFile: string;
+    createFile: string;
+    uploadFile: string;
+    fileName: string;
+    fileContent: string;
+    filePlaceholder: string;
+    attachedFiles: string;
+    downloadFile: string;
   };
   finance: {
     title: string;
@@ -417,6 +425,14 @@ export const translations: Record<Locale, Translations> = {
       mediaGallery: "Attached Media (Photos & Videos)",
       fileCount: "files",
       deleteFolderConfirm: "Are you sure you want to delete this folder?",
+      addFile: "Add File / Doc",
+      createFile: "Create Document File",
+      uploadFile: "Upload File",
+      fileName: "File Name",
+      fileContent: "File Content / Notes",
+      filePlaceholder: "e.g. notes.md, architecture.txt, summary.pdf",
+      attachedFiles: "Attached Files & Documents",
+      downloadFile: "Download File",
     },
     finance: {
       title: "Finance",
@@ -659,6 +675,14 @@ export const translations: Record<Locale, Translations> = {
       mediaGallery: "Angehängte Medien (Fotos & Videos)",
       fileCount: "Dateien",
       deleteFolderConfirm: "Möchtest du diesen Ordner wirklich löschen?",
+      addFile: "Datei / Dokument hinzufügen",
+      createFile: "Dokumentendatei erstellen",
+      uploadFile: "Datei hochladen",
+      fileName: "Dateiname",
+      fileContent: "Dateiinhalt / Notizen",
+      filePlaceholder: "z.B. notizen.md, architektur.txt, zusammenfassung.pdf",
+      attachedFiles: "Angehängte Dateien & Dokumente",
+      downloadFile: "Datei herunterladen",
     },
     finance: {
       title: "Finanzen",
@@ -901,6 +925,14 @@ export const translations: Record<Locale, Translations> = {
       mediaGallery: "Media Terlampir (Foto & Video)",
       fileCount: "catatan",
       deleteFolderConfirm: "Apakah kamu yakin ingin menghapus folder ini?",
+      addFile: "Tambah Berkas / File",
+      createFile: "Buat File Dokumen",
+      uploadFile: "Unggah Berkas",
+      fileName: "Nama File",
+      fileContent: "Isi File / Catatan Dokumen",
+      filePlaceholder: "misal: catatan.md, arsitektur.txt, materi.pdf",
+      attachedFiles: "Berkas & Dokumen Terlampir",
+      downloadFile: "Unduh File",
     },
     finance: {
       title: "Keuangan",

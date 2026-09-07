@@ -17,14 +17,22 @@ import {
   Link as LinkIcon,
   Search,
   Maximize2,
+  File,
+  FilePlus,
+  Download,
+  Eye,
+  FileCode,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
 
 export interface LearningMedia {
   id: string;
-  type: "photo" | "video";
+  type: "photo" | "video" | "file";
   url: string;
   caption?: string;
+  fileName?: string;
+  fileSize?: string;
+  content?: string; // Text content if created directly
 }
 
 export interface LearningFolder {
@@ -43,6 +51,12 @@ export interface LearningItem {
   media?: LearningMedia[];
   relatedActivity?: string;
   relatedGoal?: string;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 // Helper to extract YouTube embed URL if applicable
@@ -78,6 +92,7 @@ export default function LearningPage() {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [filePreviewModal, setFilePreviewModal] = useState<{ title: string; content: string } | null>(null);
 
   // Form states - Folder
   const [newFolderName, setNewFolderName] = useState("");
@@ -92,7 +107,11 @@ export default function LearningPage() {
   // Media input sub-states
   const [photoUrlInput, setPhotoUrlInput] = useState("");
   const [videoUrlInput, setVideoUrlInput] = useState("");
-  const [activeMediaTab, setActiveMediaTab] = useState<"photo" | "video">("photo");
+  const [activeMediaTab, setActiveMediaTab] = useState<"photo" | "video" | "file">("photo");
+
+  // Custom File Creator sub-state
+  const [newCustomFileName, setNewCustomFileName] = useState("");
+  const [newCustomFileContent, setNewCustomFileContent] = useState("");
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -238,13 +257,65 @@ export default function LearningPage() {
     setVideoUrlInput("");
   };
 
+  // Handle Document File Upload (PDF, Word, Code, TXT, etc.)
+  const handleGenericFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const sizeStr = formatFileSize(file.size);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setNewMediaList((prev) => [
+          ...prev,
+          {
+            id: `m_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            type: "file",
+            url: reader.result as string,
+            fileName: file.name,
+            fileSize: sizeStr,
+            caption: file.name,
+          },
+        ]);
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  // Handle Creating a Custom Document File directly in the app
+  const handleAddCustomCreatedFile = () => {
+    if (!newCustomFileName.trim()) return;
+    const fileName = newCustomFileName.trim();
+    const content = newCustomFileContent;
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const sizeStr = formatFileSize(blob.size);
+    const url = `data:text/plain;charset=utf-8,${encodeURIComponent(content)}`;
+
+    setNewMediaList((prev) => [
+      ...prev,
+      {
+        id: `m_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        type: "file",
+        url,
+        fileName,
+        fileSize: sizeStr,
+        content,
+        caption: fileName,
+      },
+    ]);
+
+    setNewCustomFileName("");
+    setNewCustomFileContent("");
+  };
+
   // Remove media attachment before saving
   const handleRemoveMedia = (id: string) => {
     setNewMediaList((prev) => prev.filter((m) => m.id !== id));
   };
 
-  // Open note creation modal with current folder pre-selected
-  const handleOpenCreateNote = () => {
+  // Open note creation modal
+  const handleOpenCreateNote = (focusFileTab: boolean = false) => {
     setNewFolderId(currentFolderId);
     setNewTopic("");
     setNewUnderstood("");
@@ -252,6 +323,9 @@ export default function LearningPage() {
     setNewMediaList([]);
     setPhotoUrlInput("");
     setVideoUrlInput("");
+    setNewCustomFileName("");
+    setNewCustomFileContent("");
+    setActiveMediaTab(focusFileTab ? "file" : "photo");
     setIsCreatingNote(true);
   };
 
@@ -307,7 +381,7 @@ export default function LearningPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Lightbox Modal */}
+      {/* Lightbox Modal for Images */}
       {lightboxImage && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm cursor-pointer"
@@ -325,6 +399,35 @@ export default function LearningPage() {
             alt="Enlarged preview"
             className="max-w-full max-h-[90vh] object-contain rounded-lg border border-line shadow-2xl"
           />
+        </div>
+      )}
+
+      {/* Text File Preview Modal */}
+      {filePreviewModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          onClick={() => setFilePreviewModal(null)}
+        >
+          <div
+            className="w-full max-w-2xl bg-surface border border-line rounded-xl shadow-2xl p-6 text-main max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+              <div className="flex items-center gap-2">
+                <FileCode className="w-4 h-4 text-accent" />
+                <h3 className="text-sm font-semibold text-main">{filePreviewModal.title}</h3>
+              </div>
+              <button
+                onClick={() => setFilePreviewModal(null)}
+                className="p-1 rounded text-dim hover:text-main cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 bg-canvas rounded-lg border border-border-subtle mt-4 overflow-y-auto flex-1 font-mono text-xs text-sub leading-relaxed whitespace-pre-wrap">
+              {filePreviewModal.content}
+            </div>
+          </div>
         </div>
       )}
 
@@ -383,72 +486,136 @@ export default function LearningPage() {
               </div>
             )}
 
-            {/* Attached Media Gallery (Photos & Videos) */}
-            {selectedLearning.media && selectedLearning.media.length > 0 && (
-              <div>
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-3">
-                  {t.learning.mediaGallery}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {selectedLearning.media.map((item) => {
-                    if (item.type === "photo") {
-                      return (
-                        <div
-                          key={item.id}
-                          onClick={() => setLightboxImage(item.url)}
-                          className="group relative rounded-lg overflow-hidden border border-line bg-canvas cursor-pointer hover:border-accent/50 transition-all aspect-video flex items-center justify-center"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={item.url}
-                            alt={item.caption || "Learning photo"}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                            <Maximize2 className="w-5 h-5" />
-                          </div>
-                          {item.caption && (
-                            <div className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-xs text-[10px] text-zinc-300 px-2.5 py-1 truncate">
-                              {item.caption}
+            {/* Attached Photos & Videos Gallery */}
+            {selectedLearning.media &&
+              selectedLearning.media.filter((m) => m.type !== "file").length > 0 && (
+                <div>
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-3">
+                    {t.learning.mediaGallery}
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {selectedLearning.media
+                      .filter((m) => m.type !== "file")
+                      .map((item) => {
+                        if (item.type === "photo") {
+                          return (
+                            <div
+                              key={item.id}
+                              onClick={() => setLightboxImage(item.url)}
+                              className="group relative rounded-lg overflow-hidden border border-line bg-canvas cursor-pointer hover:border-accent/50 transition-all aspect-video flex items-center justify-center"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={item.url}
+                                alt={item.caption || "Learning photo"}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                                <Maximize2 className="w-5 h-5" />
+                              </div>
+                              {item.caption && (
+                                <div className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-xs text-[10px] text-zinc-300 px-2.5 py-1 truncate">
+                                  {item.caption}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      );
-                    } else {
-                      // Video
-                      const embedUrl = getEmbedVideoUrl(item.url);
-                      return (
-                        <div
-                          key={item.id}
-                          className="rounded-lg overflow-hidden border border-line bg-canvas aspect-video flex flex-col justify-center"
-                        >
-                          {embedUrl ? (
-                            <iframe
-                              src={embedUrl}
-                              title="Video player"
-                              className="w-full h-full border-0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                            />
-                          ) : (
-                            <video
-                              src={item.url}
-                              controls
-                              className="w-full h-full object-contain bg-black"
-                            />
-                          )}
-                          {item.caption && (
-                            <div className="bg-surface px-2.5 py-1 text-[10px] text-dim truncate border-t border-border-subtle">
-                              {item.caption}
+                          );
+                        } else {
+                          // Video
+                          const embedUrl = getEmbedVideoUrl(item.url);
+                          return (
+                            <div
+                              key={item.id}
+                              className="rounded-lg overflow-hidden border border-line bg-canvas aspect-video flex flex-col justify-center"
+                            >
+                              {embedUrl ? (
+                                <iframe
+                                  src={embedUrl}
+                                  title="Video player"
+                                  className="w-full h-full border-0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              ) : (
+                                <video
+                                  src={item.url}
+                                  controls
+                                  className="w-full h-full object-contain bg-black"
+                                />
+                              )}
+                              {item.caption && (
+                                <div className="bg-surface px-2.5 py-1 text-[10px] text-dim truncate border-t border-border-subtle">
+                                  {item.caption}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      );
-                    }
-                  })}
+                          );
+                        }
+                      })}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+            {/* Attached Documents & Files Section */}
+            {selectedLearning.media &&
+              selectedLearning.media.filter((m) => m.type === "file").length > 0 && (
+                <div>
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-dim mb-3">
+                    {t.learning.attachedFiles}
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {selectedLearning.media
+                      .filter((m) => m.type === "file")
+                      .map((file) => (
+                        <div
+                          key={file.id}
+                          className="p-3 rounded-lg bg-canvas border border-line flex items-center justify-between gap-3 hover:border-accent/40 transition-colors"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                              <File className="w-4 h-4 text-accent" />
+                            </div>
+                            <div className="truncate">
+                              <h4 className="text-xs font-medium text-main truncate">
+                                {file.fileName || file.caption || "Document"}
+                              </h4>
+                              {file.fileSize && (
+                                <span className="text-[10px] text-dim font-mono">
+                                  {file.fileSize}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {file.content && (
+                              <button
+                                onClick={() =>
+                                  setFilePreviewModal({
+                                    title: file.fileName || "File",
+                                    content: file.content || "",
+                                  })
+                                }
+                                title="Lihat Isi"
+                                className="p-1.5 rounded-md text-dim hover:text-accent hover:bg-surface transition-colors cursor-pointer"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            <a
+                              href={file.url}
+                              download={file.fileName || "download"}
+                              title={t.learning.downloadFile}
+                              className="p-1.5 rounded-md text-dim hover:text-main hover:bg-surface transition-colors cursor-pointer"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
 
             {/* Related Activity / Goal */}
             {(selectedLearning.relatedActivity || selectedLearning.relatedGoal) && (
@@ -486,7 +653,7 @@ export default function LearningPage() {
               <h1 className="text-xl font-semibold text-main">{t.learning.title}</h1>
               <p className="text-xs text-dim mt-0.5">{t.learning.subtitle}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setIsCreatingFolder(true)}
                 className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-main hover:text-white transition-all cursor-pointer"
@@ -494,8 +661,17 @@ export default function LearningPage() {
                 <FolderPlus className="w-3.5 h-3.5 text-accent" />
                 <span>{t.learning.newFolder}</span>
               </button>
+
               <button
-                onClick={handleOpenCreateNote}
+                onClick={() => handleOpenCreateNote(true)}
+                className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-sub hover:text-main transition-all cursor-pointer"
+              >
+                <FilePlus className="w-3.5 h-3.5 text-accent" />
+                <span>{t.learning.createFile}</span>
+              </button>
+
+              <button
+                onClick={() => handleOpenCreateNote(false)}
                 className="inline-flex items-center gap-1.5 py-2 px-3.5 rounded-lg bg-accent text-white text-xs font-medium hover:opacity-90 active:scale-95 transition-all cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -605,19 +781,29 @@ export default function LearningPage() {
                 <p className="text-[11px] text-dim/70 mb-4">
                   {currentFolderId ? t.learning.emptyFolderDesc : ""}
                 </p>
-                <button
-                  onClick={handleOpenCreateNote}
-                  className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-sub hover:text-main transition-all cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>{t.learning.addLearning}</span>
-                </button>
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => handleOpenCreateNote(false)}
+                    className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-sub hover:text-main transition-all cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{t.learning.addLearning}</span>
+                  </button>
+                  <button
+                    onClick={() => handleOpenCreateNote(true)}
+                    className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-accent hover:text-white transition-all cursor-pointer"
+                  >
+                    <FilePlus className="w-3.5 h-3.5" />
+                    <span>{t.learning.createFile}</span>
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="space-y-2.5">
                 {filteredNotes.map((item) => {
                   const hasPhotos = item.media?.some((m) => m.type === "photo");
                   const hasVideos = item.media?.some((m) => m.type === "video");
+                  const fileCount = item.media?.filter((m) => m.type === "file").length || 0;
                   const itemFolder = folders.find((f) => f.id === item.folderId);
 
                   return (
@@ -644,7 +830,7 @@ export default function LearningPage() {
                             {item.understood}
                           </p>
 
-                          <div className="flex items-center gap-3 pt-1">
+                          <div className="flex items-center gap-3 pt-1 flex-wrap">
                             <span className="text-[11px] font-mono text-dim">{item.date}</span>
 
                             {item.source && (
@@ -653,8 +839,14 @@ export default function LearningPage() {
                               </span>
                             )}
 
-                            {/* Attached media indicators */}
+                            {/* Attached media & file indicators */}
                             <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
+                              {fileCount > 0 && (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-accent bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20 font-mono">
+                                  <File className="w-2.5 h-2.5" />
+                                  <span>{fileCount} Berkas</span>
+                                </span>
+                              )}
                               {hasPhotos && (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-dim bg-canvas px-1.5 py-0.5 rounded border border-border-subtle">
                                   <ImageIcon className="w-2.5 h-2.5 text-accent" />
@@ -736,7 +928,7 @@ export default function LearningPage() {
         </div>
       )}
 
-      {/* CREATE NOTE MODAL */}
+      {/* CREATE NOTE & FILE MODAL */}
       {isCreatingNote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
           <div className="w-full max-w-lg bg-surface border border-line rounded-xl shadow-2xl p-6 text-main my-8 max-h-[90vh] overflow-y-auto">
@@ -813,11 +1005,11 @@ export default function LearningPage() {
                 />
               </div>
 
-              {/* Attach Media Section */}
+              {/* Attach Media & Files Section */}
               <div className="pt-2 border-t border-border-subtle space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <label className="block text-xs font-medium text-sub">
-                    {t.learning.attachMedia}
+                    Lampirkan Media & Berkas
                   </label>
                   <div className="flex items-center gap-1 bg-canvas p-0.5 rounded-lg border border-border-subtle">
                     <button
@@ -848,6 +1040,20 @@ export default function LearningPage() {
                         {t.learning.addVideo}
                       </span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveMediaTab("file")}
+                      className={`px-2 py-1 text-[11px] rounded font-medium cursor-pointer transition-colors ${
+                        activeMediaTab === "file"
+                          ? "bg-accent text-white"
+                          : "text-dim hover:text-main"
+                      }`}
+                    >
+                      <span className="flex items-center gap-1">
+                        <File className="w-3 h-3" />
+                        {t.learning.addFile}
+                      </span>
+                    </button>
                   </div>
                 </div>
 
@@ -857,7 +1063,7 @@ export default function LearningPage() {
                     <div className="flex items-center gap-2">
                       <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-line hover:border-accent/40 text-xs text-main hover:text-accent cursor-pointer transition-all">
                         <Upload className="w-3.5 h-3.5" />
-                        <span>Upload File</span>
+                        <span>Upload Foto</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -931,39 +1137,105 @@ export default function LearningPage() {
                   </div>
                 )}
 
-                {/* Attached Media Previews */}
+                {/* File & Document Input Tab */}
+                {activeMediaTab === "file" && (
+                  <div className="p-3 rounded-lg bg-canvas border border-border-subtle space-y-3">
+                    {/* Option 1: Upload Existing File from computer */}
+                    <div className="space-y-1.5">
+                      <span className="text-[11px] font-medium text-sub block">
+                        1. {t.learning.uploadFile} (PDF, DOC, TXT, MD, Code, ZIP, dll)
+                      </span>
+                      <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface border border-line hover:border-accent/40 text-xs text-main hover:text-accent cursor-pointer transition-all">
+                        <Upload className="w-3.5 h-3.5 text-accent" />
+                        <span>Pilih Berkas dari Perangkat</span>
+                        <input
+                          type="file"
+                          onChange={handleGenericFileUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="border-t border-border-subtle pt-2.5 space-y-2">
+                      <span className="text-[11px] font-medium text-sub block">
+                        2. {t.learning.createFile} (Ketik Dokumen / Kode Langsung)
+                      </span>
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          placeholder={t.learning.filePlaceholder}
+                          value={newCustomFileName}
+                          onChange={(e) => setNewCustomFileName(e.target.value)}
+                          className="w-full px-2.5 py-1.5 rounded-md bg-surface border border-line text-xs text-main placeholder:text-dim focus:outline-none focus:border-accent"
+                        />
+                        <textarea
+                          rows={2}
+                          placeholder={t.learning.fileContent}
+                          value={newCustomFileContent}
+                          onChange={(e) => setNewCustomFileContent(e.target.value)}
+                          className="w-full px-2.5 py-1.5 rounded-md bg-surface border border-line text-xs font-mono text-main placeholder:text-dim focus:outline-none focus:border-accent"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddCustomCreatedFile}
+                          disabled={!newCustomFileName.trim()}
+                          className="px-3 py-1.5 rounded-md bg-accent text-white text-xs font-medium hover:opacity-90 disabled:opacity-50 cursor-pointer"
+                        >
+                          + Tambahkan Dokumen File Ini
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Attached Media & Files Previews */}
                 {newMediaList.length > 0 && (
-                  <div className="space-y-1.5 pt-1">
+                  <div className="space-y-2 pt-1">
                     <span className="text-[11px] text-dim font-medium">
-                      Attached ({newMediaList.length}):
+                      Lampiran Terpilih ({newMediaList.length}):
                     </span>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {newMediaList.map((m) => (
                         <div
                           key={m.id}
-                          className="group relative rounded-lg border border-line bg-canvas overflow-hidden aspect-video flex items-center justify-center"
+                          className="group relative rounded-lg border border-line bg-canvas overflow-hidden p-2 flex items-center gap-2"
                         >
                           {m.type === "photo" ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={m.url}
-                              alt="Attachment preview"
-                              className="w-full h-full object-cover"
-                            />
+                            <div className="w-8 h-8 rounded bg-black/40 overflow-hidden shrink-0">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={m.url}
+                                alt="Attachment"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : m.type === "video" ? (
+                            <div className="w-8 h-8 rounded bg-surface flex items-center justify-center shrink-0">
+                              <Video className="w-4 h-4 text-rose-400" />
+                            </div>
                           ) : (
-                            <div className="w-full h-full bg-surface flex flex-col items-center justify-center p-2 text-center">
-                              <Video className="w-4 h-4 text-rose-400 mb-1" />
-                              <span className="text-[9px] text-dim truncate max-w-full">
-                                {m.caption || "Video Link"}
-                              </span>
+                            <div className="w-8 h-8 rounded bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                              <File className="w-4 h-4 text-accent" />
                             </div>
                           )}
+
+                          <div className="truncate flex-1 min-w-0">
+                            <span className="text-[10px] text-main font-medium block truncate">
+                              {m.fileName || m.caption || (m.type === "photo" ? "Foto" : "Video")}
+                            </span>
+                            {m.fileSize && (
+                              <span className="text-[9px] text-dim font-mono block">
+                                {m.fileSize}
+                              </span>
+                            )}
+                          </div>
+
                           <button
                             type="button"
                             onClick={() => handleRemoveMedia(m.id)}
-                            className="absolute top-1 right-1 p-1 rounded-full bg-black/70 text-rose-400 hover:text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="p-1 rounded text-dim hover:text-rose-400 cursor-pointer transition-colors"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       ))}
