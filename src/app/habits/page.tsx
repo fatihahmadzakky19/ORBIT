@@ -11,6 +11,7 @@ import {
   Clock,
   Trash2,
   Sparkles,
+  Lock,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
 import {
@@ -57,7 +58,6 @@ export default function HabitsPage() {
       const saved = localStorage.getItem("orbit_habits");
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Normalize backwards compatibility
         const normalized: HabitItem[] = parsed.map((h: any) => ({
           id: h.id,
           name: h.name,
@@ -116,8 +116,19 @@ export default function HabitsPage() {
   };
 
   // Toggle completion for a specific date (realtime)
+  // STRICT RULE: If the day is in the past, it CANNOT be filled in!
   const toggleDate = (habitId: string, dateStr: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+
+    // Prevent filling past days or future days
+    if (dateStr < todayStr) {
+      // Past day: cannot backfill!
+      return;
+    }
+    if (dateStr > todayStr) {
+      // Future day: cannot mark ahead of time!
+      return;
+    }
 
     const timeString = format(now, "HH:mm");
     const updated = habits.map((h) => {
@@ -269,30 +280,59 @@ export default function HabitsPage() {
             </div>
 
             {/* Interactive 7 Days Weekly Rhythm in Detail */}
-            <div className="pt-4 border-t border-border-subtle">
-              <div className="flex items-center justify-between mb-3">
+            <div className="pt-4 border-t border-border-subtle space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-dim">
                   {t.habits.rhythm}
                 </h2>
-                <span className="text-[11px] text-dim">
-                  Klik hari untuk menandai selesai/belum
-                </span>
+                <div className="flex items-center gap-3 text-[11px] text-dim">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    Selesai
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-rose-400/60" />
+                    {t.habits.missedDay} (Terkunci)
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-accent" />
+                    {t.habits.today} (Aktif)
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-7 gap-2">
                 {currentWeekDays.map((d) => {
                   const isDone = selectedHabit.completedDates.includes(d.dateStr);
+                  const isPast = d.dateStr < todayStr;
+                  const isFuture = d.dateStr > todayStr;
+                  const isToday = d.dateStr === todayStr;
+
+                  const canClick = isToday;
+
                   return (
                     <button
                       key={d.dateStr}
                       type="button"
-                      onClick={() => toggleDate(selectedHabit.id, d.dateStr)}
-                      className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 group ${
+                      disabled={!canClick}
+                      onClick={() => canClick && toggleDate(selectedHabit.id, d.dateStr)}
+                      title={
                         isDone
-                          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                          : d.isToday
-                          ? "bg-surface-elevated border-accent/40 text-main"
-                          : "bg-canvas border-border-subtle text-dim hover:border-line hover:text-sub"
+                          ? "Selesai"
+                          : isPast
+                          ? `${t.habits.cannotBackfill} (${d.dateStr})`
+                          : isFuture
+                          ? "Hari belum tiba"
+                          : "Klik untuk menandai hari ini selesai"
+                      }
+                      className={`p-3 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
+                        isDone
+                          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-xs"
+                          : isToday
+                          ? "bg-surface-elevated border-accent ring-1 ring-accent/40 text-main cursor-pointer hover:border-accent"
+                          : isPast
+                          ? "bg-canvas/40 border-dashed border-border-subtle/50 text-dim/50 cursor-not-allowed opacity-50"
+                          : "bg-canvas/20 border-dashed border-border-subtle/30 text-dim/30 cursor-not-allowed opacity-30"
                       }`}
                     >
                       <span className="text-[11px] font-medium block">
@@ -301,20 +341,32 @@ export default function HabitsPage() {
                       <span className="text-xs font-mono font-semibold block">
                         {d.dayNum}
                       </span>
+
                       <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-110 ${
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-transform ${
                           isDone
                             ? "bg-emerald-500 text-white shadow-xs"
-                            : "bg-surface border border-border-subtle text-dim"
+                            : isToday
+                            ? "bg-surface border border-accent text-accent animate-pulse"
+                            : isPast
+                            ? "bg-canvas text-rose-400/60 text-[10px]"
+                            : "bg-canvas text-dim/30"
                         }`}
                       >
-                        {isDone ? "✓" : "○"}
+                        {isDone ? "✓" : isPast ? "✕" : "○"}
                       </div>
-                      {d.isToday && (
-                        <span className="text-[9px] text-accent font-medium tracking-tight mt-0.5">
-                          Hari ini
-                        </span>
-                      )}
+
+                      <span className="text-[9px] font-medium tracking-tight mt-0.5 block truncate max-w-full">
+                        {isDone ? (
+                          <span className="text-emerald-400">Selesai</span>
+                        ) : isToday ? (
+                          <span className="text-accent font-semibold">Hari ini</span>
+                        ) : isPast ? (
+                          <span className="text-rose-400/70">{t.habits.missedDay}</span>
+                        ) : (
+                          <span className="text-dim/50">{t.habits.futureDay}</span>
+                        )}
+                      </span>
                     </button>
                   );
                 })}
@@ -373,7 +425,7 @@ export default function HabitsPage() {
               <div className="flex items-center justify-between text-xs uppercase tracking-wider font-semibold text-dim">
                 <span>{t.habits.today}</span>
                 <span className="text-[11px] font-normal normal-case text-dim">
-                  Klik hari untuk mengubah status secara real-time
+                  Hanya hari ini yang dapat diisi · Hari terlewat otomatis terkunci
                 </span>
               </div>
             )}
@@ -437,38 +489,63 @@ export default function HabitsPage() {
                       </button>
                     </div>
 
-                    {/* REAL-TIME WEEKLY RHYTHM BAR: Shows which day is marked completed visibly */}
+                    {/* REAL-TIME WEEKLY RHYTHM BAR: Locked for past & future, active for today */}
                     <div className="pt-3 border-t border-border-subtle flex items-center justify-between gap-1 sm:gap-2">
                       {currentWeekDays.map((d) => {
                         const isDone = habit.completedDates.includes(d.dateStr);
+                        const isPast = d.dateStr < todayStr;
+                        const isFuture = d.dateStr > todayStr;
+                        const isToday = d.dateStr === todayStr;
+
+                        const canClick = isToday;
 
                         return (
                           <div
                             key={d.dateStr}
-                            onClick={(e) => toggleDate(habit.id, d.dateStr, e)}
-                            title={`${getDayLabel(d.dayName)} (${d.dateStr}): ${
-                              isDone ? "Selesai" : "Belum"
-                            }`}
-                            className={`flex-1 py-1.5 px-1 rounded-lg border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1 ${
+                            onClick={(e) => {
+                              if (canClick) {
+                                toggleDate(habit.id, d.dateStr, e);
+                              } else {
+                                e.stopPropagation();
+                              }
+                            }}
+                            title={
+                              isDone
+                                ? `${getDayLabel(d.dayName)}: Selesai`
+                                : isPast
+                                ? `${getDayLabel(d.dayName)}: ${t.habits.missedDay} (${t.habits.cannotBackfill})`
+                                : isFuture
+                                ? `${getDayLabel(d.dayName)}: ${t.habits.futureDay}`
+                                : `${getDayLabel(d.dayName)}: Hari ini (Klik untuk menyelesaikan)`
+                            }
+                            className={`flex-1 py-2 px-1 rounded-lg border text-center transition-all flex flex-col items-center justify-center gap-1 ${
                               isDone
                                 ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 font-semibold shadow-xs"
-                                : d.isToday
-                                ? "bg-surface-elevated border-accent text-accent font-medium"
-                                : "bg-canvas/60 border-border-subtle text-dim hover:border-line hover:text-sub"
+                                : isToday
+                                ? "bg-surface-elevated border-accent ring-1 ring-accent/30 text-accent font-medium cursor-pointer hover:scale-105"
+                                : isPast
+                                ? "bg-canvas/40 border-dashed border-border-subtle/50 text-dim/40 cursor-not-allowed opacity-50"
+                                : "bg-canvas/20 border-dashed border-border-subtle/30 text-dim/30 cursor-not-allowed opacity-30"
                             }`}
                           >
                             <span className="text-[10px] font-medium block leading-none">
                               {getDayLabel(d.dayName)}
                             </span>
+
                             <div
                               className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold mt-0.5 ${
                                 isDone
                                   ? "bg-emerald-500 text-white"
-                                  : "text-dim"
+                                  : isToday
+                                  ? "text-accent border border-accent/40"
+                                  : isPast
+                                  ? "text-rose-400/60"
+                                  : "text-dim/30"
                               }`}
                             >
-                              {isDone ? "✓" : "○"}
+                              {isDone ? "✓" : isPast ? "✕" : "○"}
                             </div>
+
                             <span className="text-[9px] font-mono opacity-70 block leading-none">
                               {d.dayNum}
                             </span>

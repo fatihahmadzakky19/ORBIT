@@ -146,6 +146,9 @@ export interface Translations {
     deleteHabitConfirm: string;
     completedToday: string;
     completedAt: string;
+    missedDay: string;
+    futureDay: string;
+    cannotBackfill: string;
   };
   learning: {
     title: string;
@@ -401,6 +404,9 @@ export const translations: Record<Locale, Translations> = {
       deleteHabitConfirm: "Are you sure you want to delete this habit?",
       completedToday: "Completed Today",
       completedAt: "Completed at",
+      missedDay: "Missed",
+      futureDay: "Upcoming",
+      cannotBackfill: "Past days cannot be backfilled",
     },
     learning: {
       title: "Learning",
@@ -655,6 +661,9 @@ export const translations: Record<Locale, Translations> = {
       deleteHabitConfirm: "Möchtest du diese Gewohnheit wirklich löschen?",
       completedToday: "Heute erledigt",
       completedAt: "Erledigt um",
+      missedDay: "Verpasst",
+      futureDay: "Zukünftig",
+      cannotBackfill: "Vergangene Tage können nicht nachgetragen werden",
     },
     learning: {
       title: "Lernen",
@@ -909,6 +918,9 @@ export const translations: Record<Locale, Translations> = {
       deleteHabitConfirm: "Apakah kamu yakin ingin menghapus kebiasaan ini?",
       completedToday: "Selesai Hari Ini",
       completedAt: "Selesai pukul",
+      missedDay: "Terlewat",
+      futureDay: "Mendatang",
+      cannotBackfill: "Hari yang sudah terlewat tidak dapat diisi",
     },
     learning: {
       title: "Pembelajaran",
