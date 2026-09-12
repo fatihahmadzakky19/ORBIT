@@ -16,6 +16,8 @@ import { createLearningAction } from "@/features/learning/server/actions";
 import { createTransactionAction } from "@/features/finance/server/actions";
 import { useLanguage } from "@/lib/i18n/context";
 
+import { addStoredActivity, addStoredLearning, addStoredTransaction } from "@/lib/storage";
+
 interface GlobalAddModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -69,17 +71,27 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
     e.preventDefault();
     if (!activityTitle.trim()) return;
     setIsSubmitting(true);
+
+    // 1. Immediately persist to localStorage
+    addStoredActivity({
+      title: activityTitle.trim(),
+      date: activityDate,
+      time: activityTime,
+      durationMinutes: Number(activityDuration) || 60,
+      note: activityNote.trim() || undefined,
+    });
+
+    // 2. Background attempt to persist to server if database is configured
     try {
-      await createActivityAction({
+      createActivityAction({
         title: activityTitle,
         date: activityDate,
         time: activityTime,
         durationMinutes: Number(activityDuration) || 60,
         note: activityNote,
-      });
-    } catch {
-      // Graceful fallback
-    }
+      }).catch(() => {});
+    } catch {}
+
     onSuccess?.("activity", `${t.quickAdd.activityTitle}: "${activityTitle}"`);
     handleReset();
   };
@@ -88,15 +100,23 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
     e.preventDefault();
     if (!learningTopic.trim()) return;
     setIsSubmitting(true);
+
+    // 1. Immediately persist to localStorage
+    addStoredLearning({
+      topic: learningTopic.trim(),
+      understood: learningUnderstood.trim(),
+      source: learningSource.trim(),
+    });
+
+    // 2. Background attempt to persist to server if database is configured
     try {
-      await createLearningAction({
+      createLearningAction({
         topic: learningTopic,
         understood: learningUnderstood,
         source: learningSource,
-      });
-    } catch {
-      // Graceful fallback
-    }
+      }).catch(() => {});
+    } catch {}
+
     onSuccess?.("learning", `${t.quickAdd.learningTitle}: "${learningTopic}"`);
     handleReset();
   };
@@ -104,16 +124,28 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
   const handleSaveTransaction = async (type: "EXPENSE" | "INCOME") => {
     if (!txAmount || Number(txAmount) <= 0) return;
     setIsSubmitting(true);
+
+    const amountNum = Number(txAmount);
+
+    // 1. Immediately persist to localStorage
+    addStoredTransaction({
+      type,
+      amount: amountNum,
+      category: txCategory,
+      note: txNote.trim() || undefined,
+      date: txDate,
+    });
+
+    // 2. Background attempt to persist to server if database is configured
     try {
-      await createTransactionAction({
+      createTransactionAction({
         type,
-        amount: Number(txAmount),
+        amount: amountNum,
         category: txCategory,
         note: txNote,
-      });
-    } catch {
-      // Graceful fallback
-    }
+      }).catch(() => {});
+    } catch {}
+
     onSuccess?.(
       type.toLowerCase(),
       type === "EXPENSE" ? t.quickAdd.expenseTitle : t.quickAdd.incomeTitle

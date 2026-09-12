@@ -39,6 +39,43 @@ export interface LearningFolder {
   id: string;
   name: string;
   createdAt: string;
+  parentId?: string | null;
+}
+
+// Helper to recursively collect all descendant folder IDs (for cascade delete)
+function getAllDescendantFolderIds(folderId: string, allFolders: LearningFolder[]): string[] {
+  const children = allFolders.filter((f) => f.parentId === folderId);
+  return [folderId, ...children.flatMap((c) => getAllDescendantFolderIds(c.id, allFolders))];
+}
+
+// Helper to get full breadcrumb path from root down to current folder
+function getBreadcrumbPath(startId: string | null, allFolders: LearningFolder[]): LearningFolder[] {
+  const path: LearningFolder[] = [];
+  let currId = startId;
+  const visited = new Set<string>();
+  while (currId && !visited.has(currId)) {
+    visited.add(currId);
+    const f = allFolders.find((item) => item.id === currId);
+    if (!f) break;
+    path.unshift(f);
+    currId = f.parentId || null;
+  }
+  return path;
+}
+
+// Helper to get formatted full path name of a folder (e.g. "Root / Folder A / Folder B")
+function getFolderFullPath(folder: LearningFolder, allFolders: LearningFolder[]): string {
+  const parts = [folder.name];
+  let curr = folder;
+  const visited = new Set<string>([folder.id]);
+  while (curr.parentId && !visited.has(curr.parentId)) {
+    visited.add(curr.parentId);
+    const parent = allFolders.find((p) => p.id === curr.parentId);
+    if (!parent) break;
+    parts.unshift(parent.name);
+    curr = parent;
+  }
+  return parts.join(" / ");
 }
 
 export interface LearningItem {
@@ -96,6 +133,7 @@ export default function LearningPage() {
 
   // Form states - Folder
   const [newFolderName, setNewFolderName] = useState("");
+  const [newFolderParentId, setNewFolderParentId] = useState<string | null>(null);
 
   // Form states - Note
   const [newTopic, setNewTopic] = useState("");
@@ -149,7 +187,14 @@ export default function LearningPage() {
     }
   };
 
-  // Create Folder
+  // Open Create Folder Modal with designated parent
+  const handleOpenCreateFolder = (parentId: string | null = currentFolderId) => {
+    setNewFolderName("");
+    setNewFolderParentId(parentId);
+    setIsCreatingFolder(true);
+  };
+
+  // Create Folder (supports nested parentId)
   const handleCreateFolder = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFolderName.trim()) return;
@@ -157,6 +202,7 @@ export default function LearningPage() {
       id: `fld_${Date.now()}`,
       name: newFolderName.trim(),
       createdAt: new Date().toISOString(),
+      parentId: newFolderParentId ?? currentFolderId ?? null,
     };
     const updated = [...folders, folder];
     saveFoldersToStorage(updated);
@@ -164,22 +210,24 @@ export default function LearningPage() {
     setIsCreatingFolder(false);
   };
 
-  // Delete Folder (moves contained notes to root)
+  // Delete Folder (cascade deletes nested subfolders and reassigns orphaned notes)
   const handleDeleteFolder = (folderId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!window.confirm(t.learning.deleteFolderConfirm)) return;
 
-    const updatedFolders = folders.filter((f) => f.id !== folderId);
+    const idsToDelete = new Set(getAllDescendantFolderIds(folderId, folders));
+    const updatedFolders = folders.filter((f) => !idsToDelete.has(f.id));
     saveFoldersToStorage(updatedFolders);
 
-    // Reassign orphaned notes to root
+    // Reassign orphaned notes inside deleted folders to root (null)
     const updatedNotes = learnings.map((n) =>
-      n.folderId === folderId ? { ...n, folderId: null } : n
+      n.folderId && idsToDelete.has(n.folderId) ? { ...n, folderId: null } : n
     );
     saveNotesToStorage(updatedNotes);
 
-    if (currentFolderId === folderId) {
-      setCurrentFolderId(null);
+    if (currentFolderId && idsToDelete.has(currentFolderId)) {
+      const targetFolder = folders.find((f) => f.id === folderId);
+      setCurrentFolderId(targetFolder?.parentId || null);
     }
   };
 
@@ -365,8 +413,16 @@ export default function LearningPage() {
     setSelectedLearning(null);
   };
 
-  // Current folder details
+  // Current folder details and breadcrumb path
   const currentFolder = folders.find((f) => f.id === currentFolderId);
+  const breadcrumbPath = getBreadcrumbPath(currentFolderId, folders);
+
+  // Immediate child folders in the current view
+  const currentChildFolders = folders.filter((f) =>
+    currentFolderId === null
+      ? !f.parentId || f.parentId === null
+      : f.parentId === currentFolderId
+  );
 
   // Filter notes based on folder and search query
   const filteredNotes = learnings.filter((item) => {
@@ -655,11 +711,11 @@ export default function LearningPage() {
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <button
-                onClick={() => setIsCreatingFolder(true)}
+                onClick={() => handleOpenCreateFolder(currentFolderId)}
                 className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-main hover:text-white transition-all cursor-pointer"
               >
                 <FolderPlus className="w-3.5 h-3.5 text-accent" />
-                <span>{t.learning.newFolder}</span>
+                <span>{currentFolderId === null ? t.learning.newFolder : t.learning.newSubfolder}</span>
               </button>
 
               <button
@@ -682,7 +738,7 @@ export default function LearningPage() {
 
           {/* Breadcrumbs & Navigation */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-1.5 text-xs flex-wrap">
               <button
                 onClick={() => setCurrentFolderId(null)}
                 className={`font-medium transition-colors cursor-pointer flex items-center gap-1 px-2.5 py-1 rounded-md ${
@@ -695,15 +751,28 @@ export default function LearningPage() {
                 <span>{t.learning.rootFolder}</span>
               </button>
 
-              {currentFolder && (
-                <>
-                  <span className="text-dim">/</span>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-elevated text-main border border-line font-medium">
-                    <Folder className="w-3.5 h-3.5 text-accent" />
-                    <span>{currentFolder.name}</span>
+              {breadcrumbPath.map((folder, index) => {
+                const isLast = index === breadcrumbPath.length - 1;
+                return (
+                  <div key={folder.id} className="flex items-center gap-1.5">
+                    <span className="text-dim">/</span>
+                    {isLast ? (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-elevated text-main border border-line font-medium">
+                        <Folder className="w-3.5 h-3.5 text-accent" />
+                        <span>{folder.name}</span>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setCurrentFolderId(folder.id)}
+                        className="flex items-center gap-1 px-2 py-1 rounded-md text-dim hover:text-main transition-colors cursor-pointer"
+                      >
+                        <Folder className="w-3.5 h-3.5 opacity-70" />
+                        <span>{folder.name}</span>
+                      </button>
+                    )}
                   </div>
-                </>
-              )}
+                );
+              })}
             </div>
 
             {/* Search Input */}
@@ -719,18 +788,28 @@ export default function LearningPage() {
             </div>
           </div>
 
-          {/* Folders Section (visible when on root view) */}
-          {currentFolderId === null && folders.length > 0 && (
+          {/* Folders & Subfolders Section */}
+          {currentChildFolders.length > 0 && (
             <div className="space-y-2">
-              <div className="text-xs uppercase tracking-wider font-semibold text-dim flex items-center gap-1.5">
-                <Folder className="w-3.5 h-3.5" />
-                <span>{t.learning.folders}</span>
-                <span className="text-[10px] text-dim/60 font-mono">({folders.length})</span>
+              <div className="text-xs uppercase tracking-wider font-semibold text-dim flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Folder className="w-3.5 h-3.5 text-accent" />
+                  <span>{currentFolderId === null ? t.learning.folders : t.learning.subfolders}</span>
+                  <span className="text-[10px] text-dim/60 font-mono">({currentChildFolders.length})</span>
+                </div>
+                <button
+                  onClick={() => handleOpenCreateFolder(currentFolderId)}
+                  className="text-[11px] font-medium text-accent hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <FolderPlus className="w-3 h-3" />
+                  <span>+ {currentFolderId === null ? t.learning.newFolder : t.learning.newSubfolder}</span>
+                </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {folders.map((folder) => {
-                  const count = learnings.filter((l) => l.folderId === folder.id).length;
+                {currentChildFolders.map((folder) => {
+                  const directNotesCount = learnings.filter((l) => l.folderId === folder.id).length;
+                  const subfoldersCount = folders.filter((f) => f.parentId === folder.id).length;
                   return (
                     <div
                       key={folder.id}
@@ -745,9 +824,15 @@ export default function LearningPage() {
                           <h3 className="text-xs font-medium text-main truncate group-hover:text-accent transition-colors">
                             {folder.name}
                           </h3>
-                          <span className="text-[10px] text-dim">
-                            {count} {t.learning.fileCount}
-                          </span>
+                          <div className="flex items-center gap-2 text-[10px] text-dim">
+                            <span>{directNotesCount} {t.learning.fileCount}</span>
+                            {subfoldersCount > 0 && (
+                              <>
+                                <span>•</span>
+                                <span>{subfoldersCount} {t.learning.subfolders}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -781,7 +866,14 @@ export default function LearningPage() {
                 <p className="text-[11px] text-dim/70 mb-4">
                   {currentFolderId ? t.learning.emptyFolderDesc : ""}
                 </p>
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => handleOpenCreateFolder(currentFolderId)}
+                    className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-accent/40 text-xs font-medium text-accent hover:text-white transition-all cursor-pointer"
+                  >
+                    <FolderPlus className="w-3.5 h-3.5 text-accent" />
+                    <span>{currentFolderId ? t.learning.createSubfolder : t.learning.newFolder}</span>
+                  </button>
                   <button
                     onClick={() => handleOpenCreateNote(false)}
                     className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-sub hover:text-main transition-all cursor-pointer"
@@ -791,7 +883,7 @@ export default function LearningPage() {
                   </button>
                   <button
                     onClick={() => handleOpenCreateNote(true)}
-                    className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-accent hover:text-white transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface-elevated border border-border-subtle hover:border-line text-xs font-medium text-sub hover:text-main transition-all cursor-pointer"
                   >
                     <FilePlus className="w-3.5 h-3.5" />
                     <span>{t.learning.createFile}</span>
@@ -892,6 +984,31 @@ export default function LearningPage() {
             </div>
 
             <form onSubmit={handleCreateFolder} className="space-y-4">
+              {/* Folder Location (Parent) */}
+              <div>
+                <label className="block text-xs font-medium text-sub mb-1">
+                  {t.learning.folderLocation}
+                </label>
+                <select
+                  value={newFolderParentId || ""}
+                  onChange={(e) => setNewFolderParentId(e.target.value || null)}
+                  className="w-full px-3 py-2 rounded-lg bg-canvas border border-line text-xs text-main focus:outline-none focus:border-accent cursor-pointer"
+                >
+                  <option value="">📂 {t.learning.rootLocation}</option>
+                  {folders.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      📁 {getFolderFullPath(f, folders)}
+                    </option>
+                  ))}
+                </select>
+                {newFolderParentId && (
+                  <p className="text-[11px] text-accent mt-1 flex items-center gap-1">
+                    <span>↳ Folder ini akan berada di dalam:</span>
+                    <strong className="underline">{folders.find((f) => f.id === newFolderParentId)?.name}</strong>
+                  </p>
+                )}
+              </div>
+
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">
                   {t.learning.folderName} *
@@ -953,10 +1070,10 @@ export default function LearningPage() {
                   onChange={(e) => setNewFolderId(e.target.value || null)}
                   className="w-full px-3 py-2 rounded-lg bg-canvas border border-line text-xs text-main focus:outline-none focus:border-accent cursor-pointer"
                 >
-                  <option value="">{t.learning.noFolder}</option>
+                  <option value="">📂 {t.learning.noFolder}</option>
                   {folders.map((f) => (
                     <option key={f.id} value={f.id}>
-                      📁 {f.name}
+                      📁 {getFolderFullPath(f, folders)}
                     </option>
                   ))}
                 </select>

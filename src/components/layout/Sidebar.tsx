@@ -11,8 +11,10 @@ import {
   Wallet,
   Settings,
   Plus,
+  Lock,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
+import { Button } from "@/components/ui/Button";
 
 interface SidebarProps {
   onOpenQuickAdd: () => void;
@@ -39,34 +41,43 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
     { label: t.nav.habits, href: "/habits", icon: Repeat },
     { label: t.nav.learning, href: "/learning", icon: BookOpen },
     { label: t.nav.finance, href: "/finance", icon: Wallet },
+    { label: t.nav.vault, href: "/vault", icon: Lock },
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-64 border-r border-line/70 bg-surface/85 backdrop-blur-md min-h-screen px-4 py-6 select-none shrink-0 relative z-20">
-      {/* Brand */}
-      <div className="flex items-center justify-between px-3 mb-8">
+    <aside className="hidden md:flex flex-col w-60 border-r border-[#1E2226] bg-[#080B0F] min-h-screen px-3.5 py-4 select-none shrink-0 relative z-20">
+      {/* ── 1. BRAND + PRIMARY ACTION ── */}
+      <div className="px-2 mb-3.5 pt-1">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-surface-elevated border border-line flex items-center justify-center text-accent group-hover:border-accent group-hover:shadow-[0_0_15px_rgba(34,211,238,0.25)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]">
-            <span className="text-base font-bold tracking-wider">O</span>
+          <div className="w-7 h-7 rounded-lg bg-[#11161B] border border-[#252B30] flex items-center justify-center text-[#20C8E8] group-hover:border-[#20C8E8]/40 group-hover:shadow-[0_0_12px_rgba(32,200,232,0.18)] transition-all duration-150 shrink-0">
+            <span className="text-xs font-bold font-mono tracking-wider">O</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-semibold tracking-wider text-main text-sm">ORBIT</span>
-            <span className="text-[10px] text-dim tracking-widest uppercase">Digital OS</span>
+            <span className="font-bold text-sm tracking-[0.14em] text-[#E8E1D3] leading-none group-hover:text-white transition-colors">
+              ORBIT
+            </span>
+            <span className="text-[9px] font-mono tracking-[0.2em] text-[#8A8580] uppercase mt-1 leading-none">
+              DIGITAL OS
+            </span>
           </div>
         </Link>
       </div>
 
-      {/* Global Quick Add Button in Sidebar */}
-      <button
-        onClick={onOpenQuickAdd}
-        className="w-full mb-6 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-medium text-sm shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:shadow-[0_0_25px_rgba(34,211,238,0.35)] hover:brightness-105 active:scale-[0.98] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] cursor-pointer"
-      >
-        <Plus className="w-4 h-4 stroke-[2.5]" />
-        <span>{t.nav.addRecord}</span>
-      </button>
+      {/* Primary Action Button ("Tambah Catatan") */}
+      <div className="mb-3.5 px-0.5">
+        <Button
+          onClick={onOpenQuickAdd}
+          variant="primary"
+          size="md"
+          className="w-full"
+        >
+          <Plus className="w-3.5 h-3.5 stroke-[2.5] text-[#20C8E8]" />
+          <span>{t.nav.addRecord}</span>
+        </Button>
+      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1">
+      {/* ── 2. MAIN NAVIGATION (Controlled vertical flow without arbitrary expansion) ── */}
+      <nav className="space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -77,29 +88,33 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
             <div key={item.label} className="space-y-0.5">
               <Link
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-xs font-medium transition-all duration-150 relative ${
                   isActive
-                    ? "bg-surface-elevated/90 text-main font-semibold border-l-2 border-accent shadow-[0_2px_12px_rgba(34,211,238,0.08)]"
-                    : "text-sub hover:text-main hover:bg-surface-hover/70"
+                    ? "bg-[#0F171E] text-[#E8E1D3] border-l-2 border-[#20C8E8] pl-2 shadow-[0_0_12px_rgba(32,200,232,0.06)]"
+                    : "text-[#8A8580] hover:text-[#C5C0B8] hover:bg-[#151A1F]"
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${isActive ? "text-accent" : "text-dim"}`} />
-                <span>{item.label}</span>
+                <Icon
+                  className={`w-4 h-4 shrink-0 transition-colors duration-150 ${
+                    isActive ? "text-[#20C8E8]" : "text-[#6B6762]"
+                  }`}
+                />
+                <span className="truncate">{item.label}</span>
               </Link>
 
               {/* Sub-items for Journey */}
               {item.subItems && isActive && (
-                <div className="ml-7 pl-2 border-l border-border-subtle space-y-0.5 my-1">
+                <div className="ml-5 pl-2.5 border-l border-[#1E2226] space-y-0.5 my-1">
                   {item.subItems.map((sub) => {
                     const isSubActive = pathname === sub.href;
                     return (
                       <Link
                         key={sub.label}
                         href={sub.href}
-                        className={`block px-2.5 py-1.5 rounded text-xs transition-colors ${
+                        className={`block h-7 leading-7 px-2 rounded-md text-[11px] font-mono transition-colors duration-150 truncate ${
                           isSubActive
-                            ? "text-accent font-medium bg-accent-muted"
-                            : "text-dim hover:text-sub"
+                            ? "text-[#20C8E8] font-medium bg-[#20C8E8]/08"
+                            : "text-[#8A8580] hover:text-[#E8E1D3]"
                         }`}
                       >
                         {sub.label}
@@ -113,19 +128,36 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
         })}
       </nav>
 
-      {/* Footer Navigation */}
-      <div className="pt-4 mt-auto border-t border-line space-y-1">
+      {/* ── 3. SECONDARY NAVIGATION + SYSTEM STATUS ──
+          Controlled Spacing:
+          Brankas Privasi -> 24px (mt-6) with subtle separator -> Pengaturan -> 16px (space-y-4) -> System Status */}
+      <div className="pt-3.5 mt-6 border-t border-[#1E2226] space-y-4">
+        {/* Settings Navigation Item */}
         <Link
           href="/settings"
-          className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+          className={`flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-xs font-medium transition-all duration-150 ${
             pathname.startsWith("/settings")
-              ? "bg-surface-elevated text-main font-medium"
-              : "text-sub hover:text-main hover:bg-surface-hover"
+              ? "bg-[#0F171E] text-[#E8E1D3] border-l-2 border-[#20C8E8] pl-2"
+              : "text-[#8A8580] hover:text-[#C5C0B8] hover:bg-[#151A1F]"
           }`}
         >
-          <Settings className="w-4 h-4 text-dim" />
+          <Settings
+            className={`w-4 h-4 shrink-0 transition-colors duration-150 ${
+              pathname.startsWith("/settings") ? "text-[#20C8E8]" : "text-[#6B6762]"
+            }`}
+          />
           <span>{t.nav.settings}</span>
         </Link>
+
+        {/* System Status Telemetry Indicator */}
+        <div className="px-2.5 py-2 rounded-lg bg-[#0C1014] border border-[#1E2226] flex items-center justify-between text-[10px] font-mono select-none">
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00A982] animate-pulse" />
+            <span className="text-[#8A8580]">SYSTEM</span>
+            <span className="text-[#00A982] font-semibold">ONLINE</span>
+          </div>
+          <div className="text-[#52575C]">SYNC OK</div>
+        </div>
       </div>
     </aside>
   );

@@ -1,32 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, ArrowDownCircle, ArrowUpCircle, X } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { useLanguage } from "@/lib/i18n/context";
-
-interface TransactionItem {
-  id: string;
-  type: "INCOME" | "EXPENSE";
-  amount: number;
-  category: string;
-  date: string;
-  note?: string;
-  goalAllocation?: string;
-}
-
-const INITIAL_TRANSACTIONS: TransactionItem[] = [];
+import {
+  getStoredFinanceTransactions,
+  getStoredFinanceBalances,
+  addStoredTransaction,
+  saveStoredFinanceBalances,
+  ORBIT_DATA_CHANGED_EVENT,
+  StoredTransaction,
+} from "@/lib/storage";
 
 export default function FinancePage() {
   const { t } = useLanguage();
   const [actualBalance, setActualBalance] = useState(0);
   const [calculatedBalance, setCalculatedBalance] = useState(0);
-  const [transactions, setTransactions] = useState<TransactionItem[]>(INITIAL_TRANSACTIONS);
+  const [transactions, setTransactions] = useState<StoredTransaction[]>([]);
   const [budgets] = useState<{ category: string; spent: number; limit: number }[]>([]);
   const [filterType, setFilterType] = useState<"ALL" | "INCOME" | "EXPENSE">("ALL");
 
   const [isUpdatingActual, setIsUpdatingActual] = useState(false);
-  const [actualInput, setActualInput] = useState(actualBalance.toString());
+  const [actualInput, setActualInput] = useState("0");
   const [isAddingTx, setIsAddingTx] = useState(false);
 
   // New Tx Form State
@@ -34,6 +30,25 @@ export default function FinancePage() {
   const [newTxAmount, setNewTxAmount] = useState("");
   const [newTxCat, setNewTxCat] = useState("Food");
   const [newTxNote, setNewTxNote] = useState("");
+
+  const loadData = () => {
+    const txs = getStoredFinanceTransactions();
+    setTransactions(txs);
+    const balances = getStoredFinanceBalances();
+    setActualBalance(balances.actual);
+    setCalculatedBalance(balances.calculated);
+    setActualInput(balances.actual.toString());
+  };
+
+  useEffect(() => {
+    loadData();
+    window.addEventListener(ORBIT_DATA_CHANGED_EVENT, loadData);
+    window.addEventListener("storage", loadData);
+    return () => {
+      window.removeEventListener(ORBIT_DATA_CHANGED_EVENT, loadData);
+      window.removeEventListener("storage", loadData);
+    };
+  }, []);
 
   const filteredTransactions = transactions.filter((tx) => {
     if (filterType === "ALL") return true;
@@ -55,6 +70,7 @@ export default function FinancePage() {
     const val = Number(actualInput);
     if (!isNaN(val)) {
       setActualBalance(val);
+      saveStoredFinanceBalances(val, undefined);
       setIsUpdatingActual(false);
     }
   };
@@ -64,22 +80,15 @@ export default function FinancePage() {
     const amt = Number(newTxAmount);
     if (isNaN(amt) || amt <= 0) return;
 
-    const newTx: TransactionItem = {
-      id: `tx_${Date.now()}`,
+    addStoredTransaction({
       type: newTxType,
       amount: amt,
       category: newTxCat,
-      date: "Today",
       note: newTxNote || undefined,
-    };
+      date: "Hari Ini",
+    });
 
-    setTransactions([newTx, ...transactions]);
-    if (newTxType === "INCOME") {
-      setCalculatedBalance((prev) => prev + amt);
-    } else {
-      setCalculatedBalance((prev) => prev - amt);
-    }
-
+    loadData();
     setNewTxAmount("");
     setNewTxNote("");
     setIsAddingTx(false);

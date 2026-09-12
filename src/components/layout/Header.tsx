@@ -1,10 +1,13 @@
 "use client";
 
-import { Plus, User } from "lucide-react";
+import { Plus, Lock } from "lucide-react";
 import Link from "next/link";
 import { formatShortDate } from "@/lib/date";
 import { LanguageSelector } from "@/components/ui/LanguageSelector";
 import { useLanguage } from "@/lib/i18n/context";
+import { StatusIndicator } from "@/components/ui/StatusIndicator";
+import { Button } from "@/components/ui/Button";
+import { ProfileMenu } from "./ProfileMenu";
 
 interface HeaderProps {
   onOpenQuickAdd: () => void;
@@ -15,48 +18,51 @@ export function Header({ onOpenQuickAdd }: HeaderProps) {
   const todayStr = formatShortDate(new Date());
 
   return (
-    <header className="sticky top-0 z-30 h-16 border-b border-line/70 bg-surface/75 backdrop-blur-md px-4 md:px-8 flex items-center justify-between">
-      {/* Left side: Mobile Brand & Desktop Breadcrumb / Date */}
+    <header className="sticky top-0 z-30 h-14 border-b border-[#1E2226] bg-[#070A0D]/90 backdrop-blur-md px-4 md:px-8 flex items-center justify-between select-none">
+      {/* ── LEFT: Date / System Status Group ── */}
       <div className="flex items-center gap-3">
-        <Link href="/" className="md:hidden flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-surface-elevated border border-line flex items-center justify-center text-accent shadow-sm">
-            <span className="text-sm font-bold">O</span>
+        {/* Mobile Brand */}
+        <Link href="/" className="md:hidden flex items-center gap-2 group">
+          <div className="w-6 h-6 rounded-md bg-[#11161B] border border-[#252B30] flex items-center justify-center text-[#20C8E8] shadow-sm">
+            <span className="text-[10px] font-bold font-mono">O</span>
           </div>
-          <span className="font-semibold text-main text-sm tracking-wider">ORBIT</span>
+          <span className="font-bold text-[#E8E1D3] text-xs tracking-wider">ORBIT</span>
         </Link>
-        <div className="hidden md:flex items-center gap-2">
-          <span
-            suppressHydrationWarning
-            className="text-xs font-mono text-dim border border-border-subtle/80 px-2.5 py-1 rounded-md bg-canvas/60"
-          >
-            {todayStr}
-          </span>
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-mono text-emerald-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>ONLINE</span>
-          </div>
+
+        {/* Desktop System Status Telemetry */}
+        <div className="hidden md:flex items-center">
+          <StatusIndicator date={todayStr} isOnline={true} />
         </div>
       </div>
 
-      {/* Right side: Language Selector, Profile & Global Add Button */}
-      <div className="flex items-center gap-2.5">
+      {/* ── RIGHT: Utilities, Primary Action & Profile Control ── */}
+      <div className="flex items-center gap-2">
+        {/* Language Utility */}
         <LanguageSelector variant="compact" />
 
-        <button
-          onClick={onOpenQuickAdd}
-          className="hidden sm:flex items-center gap-1.5 py-1.5 px-3 rounded-md bg-accent text-white text-xs font-medium hover:opacity-90 active:scale-95 transition-all cursor-pointer"
-        >
-          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-          <span>{t.nav.addRecord}</span>
-        </button>
-
+        {/* Vault Quick Access */}
         <Link
-          href="/settings"
-          aria-label="Profile and Settings"
-          className="w-8 h-8 rounded-full bg-surface-elevated border border-line flex items-center justify-center text-sub hover:text-main hover:border-accent transition-colors"
+          href="/vault"
+          title={t.nav.vault}
+          aria-label={t.nav.vault}
+          className="w-8 h-8 rounded-lg bg-[#11161B] border border-[#252B30] flex items-center justify-center text-[#8A8580] hover:text-[#20C8E8] hover:border-[#20C8E8]/40 transition-all duration-150 group cursor-pointer"
         >
-          <User className="w-4 h-4" />
+          <Lock className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
         </Link>
+
+        {/* Primary Action Button ("Tambah Catatan") */}
+        <Button
+          onClick={onOpenQuickAdd}
+          variant="primary"
+          size="sm"
+          className="hidden sm:inline-flex"
+        >
+          <Plus className="w-3.5 h-3.5 stroke-[2.5] text-[#20C8E8]" />
+          <span>{t.nav.addRecord}</span>
+        </Button>
+
+        {/* Interactive Profile Control with Dropdown Menu & Real Avatar */}
+        <ProfileMenu />
       </div>
     </header>
   );

@@ -2,29 +2,34 @@
 
 import React, { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { SceneLighting } from "./SceneLighting";
-import { FloatingObject } from "./FloatingObject";
+import { BlackHole } from "./BlackHole";
 import { AmbientParticles } from "./AmbientParticles";
 
-function FallbackOrbitalPlaceholder() {
+function FallbackCosmicPlaceholder() {
   return (
-    <div className="relative w-full h-full flex items-center justify-center select-none overflow-hidden">
-      {/* Outer ambient glow */}
-      <div className="absolute w-44 h-44 rounded-full bg-gradient-to-tr from-cyan-500/15 via-sky-500/10 to-transparent blur-2xl animate-pulse" />
+    <div className="absolute inset-0 flex items-center justify-center select-none overflow-hidden">
+      {/* Volumetric glow — warm tint */}
+      <div className="absolute w-64 h-64 rounded-full bg-gradient-to-tr from-amber-500/6 via-orange-400/3 to-transparent blur-3xl animate-pulse" style={{ right: '20%' }} />
 
-      {/* Outer rotating dashed ring */}
-      <div className="absolute w-36 h-36 rounded-full border border-cyan-400/30 border-dashed animate-[spin_24s_linear_infinite]" />
+      {/* Accretion disk rings — warm colors */}
+      <div className="absolute w-48 h-20 rounded-[100%] border border-amber-400/12 rotate-[-18deg] animate-[pulse_3s_ease-in-out_infinite]" style={{ right: '18%' }} />
+      <div className="absolute w-56 h-24 rounded-[100%] border border-orange-300/8 rotate-[-18deg] animate-[pulse_4s_ease-in-out_infinite]" style={{ right: '16%' }} />
 
-      {/* Middle tilted elliptical ring */}
-      <div className="absolute w-44 h-24 rounded-[100%] border border-cyan-400/30 rotate-[-25deg] animate-[pulse_4s_ease-in-out_infinite]" />
-
-      {/* Inner glowing core */}
-      <div className="relative w-16 h-16 rounded-2xl rotate-45 bg-gradient-to-br from-cyan-600 to-sky-600 shadow-[0_0_25px_rgba(34,211,238,0.35)] flex items-center justify-center border border-white/20">
-        <div className="w-6 h-6 rounded-lg bg-white/20 backdrop-blur-sm" />
+      {/* Event horizon */}
+      <div
+        className="relative w-16 h-16 rounded-full bg-black shadow-[0_0_40px_rgba(255,210,122,0.12),0_0_80px_rgba(217,138,74,0.06)] border border-white/5"
+        style={{ marginLeft: '30%' }}
+      >
+        <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent to-amber-300/5" />
       </div>
 
-      {/* Satellite dot */}
-      <div className="absolute top-1/4 right-1/4 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-ping" />
+      {/* Star dots */}
+      <div className="absolute top-[15%] right-[10%] w-1 h-1 rounded-full bg-white/30 animate-pulse" />
+      <div className="absolute top-[40%] left-[15%] w-0.5 h-0.5 rounded-full bg-amber-200/40 animate-pulse" style={{ animationDelay: "0.5s" }} />
+      <div className="absolute bottom-[25%] right-[35%] w-0.5 h-0.5 rounded-full bg-white/25 animate-pulse" style={{ animationDelay: "1s" }} />
+      <div className="absolute top-[65%] left-[30%] w-0.5 h-0.5 rounded-full bg-amber-200/20 animate-pulse" style={{ animationDelay: "1.5s" }} />
     </div>
   );
 }
@@ -35,53 +40,53 @@ export function DashboardScene({ className = "" }: { className?: string }) {
 
   useEffect(() => {
     setMounted(true);
-    // WebGL availability check
     try {
       const canvas = document.createElement("canvas");
       const gl =
         canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-      if (!gl) {
-        setHasWebGL(false);
-      }
+      if (!gl) setHasWebGL(false);
     } catch {
       setHasWebGL(false);
     }
   }, []);
 
-  if (!mounted) {
+  if (!mounted || !hasWebGL) {
     return (
-      <div className={`relative w-full h-[220px] sm:h-[260px] ${className}`}>
-        <FallbackOrbitalPlaceholder />
-      </div>
-    );
-  }
-
-  if (!hasWebGL) {
-    return (
-      <div className={`relative w-full h-[220px] sm:h-[260px] ${className}`}>
-        <FallbackOrbitalPlaceholder />
+      <div className={`absolute inset-0 ${className}`}>
+        <FallbackCosmicPlaceholder />
       </div>
     );
   }
 
   return (
     <div
-      className={`relative w-full h-[220px] sm:h-[260px] cursor-grab active:cursor-grabbing ${className}`}
-      aria-label="Interactive 3D Orbit Node"
+      className={`absolute inset-0 ${className}`}
+      aria-label="Interactive 3D Black Hole"
     >
-      <Suspense fallback={<FallbackOrbitalPlaceholder />}>
+      <Suspense fallback={<FallbackCosmicPlaceholder />}>
         <Canvas
-          camera={{ position: [0, 0, 4.2], fov: 45 }}
+          camera={{ position: [0, 0.6, 4.0], fov: 48 }}
           gl={{
             alpha: true,
             antialias: true,
             powerPreference: "high-performance",
           }}
           dpr={[1, 1.5]}
+          style={{ position: "absolute", inset: 0 }}
         >
           <SceneLighting />
           <AmbientParticles count={80} />
-          <FloatingObject />
+          <BlackHole />
+
+          {/* Cinematic bloom post-processing — increased for hot inner disk glow */}
+          <EffectComposer>
+            <Bloom
+              intensity={1.3}
+              luminanceThreshold={0.1}
+              luminanceSmoothing={0.8}
+              mipmapBlur
+            />
+          </EffectComposer>
         </Canvas>
       </Suspense>
     </div>

@@ -12,6 +12,7 @@ export interface Translations {
     habits: string;
     learning: string;
     finance: string;
+    vault: string;
     settings: string;
     addRecord: string;
   };
@@ -195,6 +196,11 @@ export interface Translations {
     filePlaceholder: string;
     attachedFiles: string;
     downloadFile: string;
+    subfolders: string;
+    newSubfolder: string;
+    createSubfolder: string;
+    folderLocation: string;
+    rootLocation: string;
   };
   finance: {
     title: string;
@@ -260,6 +266,39 @@ export interface Translations {
     exportButton: string;
     exportedSuccess: string;
     logout: string;
+    saveProfile: string;
+    profileSaved: string;
+    vaultSecurity: string;
+    vaultSecurityDesc: string;
+    openVault: string;
+  };
+  vault: {
+    title: string;
+    subtitle: string;
+    lockedTitle: string;
+    lockedSubtitle: string;
+    enterPasswordPlaceholder: string;
+    unlockButton: string;
+    wrongPassword: string;
+    lockButton: string;
+    folders: string;
+    createFolder: string;
+    folderName: string;
+    folderDesc: string;
+    newFolder: string;
+    emptyFolders: string;
+    emptyFolderItems: string;
+    itemsCount: string;
+    addFile: string;
+    addNote: string;
+    uploadFile: string;
+    noteTitle: string;
+    noteContent: string;
+    notePlaceholder: string;
+    allFiles: string;
+    unlockedStatus: string;
+    deleteConfirm: string;
+    backToFolders: string;
   };
 }
 
@@ -276,6 +315,7 @@ export const translations: Record<Locale, Translations> = {
       habits: "Habits",
       learning: "Learning",
       finance: "Finance",
+      vault: "Private Vault",
       settings: "Settings",
       addRecord: "Add Record",
     },
@@ -459,6 +499,11 @@ export const translations: Record<Locale, Translations> = {
       filePlaceholder: "e.g. notes.md, architecture.txt, summary.pdf",
       attachedFiles: "Attached Files & Documents",
       downloadFile: "Download File",
+      subfolders: "Subfolders",
+      newSubfolder: "New Subfolder",
+      createSubfolder: "Create Subfolder",
+      folderLocation: "Storage Location",
+      rootLocation: "All Notes (Root)",
     },
     finance: {
       title: "Finance",
@@ -524,6 +569,39 @@ export const translations: Record<Locale, Translations> = {
       exportButton: "Export Full Data (JSON)",
       exportedSuccess: "Archive Exported Successfully",
       logout: "Log out of ORBIT",
+      saveProfile: "Save Profile Changes",
+      profileSaved: "Profile Saved Successfully",
+      vaultSecurity: "Private Vault Security",
+      vaultSecurityDesc: "Your secret folders and files are protected with a password.",
+      openVault: "Open Private Vault",
+    },
+    vault: {
+      title: "Private Vault",
+      subtitle: "Secure space for confidential folders, documents, and private notes.",
+      lockedTitle: "Private Vault Locked",
+      lockedSubtitle: "Enter your security password to access private folders and confidential files.",
+      enterPasswordPlaceholder: "Enter security password...",
+      unlockButton: "Unlock Vault",
+      wrongPassword: "Wrong password. Access denied.",
+      lockButton: "Lock Vault",
+      folders: "Private Folders",
+      createFolder: "Create Folder",
+      folderName: "Folder Name",
+      folderDesc: "Description (Optional)",
+      newFolder: "New Folder",
+      emptyFolders: "No private folders yet. Create one to organize your files.",
+      emptyFolderItems: "This folder is empty. Upload a file or add a private note.",
+      itemsCount: "items",
+      addFile: "Upload File",
+      addNote: "Private Note",
+      uploadFile: "Upload Encrypted File",
+      noteTitle: "Note Title",
+      noteContent: "Confidential Content",
+      notePlaceholder: "Write your confidential thoughts or sensitive notes here...",
+      allFiles: "All Files",
+      unlockedStatus: "Vault Unlocked & Active",
+      deleteConfirm: "Are you sure you want to delete this?",
+      backToFolders: "Back to Folders",
     },
   },
 
@@ -539,6 +617,7 @@ export const translations: Record<Locale, Translations> = {
       habits: "Gewohnheiten",
       learning: "Lernen",
       finance: "Finanzen",
+      vault: "Privater Tresor",
       settings: "Einstellungen",
       addRecord: "Eintrag hinzufügen",
     },
@@ -722,6 +801,11 @@ export const translations: Record<Locale, Translations> = {
       filePlaceholder: "z.B. notizen.md, architektur.txt, zusammenfassung.pdf",
       attachedFiles: "Angehängte Dateien & Dokumente",
       downloadFile: "Datei herunterladen",
+      subfolders: "Unterordner",
+      newSubfolder: "Neuer Unterordner",
+      createSubfolder: "Unterordner erstellen",
+      folderLocation: "Speicherort",
+      rootLocation: "Alle Notizen (Hauptverzeichnis)",
     },
     finance: {
       title: "Finanzen",
@@ -787,6 +871,39 @@ export const translations: Record<Locale, Translations> = {
       exportButton: "Vollständige Daten exportieren (JSON)",
       exportedSuccess: "Archiv erfolgreich exportiert",
       logout: "Von ORBIT abmelden",
+      saveProfile: "Profiländerungen speichern",
+      profileSaved: "Profil erfolgreich gespeichert",
+      vaultSecurity: "Tresor-Sicherheit",
+      vaultSecurityDesc: "Deine geheimen Ordner und Dateien sind mit einem Passwort geschützt.",
+      openVault: "Tresor öffnen",
+    },
+    vault: {
+      title: "Privater Tresor",
+      subtitle: "Sicherer Bereich für vertrauliche Ordner, Dokumente und Notizen.",
+      lockedTitle: "Privater Tresor gesperrt",
+      lockedSubtitle: "Gib dein Sicherheitspasswort ein, um auf private Ordner zuzugreifen.",
+      enterPasswordPlaceholder: "Sicherheitspasswort eingeben...",
+      unlockButton: "Tresor entsperren",
+      wrongPassword: "Falsches Passwort. Zugriff verweigert.",
+      lockButton: "Tresor sperren",
+      folders: "Private Ordner",
+      createFolder: "Ordner erstellen",
+      folderName: "Ordnername",
+      folderDesc: "Beschreibung (optional)",
+      newFolder: "Neuer Ordner",
+      emptyFolders: "Noch keine privaten Ordner vorhanden. Erstelle einen.",
+      emptyFolderItems: "Dieser Ordner ist leer. Lade eine Datei hoch oder füge eine Notiz hinzu.",
+      itemsCount: "Elemente",
+      addFile: "Datei hochladen",
+      addNote: "Geheime Notiz",
+      uploadFile: "Verschlüsselte Datei hochladen",
+      noteTitle: "Titel der Notiz",
+      noteContent: "Vertraulicher Inhalt",
+      notePlaceholder: "Schreibe hier vertrauliche Notizen...",
+      allFiles: "Alle Dateien",
+      unlockedStatus: "Tresor entsperrt & aktiv",
+      deleteConfirm: "Möchtest du dies wirklich löschen?",
+      backToFolders: "Zurück zu Ordnern",
     },
   },
 
@@ -802,6 +919,7 @@ export const translations: Record<Locale, Translations> = {
       habits: "Kebiasaan",
       learning: "Pembelajaran",
       finance: "Keuangan",
+      vault: "Brankas Privasi",
       settings: "Pengaturan",
       addRecord: "Tambah Catatan",
     },
@@ -985,6 +1103,11 @@ export const translations: Record<Locale, Translations> = {
       filePlaceholder: "misal: catatan.md, arsitektur.txt, materi.pdf",
       attachedFiles: "Berkas & Dokumen Terlampir",
       downloadFile: "Unduh File",
+      subfolders: "Sub-Folder",
+      newSubfolder: "Sub-Folder Baru",
+      createSubfolder: "Buat Sub-Folder",
+      folderLocation: "Lokasi Folder",
+      rootLocation: "Semua Catatan (Utama / Root)",
     },
     finance: {
       title: "Keuangan",
@@ -1050,6 +1173,39 @@ export const translations: Record<Locale, Translations> = {
       exportButton: "Ekspor Seluruh Data (JSON)",
       exportedSuccess: "Arsip Berhasil Diekspor",
       logout: "Keluar dari Akun ORBIT",
+      saveProfile: "Simpan Perubahan Profil",
+      profileSaved: "Profil Berhasil Disimpan",
+      vaultSecurity: "Keamanan Brankas Privasi",
+      vaultSecurityDesc: "Folder dan berkas rahasiamu dilindungi dengan kata sandi.",
+      openVault: "Buka Brankas Privasi",
+    },
+    vault: {
+      title: "Brankas Privasi",
+      subtitle: "Ruang aman terlindungi untuk folder rahasia, dokumen penting, dan catatan privat.",
+      lockedTitle: "Brankas Privasi Terkunci",
+      lockedSubtitle: "Masukkan kata sandi keamanan untuk mengakses folder dan file rahasia.",
+      enterPasswordPlaceholder: "Masukkan kata sandi...",
+      unlockButton: "Buka Kunci Brankas",
+      wrongPassword: "Kata sandi salah. Silakan coba lagi.",
+      lockButton: "Kunci Brankas",
+      folders: "Folder Privasi",
+      createFolder: "Buat Folder",
+      folderName: "Nama Folder",
+      folderDesc: "Deskripsi Folder (Opsional)",
+      newFolder: "Folder Baru",
+      emptyFolders: "Belum ada folder privasi. Buat folder pertama Anda sekarang.",
+      emptyFolderItems: "Folder ini masih kosong. Unggah file atau buat catatan privat.",
+      itemsCount: "berkas/catatan",
+      addFile: "Unggah Berkas",
+      addNote: "Catatan Rahasia",
+      uploadFile: "Unggah File Privasi",
+      noteTitle: "Judul Catatan",
+      noteContent: "Isi Rahasia",
+      notePlaceholder: "Tuliskan catatan rahasia atau data sensitif di sini...",
+      allFiles: "Semua Berkas",
+      unlockedStatus: "Brankas Terbuka Aman",
+      deleteConfirm: "Apakah Anda yakin ingin menghapus item ini?",
+      backToFolders: "Kembali ke Folder",
     },
   },
 };

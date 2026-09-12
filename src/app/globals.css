@@ -2,28 +2,55 @@
 
 :root {
   color-scheme: dark;
-  --canvas: #0D1117;
-  --surface: #161B22;
-  --surface-hover: #1C2128;
-  --surface-elevated: #21262D;
-  --border: #30363D;
-  --border-subtle: #21262D;
-  
-  /* Taste Skill: Cyan accent replaces indigo (LILA Rule §4.2) */
-  --primary: #22d3ee;
-  --primary-hover: #06b6d4;
-  --primary-muted: rgba(34, 211, 238, 0.10);
-  
-  --text-primary: #F0F6FC;
-  --text-secondary: #8B949E;
-  --text-muted: #484F58;
 
-  --semantic-success: #3FB950;
-  --semantic-success-muted: rgba(63, 185, 80, 0.15);
-  --semantic-warning: #D29922;
-  --semantic-warning-muted: rgba(210, 153, 34, 0.15);
-  --semantic-danger: #F85149;
-  --semantic-danger-muted: rgba(248, 81, 73, 0.15);
+  /* ══════════════════════════════════════════════════════
+     ORBIT — Black Hole / Deep Space Observatory System
+     Colors naturally extracted from the Black Hole & Accretion Disk
+     ══════════════════════════════════════════════════════ */
+
+  /* Primary Backgrounds */
+  --canvas: #070A0D;
+  --canvas-dark: #0A0E12;
+  --surface: #11161B;
+  --surface-hover: #151A1F;
+  --surface-elevated: #1A2025;
+  --surface-highest: #20252A;
+
+  /* Sidebar — slightly darker than canvas */
+  --sidebar: #080B0F;
+
+  /* Borders — subtle warm & soft grays */
+  --border: #2A2D2D;
+  --border-subtle: #1E2226;
+  --border-card: #252B30;
+  --border-card-hover: #363737;
+
+  /* Black Hole / Accretion Disk Accents */
+  --accent-ivory: #E8E1D3;
+  --accent-dust: #A7A29A;
+  --accent-bronze: #9B8060;
+  --accent-gold: #C5A56A;
+  --accent-warm: #C5A56A;
+  --accent-amber: #D6A84F;
+
+  /* Tech / Status Accent — cyan only as a SMALL secondary accent */
+  --primary: #20C8E8;
+  --primary-dark: #087F96;
+  --primary-hover: #1AB0CC;
+  --primary-muted: rgba(32, 200, 232, 0.08);
+
+  /* Text hierarchy */
+  --text-primary: #E8E1D3;
+  --text-secondary: #8A8580;
+  --text-muted: #52575C;
+
+  /* Semantic */
+  --semantic-success: #00A982;
+  --semantic-success-muted: rgba(0, 169, 130, 0.12);
+  --semantic-warning: #D6A84F;
+  --semantic-warning-muted: rgba(214, 168, 79, 0.12);
+  --semantic-danger: #C85C5C;
+  --semantic-danger-muted: rgba(200, 92, 92, 0.12);
 }
 
 /* Ensure native form controls, date/time pickers and their calendar icons are crisp and bright in dark mode */
@@ -37,8 +64,8 @@ input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  filter: brightness(0) invert(0.9) drop-shadow(0 0 1px rgba(255, 255, 255, 0.5));
-  opacity: 0.9;
+  filter: brightness(0) invert(0.85) drop-shadow(0 0 1px rgba(232, 225, 211, 0.4));
+  opacity: 0.85;
   border-radius: 4px;
   padding: 2px;
   transition: opacity 0.2s ease, filter 0.2s ease, transform 0.15s ease;
@@ -48,7 +75,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 input[type="time"]::-webkit-calendar-picker-indicator:hover,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
-  filter: brightness(0) invert(1) drop-shadow(0 0 3px rgba(34, 211, 238, 0.9));
+  filter: brightness(0) invert(1) drop-shadow(0 0 3px rgba(32, 200, 232, 0.7));
   transform: scale(1.1);
 }
 
@@ -59,10 +86,15 @@ body {
   overflow-x: hidden;
 }
 
+/* Technical / Data Monospace font helper */
+.font-telemetry {
+  font-family: var(--font-geist-mono), monospace;
+}
+
 /* Custom editorial scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -83,9 +115,11 @@ body {
 .bg-surface { background-color: var(--surface); }
 .bg-surface-hover { background-color: var(--surface-hover); }
 .bg-surface-elevated { background-color: var(--surface-elevated); }
+.bg-sidebar { background-color: var(--sidebar); }
 
 .border-subtle { border-color: var(--border-subtle); }
 .border-line { border-color: var(--border); }
+.border-card { border-color: var(--border-card); }
 
 .text-main { color: var(--text-primary); }
 .text-sub { color: var(--text-secondary); }
@@ -94,6 +128,14 @@ body {
 .text-accent { color: var(--primary); }
 .bg-accent { background-color: var(--primary); }
 .bg-accent-muted { background-color: var(--primary-muted); }
+
+/* Accretion Disk warm accents */
+.text-ivory { color: var(--accent-ivory); }
+.text-dust { color: var(--accent-dust); }
+.text-bronze { color: var(--accent-bronze); }
+.text-gold { color: var(--accent-gold); }
+.text-warm { color: var(--accent-warm); }
+.text-amber-accent { color: var(--accent-amber); }
 
 .text-success { color: var(--semantic-success); }
 .bg-success-muted { background-color: var(--semantic-success-muted); }
@@ -104,44 +146,66 @@ body {
 .text-danger { color: var(--semantic-danger); }
 .bg-danger-muted { background-color: var(--semantic-danger-muted); }
 
-/* Digital OS Glassmorphism & Depth */
+/* ══════════════════════════════════════════
+   Futuristic Astronomical Observatory Cards
+   Background: #11161B, Border: #252B30, Radius: 16px
+   Subtle internal gradient: charcoal to warmer charcoal
+   Lift 1-2px on hover
+   ══════════════════════════════════════════ */
 .glass-panel {
-  background: rgba(22, 27, 34, 0.72);
+  background: rgba(17, 22, 27, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.6);
 }
 
 .glass-card {
   position: relative;
-  background: rgba(22, 27, 34, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
-  transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  background: linear-gradient(145deg, #14191F 0%, #11151A 100%);
+  border: 1px solid #252B30;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45);
+  transition: transform 0.18s cubic-bezier(0.32, 0.72, 0, 1),
+              box-shadow 0.18s cubic-bezier(0.32, 0.72, 0, 1),
+              border-color 0.18s cubic-bezier(0.32, 0.72, 0, 1),
+              background 0.18s ease;
 }
 
 .glass-card:hover {
-  background: rgba(28, 33, 40, 0.75);
-  border-color: rgba(34, 211, 238, 0.2);
-  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.4), 0 0 20px -4px rgba(34, 211, 238, 0.08);
+  background: linear-gradient(145deg, #161C22 0%, #12171D 100%);
+  border-color: #363737;
+  box-shadow:
+    0 6px 20px -3px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(197, 165, 106, 0.04);
+  transform: translateY(-1.5px);
 }
 
-/* Doppelrand (Double-Bezel) card architecture — high-end §4.A */
-.doppelrand {
-  padding: 6px;
-  border-radius: 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+/* Important card subtle accents */
+.card-accent-gold {
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45), 0 0 16px -6px rgba(197, 165, 106, 0.07);
+}
+.card-accent-gold:hover {
+  box-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.55), 0 0 20px -4px rgba(197, 165, 106, 0.12);
 }
 
-.doppelrand > .doppelrand-inner {
-  border-radius: calc(1.25rem - 6px);
-  background: rgba(22, 27, 34, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06);
+.card-accent-cyan {
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45), 0 0 16px -6px rgba(32, 200, 232, 0.07);
+}
+.card-accent-cyan:hover {
+  box-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.55), 0 0 20px -4px rgba(32, 200, 232, 0.12);
+}
+
+/* Hero container — standardized 18px radius */
+.hero-frame {
+  border-radius: 18px;
+  background: #0A0E12;
+  border: 1px solid #2A2D2D;
+  box-shadow:
+    0 12px 40px -12px rgba(0, 0, 0, 0.75),
+    0 0 35px -15px rgba(197, 165, 106, 0.06);
+  position: relative;
+  overflow: hidden;
 }
 
 .os-pill {
@@ -150,8 +214,8 @@ body {
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
   border-radius: 9999px;
-  background: rgba(34, 211, 238, 0.06);
-  border: 1px solid rgba(34, 211, 238, 0.15);
+  background: rgba(32, 200, 232, 0.05);
+  border: 1px solid rgba(32, 200, 232, 0.12);
   font-family: var(--font-geist-mono), monospace;
   font-size: 0.6875rem;
   letter-spacing: 0.05em;
@@ -159,15 +223,39 @@ body {
   color: var(--primary);
 }
 
-/* Ambient Radial Glow Overlays — shifted from indigo to slate/cyan */
+/* ══════════════════════════════════════════
+   Ambient Atmospheric Glows
+   Accretion-disk inspired warm amber & subtle deep cyan
+   ══════════════════════════════════════════ */
+.ambient-glow-warm {
+  position: absolute;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(197, 165, 106, 0.035) 0%, rgba(155, 128, 96, 0.01) 45%, transparent 70%);
+  pointer-events: none;
+  filter: blur(60px);
+}
+
+.ambient-glow-deep {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(32, 200, 232, 0.018) 0%, rgba(8, 127, 150, 0.005) 50%, transparent 70%);
+  pointer-events: none;
+  filter: blur(50px);
+}
+
+/* Legacy aliases for backward compatibility */
 .ambient-glow-indigo {
   position: absolute;
-  width: 500px;
-  height: 500px;
+  width: 560px;
+  height: 560px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.04) 0%, rgba(14, 165, 233, 0.01) 50%, transparent 75%);
+  background: radial-gradient(circle, rgba(197, 165, 106, 0.035) 0%, rgba(155, 128, 96, 0.01) 45%, transparent 70%);
   pointer-events: none;
-  filter: blur(40px);
+  filter: blur(60px);
 }
 
 .ambient-glow-cyan {
@@ -175,9 +263,9 @@ body {
   width: 420px;
   height: 420px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.05) 0%, rgba(14, 165, 233, 0.012) 50%, transparent 75%);
+  background: radial-gradient(circle, rgba(32, 200, 232, 0.018) 0%, rgba(8, 127, 150, 0.005) 50%, transparent 70%);
   pointer-events: none;
-  filter: blur(45px);
+  filter: blur(50px);
 }
 
 /* Accessible Reduced Motion */

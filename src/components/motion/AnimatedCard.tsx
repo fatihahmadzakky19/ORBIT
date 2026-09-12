@@ -16,7 +16,7 @@ export const AnimatedCard = forwardRef<HTMLDivElement, AnimatedCardProps>(
     {
       children,
       interactive = true,
-      glowOnHover = true,
+      glowOnHover = false,
       className = "",
       delay = 0,
       ...props
@@ -28,36 +28,36 @@ export const AnimatedCard = forwardRef<HTMLDivElement, AnimatedCardProps>(
     return (
       <motion.div
         ref={ref}
-        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
+        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{
-          duration: shouldReduceMotion ? 0.05 : 0.4,
+          duration: shouldReduceMotion ? 0.05 : 0.35,
           delay,
           ease: [0.25, 1, 0.5, 1] as const,
         }}
         whileHover={
           interactive && !shouldReduceMotion
             ? {
-                y: -3,
-                transition: { duration: 0.2, ease: "easeOut" },
+                y: -1.5,
+                transition: { duration: 0.18, ease: "easeOut" },
               }
             : undefined
         }
         whileTap={
           interactive && !shouldReduceMotion
             ? {
-                scale: 0.985,
+                scale: 0.99,
                 transition: { duration: 0.1 },
               }
             : undefined
         }
-        className={`group relative rounded-xl border border-line/80 bg-surface/70 backdrop-blur-md transition-shadow duration-300 ${
-          glowOnHover ? "hover:shadow-[0_8px_30px_rgba(129,140,248,0.08)] hover:border-accent/40" : ""
+        className={`group relative rounded-[14px] border border-[#252B30] bg-[#11161B] transition-all duration-180 ${
+          glowOnHover
+            ? "hover:border-[#363737] hover:shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+            : "hover:border-[#363737] hover:shadow-[0_6px_20px_rgba(0,0,0,0.5)]"
         } ${className}`}
         {...props}
       >
-        {/* Subtle top border highlight */}
-        <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none rounded-t-xl" />
         {children}
       </motion.div>
     );
