@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, ArrowDownCircle, ArrowUpCircle, X } from "lucide-react";
+import { Plus, ArrowDownCircle, ArrowUpCircle, X, Calendar, Clock, RotateCcw } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { useLanguage } from "@/lib/i18n/context";
 import {
@@ -12,6 +12,60 @@ import {
   ORBIT_DATA_CHANGED_EVENT,
   StoredTransaction,
 } from "@/lib/storage";
+
+function getTodayDateString(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function getCurrentTimeString(): string {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, "0");
+  const min = String(now.getMinutes()).padStart(2, "0");
+  return `${h}:${min}`;
+}
+
+function formatDisplayDate(dateStr: string): string {
+  if (!dateStr) return "";
+  try {
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+      if (!isNaN(day) && monthIdx >= 0 && monthIdx < 12 && !isNaN(year)) {
+        return `${day} ${months[monthIdx]} ${year}`;
+      }
+    }
+  } catch {}
+  return dateStr;
+}
+
+function formatFullPreview(dateStr: string, timeStr?: string): string {
+  const effectiveTime = timeStr?.trim() || getCurrentTimeString();
+  try {
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const dateObj = new Date(year, monthIdx, day);
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const monthNames = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+      ];
+      const dayName = dayNames[dateObj.getDay()];
+      const monthName = monthNames[monthIdx];
+      return `${dayName}, ${day} ${monthName} ${year} · ${effectiveTime}`;
+    }
+  } catch {}
+  return `${dateStr} ${effectiveTime}`;
+}
 
 export default function FinancePage() {
   const { t } = useLanguage();
@@ -29,6 +83,8 @@ export default function FinancePage() {
   const [newTxType, setNewTxType] = useState<"INCOME" | "EXPENSE">("EXPENSE");
   const [newTxAmount, setNewTxAmount] = useState("");
   const [newTxCat, setNewTxCat] = useState("Food");
+  const [newTxDate, setNewTxDate] = useState(getTodayDateString);
+  const [newTxTime, setNewTxTime] = useState(getCurrentTimeString);
   const [newTxNote, setNewTxNote] = useState("");
 
   const loadData = () => {
@@ -80,17 +136,24 @@ export default function FinancePage() {
     const amt = Number(newTxAmount);
     if (isNaN(amt) || amt <= 0) return;
 
+    const formattedDate = formatDisplayDate(newTxDate);
+    const autoTime = newTxTime?.trim() || getCurrentTimeString();
+
     addStoredTransaction({
       type: newTxType,
       amount: amt,
       category: newTxCat,
       note: newTxNote || undefined,
-      date: "Hari Ini",
+      date: formattedDate,
+      time: autoTime,
+      createdAt: `${newTxDate}T${autoTime}:00`,
     });
 
     loadData();
     setNewTxAmount("");
     setNewTxNote("");
+    setNewTxDate(getTodayDateString());
+    setNewTxTime(getCurrentTimeString());
     setIsAddingTx(false);
   };
 
@@ -276,7 +339,19 @@ export default function FinancePage() {
                   <div className="text-xs font-medium text-main">
                     {tx.category} {tx.note && <span className="text-dim">· {tx.note}</span>}
                   </div>
-                  <div className="text-[11px] font-mono text-dim mt-0.5">{tx.date}</div>
+                  <div className="text-[11px] font-mono text-dim mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-[#6B6762]" />
+                      <span>{tx.date}</span>
+                    </span>
+                    <span className="flex items-center gap-1 text-[#8A8580]">
+                      <span className="text-[#3A3F45]">·</span>
+                      <Clock className="w-3 h-3 text-[#20C8E8]" />
+                      <span className="text-[#E6E1DA] font-medium">
+                        {tx.time || (tx.createdAt?.includes("T") ? tx.createdAt.split("T")[1]?.slice(0, 5) : "00:00")}
+                      </span>
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -398,11 +473,70 @@ export default function FinancePage() {
                 />
               </div>
 
+              {/* Waktu & Tanggal Transaksi (Tanggal, Bulan, Tahun, Jam, Menit) */}
+              <div className="space-y-1.5 pt-0.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-sub flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[#20C8E8]" />
+                    <span>Waktu & Tanggal *</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewTxDate(getTodayDateString());
+                      setNewTxTime(getCurrentTimeString());
+                    }}
+                    className="text-[10px] font-mono text-[#20C8E8] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <RotateCcw className="w-2.5 h-2.5" />
+                    <span>Set Sekarang</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="block text-[10px] text-dim font-mono mb-1">Tanggal (Hari/Bulan/Tahun)</span>
+                    <input
+                      type="date"
+                      required
+                      value={newTxDate}
+                      onChange={(e) => setNewTxDate(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-canvas border border-line text-xs font-mono text-main focus:outline-none focus:border-accent cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="block text-[10px] text-dim font-mono">Jam (Jam:Menit)</span>
+                      <span className="text-[9px] text-[#20C8E8] font-mono">Otomatis</span>
+                    </div>
+                    <input
+                      type="time"
+                      value={newTxTime}
+                      onChange={(e) => setNewTxTime(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-canvas border border-line text-xs font-mono text-main focus:outline-none focus:border-accent cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* Pratinjau Tanggal & Jam Real-Time */}
+                {newTxDate && (
+                  <div className="text-[10px] font-mono text-[#8A8580] bg-[#0C1014] px-2.5 py-1.5 rounded-md border border-[#1E2226] flex items-center justify-between gap-1.5">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <Clock className="w-3 h-3 text-[#20C8E8] shrink-0" />
+                      <span className="truncate">{formatFullPreview(newTxDate, newTxTime)}</span>
+                    </div>
+                    <span className="text-[9px] text-emerald-400/90 font-mono shrink-0">
+                      Auto-Timestamp
+                    </span>
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block text-xs font-medium text-sub mb-1">{t.common.note} ({t.common.optional})</label>
                 <input
                   type="text"
-                  placeholder="Notes..."
+                  placeholder="Catatan transaksi..."
                   value={newTxNote}
                   onChange={(e) => setNewTxNote(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-canvas border border-line text-xs text-main focus:outline-none focus:border-accent"

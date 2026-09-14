@@ -152,7 +152,6 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
         {/* System Status Telemetry Indicator */}
         <div className="px-2.5 py-2 rounded-lg bg-[#0C1014] border border-[#1E2226] flex items-center justify-between text-[10px] font-mono select-none">
           <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00A982] animate-pulse" />
             <span className="text-[#8A8580]">SYSTEM</span>
             <span className="text-[#00A982] font-semibold">ONLINE</span>
           </div>

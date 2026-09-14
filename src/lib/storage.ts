@@ -151,6 +151,7 @@ export interface StoredTransaction {
   amount: number;
   category: string;
   date: string;
+  time?: string;
   note?: string;
   goalAllocation?: string;
   createdAt: string;
@@ -192,15 +193,23 @@ export function addStoredTransaction(data: {
   category: string;
   note?: string;
   date?: string;
+  time?: string;
+  createdAt?: string;
 }): StoredTransaction {
+  const now = new Date();
+  const defaultHours = String(now.getHours()).padStart(2, "0");
+  const defaultMinutes = String(now.getMinutes()).padStart(2, "0");
+  const autoTime = data.time && data.time.trim() !== "" ? data.time.trim() : `${defaultHours}:${defaultMinutes}`;
+
   const newTx: StoredTransaction = {
     id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
     type: data.type,
     amount: data.amount,
     category: data.category,
     date: data.date || "Hari Ini",
+    time: autoTime,
     note: data.note || undefined,
-    createdAt: new Date().toISOString(),
+    createdAt: data.createdAt || now.toISOString(),
   };
 
   if (typeof window !== "undefined") {

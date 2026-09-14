@@ -268,6 +268,76 @@ body {
   filter: blur(50px);
 }
 
+/* ══════════════════════════════════════════
+   Journey UI Styles
+   Enter Orbit label, buttons, phase indicator
+   ══════════════════════════════════════════ */
+
+.journey-enter-label {
+  padding: 6px 16px;
+  border-radius: 8px;
+  background: rgba(17, 22, 27, 0.7);
+  border: 1px solid rgba(0, 217, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.journey-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: 10px;
+  background: rgba(0, 217, 255, 0.08);
+  border: 1px solid rgba(0, 217, 255, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: #00D9FF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.journey-btn:hover {
+  background: rgba(0, 217, 255, 0.15);
+  border-color: rgba(0, 217, 255, 0.5);
+  color: #ffffff;
+  box-shadow: 0 0 20px -4px rgba(0, 217, 255, 0.2);
+}
+
+.journey-btn-secondary {
+  background: rgba(17, 22, 27, 0.6);
+  border-color: rgba(42, 45, 45, 0.8);
+  color: #A7A29A;
+}
+
+.journey-btn-secondary:hover {
+  background: rgba(26, 32, 37, 0.8);
+  border-color: rgba(197, 165, 106, 0.3);
+  color: #E8E1D3;
+  box-shadow: 0 0 16px -4px rgba(197, 165, 106, 0.12);
+}
+
+.journey-phase-indicator {
+  padding: 4px 14px;
+  border-radius: 6px;
+  background: rgba(2, 4, 8, 0.7);
+  border: 1px solid rgba(0, 217, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
 /* Accessible Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
@@ -276,4 +346,14 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Hide Next.js dev tools indicator / floating badge */
+nextjs-portal,
+[data-nextjs-dev-tools-button],
+[data-indicator-status],
+[data-nextjs-toast] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }

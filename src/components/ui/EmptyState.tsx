@@ -23,7 +23,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={`py-7 px-4 text-center rounded-lg border border-dashed border-[#252B30] bg-[#070A0D]/50 ${className}`}
+      className={`py-4 sm:py-6 px-3 sm:px-4 text-center rounded-lg border border-dashed border-[#252B30] bg-[#070A0D]/50 ${className}`}
     >
       <h3 className="text-xs font-semibold text-[#E8E1D3] mb-1">{title}</h3>
       <p className="text-xs text-[#8A8580] max-w-sm mx-auto leading-relaxed mb-3">

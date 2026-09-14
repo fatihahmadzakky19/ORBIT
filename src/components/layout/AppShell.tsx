@@ -31,10 +31,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Sidebar onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0 relative z-10">
+        <div className="flex-1 flex flex-col min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0 relative z-10">
           <Header onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
 
-          <main className="flex-1 px-4 py-5 md:px-8 md:py-6 max-w-5xl mx-auto w-full">
+          <main className="flex-1 px-3.5 sm:px-5 md:px-8 py-3.5 sm:py-5 md:py-6 max-w-5xl mx-auto w-full">
             <PageTransition>{children}</PageTransition>
           </main>
         </div>
@@ -51,7 +51,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Toast Notification — observatory telemetry style */}
         {toastMessage && (
-          <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#11161B]/95 backdrop-blur-md border border-[#252B30] shadow-[0_8px_32px_rgba(0,0,0,0.7)] text-xs text-main animate-in slide-in-from-bottom-2 fade-in duration-200">
+          <div className="fixed bottom-24 md:bottom-6 right-4 sm:right-6 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#11161B]/95 backdrop-blur-md border border-[#252B30] shadow-[0_8px_32px_rgba(0,0,0,0.7)] text-xs text-main animate-in slide-in-from-bottom-2 fade-in duration-200">
             <CheckCircle2 className="w-4 h-4 text-[#00A982] shrink-0" />
             <span className="font-medium text-[#E8E1D3]">{toastMessage}</span>
           </div>

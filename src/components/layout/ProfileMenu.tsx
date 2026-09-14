@@ -2,13 +2,13 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { User, Settings, Lock, Compass, LogOut, ChevronDown, Check } from "lucide-react";
+import { User, Settings, Lock, Compass, LogOut, ChevronDown, Check, BookOpen, Wallet, Globe } from "lucide-react";
 import { useProfile } from "@/lib/profile";
 import { useLanguage } from "@/lib/i18n/context";
 
 export function ProfileMenu() {
   const { profile } = useProfile();
-  const { t } = useLanguage();
+  const { t, locale, setLocale } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -98,7 +98,6 @@ export function ProfileMenu() {
                 {profile.email || "fatihahmadzakky19@gmail.com"}
               </div>
               <div className="flex items-center gap-1.5 mt-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00A982] animate-pulse" />
                 <span className="text-[9px] font-mono text-[#00A982] tracking-wider uppercase">
                   Digital OS Online
                 </span>
@@ -126,20 +125,56 @@ export function ProfileMenu() {
               <span>{t.nav.vault}</span>
             </Link>
 
-            <Link
-              href="/journey"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-[#A7A29A] hover:text-[#E8E1D3] hover:bg-[#151A1F] transition-colors"
-            >
-              <Compass className="w-3.5 h-3.5 text-[#C5A56A]" />
-              <span>{t.nav.journey}</span>
-            </Link>
+            {/* Mobile-accessible secondary modules */}
+            <div className="md:hidden border-t border-[#1E2226] pt-1 mt-1 space-y-0.5">
+              <Link
+                href="/learning"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-[#A7A29A] hover:text-[#E8E1D3] hover:bg-[#151A1F] transition-colors"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#9B8060]" />
+                <span>{t.nav.learning}</span>
+              </Link>
+
+              <Link
+                href="/finance"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-[#A7A29A] hover:text-[#E8E1D3] hover:bg-[#151A1F] transition-colors"
+              >
+                <Wallet className="w-3.5 h-3.5 text-[#C5A56A]" />
+                <span>{t.nav.finance}</span>
+              </Link>
+
+              {/* Mobile Language Selector */}
+              <div className="px-2.5 py-2 flex items-center justify-between text-xs text-[#8A8580]">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-3.5 h-3.5 text-[#7A7570]" />
+                  <span>Bahasa</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {(["id", "en", "de"] as const).map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => setLocale(l)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase transition-colors ${
+                        locale === l
+                          ? "bg-[#20C8E8]/20 text-[#20C8E8] border border-[#20C8E8]/40 font-semibold"
+                          : "bg-[#151A1F] text-[#8A8580] hover:text-[#E8E1D3]"
+                      }`}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Footer Divider */}
           <div className="pt-1 mt-1 border-t border-[#1E2226] px-1.5">
-            <div className="px-2.5 py-1.5 text-[10px] font-mono text-[#52575C]">
-              ORBIT v1.0 · Personal OS
+            <div className="px-2.5 py-1 text-[10px] font-mono text-[#52575C] flex justify-between items-center">
+              <span>ORBIT v1.0</span>
+              <span>Digital OS</span>
             </div>
           </div>
         </div>

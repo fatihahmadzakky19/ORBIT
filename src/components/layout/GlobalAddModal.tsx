@@ -47,6 +47,10 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
   const [txAmount, setTxAmount] = useState("");
   const [txCategory, setTxCategory] = useState("Food");
   const [txDate, setTxDate] = useState(getCalendarDateString());
+  const [txTime, setTxTime] = useState(() => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  });
   const [txNote, setTxNote] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,6 +66,9 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
     setLearningUnderstood("");
     setLearningSource("");
     setTxAmount("");
+    setTxDate(getCalendarDateString());
+    const now = new Date();
+    setTxTime(`${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`);
     setTxNote("");
     setIsSubmitting(false);
     onClose();
@@ -124,8 +131,26 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
   const handleSaveTransaction = async (type: "EXPENSE" | "INCOME") => {
     if (!txAmount || Number(txAmount) <= 0) return;
     setIsSubmitting(true);
-
     const amountNum = Number(txAmount);
+
+    const formatTxDate = (dateStr: string) => {
+      try {
+        const parts = dateStr.split("-");
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const monthIdx = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[2], 10);
+          const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+          if (!isNaN(day) && monthIdx >= 0 && monthIdx < 12 && !isNaN(year)) {
+            return `${day} ${months[monthIdx]} ${year}`;
+          }
+        }
+      } catch {}
+      return dateStr;
+    };
+
+    const now = new Date();
+    const autoTime = txTime?.trim() || `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
     // 1. Immediately persist to localStorage
     addStoredTransaction({
@@ -133,7 +158,9 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
       amount: amountNum,
       category: txCategory,
       note: txNote.trim() || undefined,
-      date: txDate,
+      date: formatTxDate(txDate),
+      time: autoTime,
+      createdAt: `${txDate}T${autoTime}:00`,
     });
 
     // 2. Background attempt to persist to server if database is configured
@@ -513,7 +540,7 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-sub mb-1">
                     {t.common.category} *
@@ -544,17 +571,33 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-sub mb-1">
-                    {t.common.date} *
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={txDate}
-                    onChange={(e) => setTxDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-canvas border border-line text-xs font-mono text-main focus:outline-none focus:border-accent"
-                  />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs font-medium text-sub mb-1">
+                      {t.common.date} *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={txDate}
+                      onChange={(e) => setTxDate(e.target.value)}
+                      className="w-full px-2 py-2 rounded-lg bg-canvas border border-line text-xs font-mono text-main focus:outline-none focus:border-accent cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-sub">
+                        Jam
+                      </label>
+                      <span className="text-[10px] text-[#20C8E8] font-mono">Otomatis</span>
+                    </div>
+                    <input
+                      type="time"
+                      value={txTime}
+                      onChange={(e) => setTxTime(e.target.value)}
+                      className="w-full px-2 py-2 rounded-lg bg-canvas border border-line text-xs font-mono text-main focus:outline-none focus:border-accent cursor-pointer"
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -30,11 +30,6 @@ export function StatusIndicator({
 
       {/* Online Status Indicator */}
       <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#00A982]">
-        <span
-          className={`w-1.5 h-1.5 rounded-full bg-[#00A982] ${
-            isOnline ? "animate-pulse" : "opacity-40"
-          }`}
-        />
         <span className="font-semibold tracking-wider">ONLINE</span>
       </div>
     </div>

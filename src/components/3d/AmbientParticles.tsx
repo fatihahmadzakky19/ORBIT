@@ -1,23 +1,26 @@
 "use client";
 
 import React, { useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 interface AmbientParticlesProps {
   count?: number;
 }
 
-export function AmbientParticles({ count = 80 }: AmbientParticlesProps) {
+export function AmbientParticles({ count = 120 }: AmbientParticlesProps) {
   const pointsRef = useRef<THREE.Points>(null!);
+  const { size } = useThree();
+  const isMobile = size.width < 640;
+  const effectiveCount = isMobile ? Math.floor(count * 0.5) : count;
 
   const [positions, sizes] = useMemo(() => {
-    const pos = new Float32Array(count * 3);
-    const sz = new Float32Array(count);
+    const pos = new Float32Array(effectiveCount * 3);
+    const sz = new Float32Array(effectiveCount);
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < effectiveCount; i++) {
       // Wide cosmic spread for background star field
-      const r = 3.0 + Math.random() * 6.0;
+      const r = 3.0 + Math.random() * 7.0;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
 
@@ -25,15 +28,25 @@ export function AmbientParticles({ count = 80 }: AmbientParticlesProps) {
       pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       pos[i * 3 + 2] = r * Math.cos(phi);
 
-      // Size variation for depth
-      sz[i] = 0.015 + Math.random() * 0.025;
+      // Size variation for depth — some large/close, some tiny/far
+      const depthRng = Math.random();
+      if (depthRng < 0.15) {
+        // Close bright stars
+        sz[i] = 0.035 + Math.random() * 0.025;
+      } else if (depthRng < 0.5) {
+        // Medium distance
+        sz[i] = 0.018 + Math.random() * 0.015;
+      } else {
+        // Far away, tiny
+        sz[i] = 0.008 + Math.random() * 0.010;
+      }
     }
 
     return [pos, sz];
-  }, [count]);
+  }, [effectiveCount]);
 
   const colors = useMemo(() => {
-    const col = new Float32Array(count * 3);
+    const col = new Float32Array(effectiveCount * 3);
     const tempColor = new THREE.Color();
 
     /* Astrophysical star palette: mostly warm white/dim, some gold accents,
@@ -44,7 +57,7 @@ export function AmbientParticles({ count = 80 }: AmbientParticlesProps) {
     const colorBlueWhite = new THREE.Color("#c8d8f0");
     const colorDeepWarm = new THREE.Color("#d8b880");
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < effectiveCount; i++) {
       const rng = Math.random();
       if (rng < 0.35) {
         /* Dim warm white — most stars */
@@ -69,25 +82,51 @@ export function AmbientParticles({ count = 80 }: AmbientParticlesProps) {
     }
 
     return col;
-  }, [count]);
+  }, [effectiveCount]);
+
+  // Twinkling phase offsets
+  const twinkleData = useMemo(() => {
+    return Array.from({ length: effectiveCount }, () => ({
+      speed: 0.5 + Math.random() * 2.0,
+      phase: Math.random() * Math.PI * 2,
+      amplitude: 0.15 + Math.random() * 0.35,
+    }));
+  }, [effectiveCount]);
 
   useFrame((state, delta) => {
     if (!pointsRef.current) return;
-    pointsRef.current.rotation.y += delta * 0.010;
-    pointsRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.06) * 0.025;
+    pointsRef.current.rotation.y += delta * 0.008;
+    pointsRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.05) * 0.02;
+
+    // Twinkling — modulate per-vertex color brightness
+    const colArr = pointsRef.current.geometry.attributes.color.array as Float32Array;
+    const t = state.clock.elapsedTime;
+
+    for (let i = 0; i < effectiveCount; i++) {
+      const td = twinkleData[i];
+      const twinkle = 0.6 + td.amplitude * (0.5 + 0.5 * Math.sin(t * td.speed + td.phase));
+      // Modulate by scaling the base color
+      const baseR = colors[i * 3];
+      const baseG = colors[i * 3 + 1];
+      const baseB = colors[i * 3 + 2];
+      colArr[i * 3] = baseR * twinkle;
+      colArr[i * 3 + 1] = baseG * twinkle;
+      colArr[i * 3 + 2] = baseB * twinkle;
+    }
+    pointsRef.current.geometry.attributes.color.needsUpdate = true;
   });
 
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+        <bufferAttribute attach="attributes-color" args={[new Float32Array(colors), 3]} />
       </bufferGeometry>
       <pointsMaterial
         size={0.028}
         vertexColors
         transparent
-        opacity={0.60}
+        opacity={0.65}
         sizeAttenuation
         depthWrite={false}
         blending={THREE.AdditiveBlending}
