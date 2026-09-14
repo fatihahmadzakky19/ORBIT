@@ -1,11 +1,11 @@
 "use client";
 
-import React, { Suspense, useEffect, useState, useRef, useCallback } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { EffectComposer, Bloom, ChromaticAberration } from "@react-three/postprocessing";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { SceneLighting } from "./SceneLighting";
+import { BlackHole } from "./BlackHole";
 import { AmbientParticles } from "./AmbientParticles";
-import { JourneyManager, JourneyManagerHandle, JourneyPhase } from "./JourneyManager";
 
 function FallbackCosmicPlaceholder() {
   return (
@@ -34,24 +34,9 @@ function FallbackCosmicPlaceholder() {
   );
 }
 
-export interface DashboardSceneProps {
-  className?: string;
-  onPhaseChange?: (phase: JourneyPhase) => void;
-  onHoverChange?: (hovered: boolean) => void;
-  journeyRef?: React.RefObject<JourneyManagerHandle | null>;
-}
-
-export function DashboardScene({
-  className = "",
-  onPhaseChange,
-  onHoverChange,
-  journeyRef,
-}: DashboardSceneProps) {
+export function DashboardScene({ className = "" }: { className?: string }) {
   const [mounted, setMounted] = useState(false);
   const [hasWebGL, setHasWebGL] = useState(true);
-  const [currentPhase, setCurrentPhase] = useState<JourneyPhase>("IDLE");
-  const internalJourneyRef = useRef<JourneyManagerHandle>(null);
-  const effectiveRef = journeyRef || internalJourneyRef;
 
   useEffect(() => {
     setMounted(true);
@@ -65,14 +50,6 @@ export function DashboardScene({
     }
   }, []);
 
-  const handlePhaseChange = useCallback(
-    (phase: JourneyPhase) => {
-      setCurrentPhase(phase);
-      onPhaseChange?.(phase);
-    },
-    [onPhaseChange]
-  );
-
   if (!mounted || !hasWebGL) {
     return (
       <div className={`absolute inset-0 ${className}`}>
@@ -80,19 +57,6 @@ export function DashboardScene({
       </div>
     );
   }
-
-  // Calibrated, smooth bloom — never overexposed to preserve rocket silhouette
-  const bloomIntensity =
-    currentPhase === "ENTER_EVENT_HORIZON"
-      ? 1.4
-      : currentPhase === "WORMHOLE"
-      ? 1.3
-      : currentPhase === "EARTH_ORBIT"
-      ? 0.75
-      : 1.0;
-
-  const showChromaticAberration =
-    currentPhase === "ENTER_EVENT_HORIZON" || currentPhase === "WORMHOLE";
 
   return (
     <div
@@ -111,29 +75,17 @@ export function DashboardScene({
           style={{ position: "absolute", inset: 0 }}
         >
           <SceneLighting />
-          <AmbientParticles count={120} />
+          <AmbientParticles count={80} />
+          <BlackHole />
 
-          <JourneyManager
-            ref={effectiveRef}
-            onPhaseChange={handlePhaseChange}
-            onHoverChange={onHoverChange}
-          />
-
-          {/* Adaptive post-processing */}
+          {/* Cinematic bloom post-processing — increased for hot inner disk glow */}
           <EffectComposer>
             <Bloom
-              intensity={bloomIntensity}
+              intensity={1.3}
               luminanceThreshold={0.1}
               luminanceSmoothing={0.8}
               mipmapBlur
             />
-            {showChromaticAberration && (
-              <ChromaticAberration
-                offset={[0.002, 0.002]}
-                radialModulation
-                modulationOffset={0.5}
-              />
-            )}
           </EffectComposer>
         </Canvas>
       </Suspense>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
@@ -29,9 +29,9 @@ import { getStoredFinanceBalances, ORBIT_DATA_CHANGED_EVENT, notifyDataChanged }
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Button } from "@/components/ui/Button";
-import type { JourneyManagerHandle, JourneyPhase } from "@/components/3d/JourneyManager";
 
 // Dynamically import 3D Scene to keep SSR fast and bundle isolated
+// (Existing approved 3D black hole visual preserved 100% untouched)
 const DashboardScene = dynamic(
   () => import("@/components/3d/DashboardScene").then((mod) => mod.DashboardScene),
   {
@@ -77,53 +77,9 @@ interface LearningItem {
   date: string;
 }
 
-function useCountUp(target: number, duration: number = 750): number {
-  const [current, setCurrent] = useState(0);
-  useEffect(() => {
-    if (target === 0) {
-      setCurrent(0);
-      return;
-    }
-    let startTimestamp: number | null = null;
-    let animId: number;
-
-    const step = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      const easeProgress = 1 - Math.pow(1 - progress, 3);
-      setCurrent(Math.round(target * easeProgress));
-
-      if (progress < 1) {
-        animId = requestAnimationFrame(step);
-      }
-    };
-
-    animId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animId);
-  }, [target, duration]);
-
-  return current;
-}
-
 export default function HomePage() {
   const { t, locale } = useLanguage();
   const { profile } = useProfile();
-
-  // Journey state management
-  const journeyRef = useRef<JourneyManagerHandle>(null);
-  const [journeyPhase, setJourneyPhase] = useState<JourneyPhase>("IDLE");
-  const [bhHovered, setBhHovered] = useState(false);
-
-  const handlePhaseChange = useCallback((phase: JourneyPhase) => {
-    setJourneyPhase(phase);
-  }, []);
-
-  const handleHoverChange = useCallback((hovered: boolean) => {
-    setBhHovered(hovered);
-  }, []);
-
-  const isJourneyActive = journeyPhase !== "IDLE";
-  const isOrbitReached = journeyPhase === "EARTH_ORBIT";
 
   // Real-time ticking clock for digital OS feel
   const [currentTime, setCurrentTime] = useState<string>("");
@@ -259,40 +215,31 @@ export default function HomePage() {
   // Active Focus item (first focus goal)
   const primaryFocus = focusGoals.length > 0 ? focusGoals[0] : null;
 
-  // Animated stat values for living OS feel
-  const animatedHabitRate = useCountUp(habitCompletionRate);
-  const animatedCompleted = useCountUp(completedTodayCount);
-  const animatedGoals = useCountUp(focusGoals.length);
-  const animatedBalance = useCountUp(actualBalance);
-
   return (
     <div className="space-y-4 sm:space-y-5 md:space-y-6 pb-4 sm:pb-8">
       {/* ═══════════════════════════════════════════════════════════════
           1. BLACK HOLE HERO — Proportional, Cinematic & Balanced
-          - 3D Black hole & Space Shuttle rocket on the RIGHT
+          - Reduced height (310px desktop) allows hero + summary cards +
+            actionable content to fit comfortably in viewport
+          - 3D Black hole shines prominently on the RIGHT
           - LEFT: Darker area for identity & telemetry
-          - Click & Hover on Black hole launches cinematic journey
           ═══════════════════════════════════════════════════════════════ */}
       <FadeIn direction="up" duration={0.35}>
         <div className="hero-frame">
-          <div className="relative overflow-hidden min-h-[270px] sm:min-h-[295px] md:min-h-[340px] lg:min-h-[380px]">
+          <div className="relative overflow-hidden min-h-[270px] sm:min-h-[295px] md:min-h-[310px]">
             {/* 3D Background — full-bleed interactive canvas */}
             <div className="absolute inset-0 z-0 pointer-events-auto">
-              <DashboardScene
-                onPhaseChange={handlePhaseChange}
-                onHoverChange={handleHoverChange}
-                journeyRef={journeyRef}
-              />
+              <DashboardScene />
             </div>
 
             {/* Seamless cinematic overlay:
                 left: deep charcoal overlay keeping text 100% crisp and readable
                 right: transparent so the glowing accretion disk shines unobstructed */}
             <div
-              className={`absolute inset-0 z-[1] pointer-events-none transition-opacity duration-700 ${isJourneyActive ? 'opacity-20' : 'opacity-100'}`}
+              className="absolute inset-0 z-[1] pointer-events-none"
               style={{
                 background:
-                  "linear-gradient(to right, rgba(2,4,8,0.96) 0%, rgba(5,10,16,0.90) 40%, rgba(8,19,28,0.50) 65%, rgba(8,19,28,0.08) 82%, transparent 100%)",
+                  "linear-gradient(to right, rgba(7,10,13,0.95) 0%, rgba(10,14,18,0.88) 42%, rgba(17,22,27,0.45) 70%, rgba(17,22,27,0.05) 85%, transparent 100%)",
               }}
             />
 
@@ -300,126 +247,15 @@ export default function HomePage() {
             <div
               className="absolute inset-0 z-[1] pointer-events-none"
               style={{
-                background: "linear-gradient(to top, rgba(2,4,8,0.85) 0%, transparent 30%)",
+                background: "linear-gradient(to top, rgba(7,10,13,0.8) 0%, transparent 28%)",
               }}
             />
 
-            {/* Subtle top vignette */}
+            {/* Content overlay — left-aligned, tight vertical rhythm */}
             <div
-              className="absolute inset-0 z-[1] pointer-events-none"
-              style={{
-                background: "linear-gradient(to bottom, rgba(2,4,8,0.4) 0%, transparent 15%)",
-              }}
-            />
-
-            {/* Interactive Black Hole & Rocket Click Trigger Zone (Right 55% of Hero Card) */}
-            {!isJourneyActive && (
-              <div
-                onClick={() => journeyRef.current?.startJourney()}
-                onMouseEnter={() => handleHoverChange(true)}
-                onMouseLeave={() => handleHoverChange(false)}
-                className="absolute right-0 top-0 bottom-0 w-[55%] z-[6] cursor-pointer flex items-center justify-end pr-8 sm:pr-12 md:pr-16 group select-none"
-                aria-label="Click to Enter Orbit"
-                title="Klik Black Hole untuk meluncurkan perjalanan ke Bumi"
-              >
-                {/* Floating "ENTER ORBIT" HUD Badge */}
-                <div
-                  className={`transition-all duration-300 transform ${
-                    bhHovered
-                      ? "opacity-100 scale-100 translate-x-0"
-                      : "opacity-0 scale-95 translate-x-3 pointer-events-none"
-                  } px-3.5 py-1.5 rounded-lg bg-[#070A0D]/85 border border-[#00D9FF]/40 backdrop-blur-md shadow-[0_0_24px_rgba(0,217,255,0.25)] flex items-center gap-2`}
-                >
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#00D9FF] animate-ping" />
-                  <span className="text-[10px] sm:text-[11px] font-mono tracking-[0.2em] text-[#00D9FF] font-semibold uppercase">
-                    Enter Orbit
-                  </span>
-                  <span className="text-[10px] text-[#00D9FF]">→</span>
-                </div>
-              </div>
-            )}
-
-            {/* Cybernetic Target Reticle HUD on Earth */}
-            {(journeyPhase === "TARGET_EARTH" || journeyPhase === "APPROACH_EARTH") && (
-              <div className="absolute top-1/2 right-[20%] -translate-y-1/2 z-20 pointer-events-none flex flex-col items-center animate-fade-in">
-                <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full border border-[#00D9FF]/40 animate-[spin_12s_linear_infinite] flex items-center justify-center">
-                  <div className="absolute inset-2 rounded-full border border-dashed border-[#00D9FF]/60 animate-[spin_8s_linear_infinite_reverse]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#00D9FF] shadow-[0_0_12px_#00D9FF]" />
-                  {/* Crosshair markers */}
-                  <div className="absolute top-0 w-0.5 h-3 bg-[#00D9FF]" />
-                  <div className="absolute bottom-0 w-0.5 h-3 bg-[#00D9FF]" />
-                  <div className="absolute left-0 w-3 h-0.5 bg-[#00D9FF]" />
-                  <div className="absolute right-0 w-3 h-0.5 bg-[#00D9FF]" />
-                </div>
-                <div className="mt-3 text-center font-mono">
-                  <div className="text-[11px] font-bold text-[#00D9FF] tracking-widest uppercase flex items-center justify-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#00D9FF] animate-ping" />
-                    TARGET: EARTH
-                  </div>
-                  <div className="text-[9px] text-[#A7A29A] mt-0.5">
-                    {journeyPhase === "TARGET_EARTH" ? "DISTANCE: 42,164 KM • LOCK ACQUIRED" : "DISTANCE: 1,420 KM • ORBIT INCLINATION 23.5°"}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* EARTH ORBIT REACHED — Sleek Non-intrusive Cinematic HUD (Leaves Earth & Rocket fully visible) */}
-            {isOrbitReached && (
-              <div className="absolute bottom-5 left-6 sm:left-8 z-20 animate-fade-in pointer-events-auto">
-                <div className="px-5 py-3.5 rounded-xl bg-[#070A0D]/90 border border-[#00D9FF]/35 shadow-[0_4px_30px_rgba(0,0,0,0.85),0_0_25px_rgba(0,217,255,0.15)] backdrop-blur-md max-w-sm">
-                  <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#00D9FF]/10 border border-[#00D9FF]/30 text-[9px] font-mono tracking-[0.2em] text-[#00D9FF] uppercase mb-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#00D9FF] animate-ping" />
-                    Earth Orbit Reached
-                  </div>
-                  <p className="text-xs text-[#E8E1D3] font-medium tracking-tight">
-                    Journey complete.
-                  </p>
-                  <p className="text-[10px] text-[#8A8580] mt-0.5 font-mono">
-                    Space Shuttle stationed in stable Earth orbit.
-                  </p>
-                  <div className="flex items-center gap-2.5 pt-3">
-                    <button
-                      onClick={() => journeyRef.current?.replayJourney()}
-                      className="journey-btn"
-                    >
-                      Replay Journey
-                    </button>
-                    <button
-                      onClick={() => journeyRef.current?.returnToOrbit()}
-                      className="journey-btn journey-btn-secondary"
-                    >
-                      Return to ORBIT
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Journey phase indicator */}
-            {isJourneyActive && !isOrbitReached && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                <div className="journey-phase-indicator flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00D9FF] animate-ping" />
-                  <span className="text-[9px] font-mono tracking-[0.2em] text-[#00D9FF]/80 uppercase">
-                    {journeyPhase === 'LAUNCH' ? 'Launching Space Shuttle...' :
-                     journeyPhase === 'APPROACH_BLACK_HOLE' ? 'Gravitational Slingshot Approach...' :
-                     journeyPhase === 'ENTER_EVENT_HORIZON' ? 'Crossing Event Horizon Singularity...' :
-                     journeyPhase === 'WORMHOLE' ? 'Wormhole Transit — Dimensional Warp...' :
-                     journeyPhase === 'SOLAR_SYSTEM' ? 'Entering Solar System...' :
-                     journeyPhase === 'SOLAR_ORBIT' ? 'Solar System Panoramic Orbital Flyby...' :
-                     journeyPhase === 'TARGET_EARTH' ? 'Targeting Earth...' :
-                     journeyPhase === 'APPROACH_EARTH' ? 'Approaching Earth Atmosphere...' :
-                     journeyPhase === 'RETURN' ? 'Returning to ORBIT...' : ''}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Content overlay — left-aligned, pointer-events only on inner text */}
-            <div
-              className={`relative z-10 p-4 sm:p-5 md:p-6 lg:p-7 flex flex-col justify-center min-h-[270px] sm:min-h-[295px] md:min-h-[340px] lg:min-h-[380px] pointer-events-none transition-opacity duration-500 ${isJourneyActive ? 'opacity-0' : 'opacity-100'}`}
+              className="relative z-10 p-4 sm:p-5 md:p-6 lg:p-7 flex flex-col justify-center min-h-[270px] sm:min-h-[295px] md:min-h-[310px]"
             >
-              <div className="max-w-md space-y-2.5 sm:space-y-3 pointer-events-auto">
+              <div className="max-w-md space-y-2.5 sm:space-y-3">
                 {/* 1. System Telemetry (Clock + Online) */}
                 <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-md bg-[#11161B]/90 border border-[#252B30] text-[10px] sm:text-[11px] font-mono shadow-sm backdrop-blur-md w-fit">
                   <Clock className="w-3 h-3 text-[#20C8E8]" />
@@ -460,7 +296,7 @@ export default function HomePage() {
                       {t.nav.habits}:
                     </span>
                     <span className="font-mono font-semibold text-[#E8E1D3] text-[11px] sm:text-xs truncate">
-                      {animatedCompleted}/{habits.length}
+                      {completedTodayCount}/{habits.length}
                     </span>
                   </div>
 
@@ -471,18 +307,18 @@ export default function HomePage() {
                       {t.nav.goals}:
                     </span>
                     <span className="font-mono font-semibold text-[#E8E1D3] text-[11px] sm:text-xs truncate">
-                      {animatedGoals} {t.common.active}
+                      {focusGoals.length} {t.common.active}
                     </span>
                   </div>
 
-                  {/* Keuangan */}
+                  {/* Keuangan — spans 2 columns on small screens, wraps naturally on larger */}
                   <div className="col-span-2 sm:col-span-1 flex items-center gap-1.5 h-7 px-2 sm:px-2.5 rounded-md bg-[#11161B]/90 border border-[#252B30] text-[11px] sm:text-xs backdrop-blur-md shadow-sm min-w-0">
                     <Wallet className="w-3 h-3 text-[#C5A56A] shrink-0" />
                     <span className="text-[9px] font-mono uppercase tracking-wider text-[#8A8580] truncate">
                       {t.nav.finance}:
                     </span>
                     <span className="font-mono font-semibold text-[#E8E1D3] text-[11px] sm:text-xs truncate">
-                      {formatCurrency(animatedBalance)}
+                      {formatCurrency(actualBalance)}
                     </span>
                   </div>
                 </div>
@@ -496,30 +332,29 @@ export default function HomePage() {
           2. SUMMARY CARDS ROW — Consistent 4-Card Dashboard System
           - Uniform height (126px mobile / 132px desktop) and layout: TOP -> MIDDLE -> BOTTOM
           - Distinct contextual micro-visualizations
-          - Animated numerical metrics (0 -> actual value)
           ═══════════════════════════════════════════════════════════════ */}
       <StaggerContainer staggerDelay={0.04} className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 md:gap-4">
         {/* Metric 1: HARI INI */}
         <StaggerItem>
-          <AnimatedCard interactive={true} className="p-3 sm:p-4 glass-card card-accent-cyan h-[126px] sm:h-[132px] flex flex-col justify-between">
+          <AnimatedCard interactive={true} className="p-3 sm:p-4 glass-card h-[126px] sm:h-[132px] flex flex-col justify-between">
             <div className="flex items-center justify-between text-[#8A8580]">
               <span className="text-[10px] font-mono uppercase tracking-wider">{t.home.today}</span>
               <Activity className="w-4 h-4 text-[#00A982] shrink-0" />
             </div>
             <div>
               <div className="text-xl sm:text-2xl font-bold font-mono text-[#E8E1D3] tracking-tight leading-none">
-                {animatedHabitRate}%
+                {habitCompletionRate}%
               </div>
             </div>
             <div>
               <div className="w-full h-1.5 rounded-full bg-[#0A0E12] overflow-hidden border border-[#1E2226]/60">
                 <div
                   className="h-full bg-[#00A982] rounded-full transition-all duration-700 ease-out"
-                  style={{ width: `${animatedHabitRate}%` }}
+                  style={{ width: `${habitCompletionRate}%` }}
                 />
               </div>
               <div className="text-[10px] text-[#6B6762] mt-1.5 flex justify-between font-mono">
-                <span>{animatedCompleted} selesai</span>
+                <span>{completedTodayCount} selesai</span>
                 <span>{pendingHabitCount} tersisa</span>
               </div>
             </div>
@@ -535,7 +370,7 @@ export default function HomePage() {
             </div>
             <div>
               <div className="text-xl sm:text-2xl font-bold font-mono text-[#E8E1D3] tracking-tight leading-none">
-                {animatedGoals}
+                {focusGoals.length}
               </div>
             </div>
             <div>
@@ -586,7 +421,7 @@ export default function HomePage() {
             </div>
             <div>
               <div className="text-base sm:text-lg md:text-xl font-bold font-mono text-[#E8E1D3] tracking-tight truncate leading-none">
-                {formatCurrency(animatedBalance)}
+                {formatCurrency(actualBalance)}
               </div>
             </div>
             <div>
