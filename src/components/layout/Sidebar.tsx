@@ -7,6 +7,7 @@ import {
   Compass,
   Target,
   Repeat,
+  Moon,
   BookOpen,
   Wallet,
   Settings,
@@ -39,24 +40,25 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
     },
     { label: t.nav.goals, href: "/goals", icon: Target },
     { label: t.nav.habits, href: "/habits", icon: Repeat },
+    { label: t.nav.ibadah, href: "/ibadah", icon: Moon },
     { label: t.nav.learning, href: "/learning", icon: BookOpen },
     { label: t.nav.finance, href: "/finance", icon: Wallet },
     { label: t.nav.vault, href: "/vault", icon: Lock },
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-60 border-r border-[#1E2226] bg-[#080B0F] min-h-screen px-3.5 py-4 select-none shrink-0 relative z-20">
+    <aside className="hidden md:flex flex-col w-60 border-r border-[#D9DDD9] bg-[#F7F8F5] min-h-screen px-3.5 py-4 select-none shrink-0 relative z-20">
       {/* ── 1. BRAND + PRIMARY ACTION ── */}
-      <div className="px-2 mb-3.5 pt-1">
+      <div className="px-2 mb-4 pt-1">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-7 h-7 rounded-lg bg-[#11161B] border border-[#252B30] flex items-center justify-center text-[#20C8E8] group-hover:border-[#20C8E8]/40 group-hover:shadow-[0_0_12px_rgba(32,200,232,0.18)] transition-all duration-150 shrink-0">
-            <span className="text-xs font-bold font-mono tracking-wider">O</span>
+          <div className="w-8 h-8 rounded-xl bg-white border border-[#D9DDD9] flex items-center justify-center text-[#08BFD7] shadow-sm group-hover:border-[#08BFD7]/40 group-hover:shadow-[0_2px_8px_rgba(8,191,215,0.18)] transition-all duration-150 shrink-0">
+            <span className="text-xs font-semibold font-mono">O</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-sm tracking-[0.14em] text-[#E8E1D3] leading-none group-hover:text-white transition-colors">
+            <span className="font-semibold text-sm tracking-[0.08em] text-[#20252A] leading-none group-hover:text-[#08BFD7] transition-colors">
               ORBIT
             </span>
-            <span className="text-[9px] font-mono tracking-[0.2em] text-[#8A8580] uppercase mt-1 leading-none">
+            <span className="text-[9.5px] font-normal tracking-[0.18em] text-[#8A9197] uppercase mt-1 leading-none">
               DIGITAL OS
             </span>
           </div>
@@ -64,16 +66,14 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
       </div>
 
       {/* Primary Action Button ("Tambah Catatan") */}
-      <div className="mb-3.5 px-0.5">
-        <Button
+      <div className="mb-4 px-0.5">
+        <button
           onClick={onOpenQuickAdd}
-          variant="primary"
-          size="md"
-          className="w-full"
+          className="w-full flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[#08BFD7] hover:bg-[#07AEC4] text-white font-medium text-[13px] shadow-[0_2px_8px_rgba(8,191,215,0.22)] hover:shadow-[0_4px_14px_rgba(8,191,215,0.32)] active:scale-[0.98] transition-all duration-150 cursor-pointer"
         >
-          <Plus className="w-3.5 h-3.5 stroke-[2.5] text-[#20C8E8]" />
+          <Plus className="w-4 h-4 stroke-[2.5] text-white" />
           <span>{t.nav.addRecord}</span>
-        </Button>
+        </button>
       </div>
 
       {/* ── 2. MAIN NAVIGATION (Controlled vertical flow without arbitrary expansion) ── */}
@@ -88,15 +88,15 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
             <div key={item.label} className="space-y-0.5">
               <Link
                 href={item.href}
-                className={`flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-xs font-medium transition-all duration-150 relative ${
+                className={`flex items-center gap-2.5 h-9 px-2.5 rounded-xl text-[13px] transition-all duration-150 relative ${
                   isActive
-                    ? "bg-[#0F171E] text-[#E8E1D3] border-l-2 border-[#20C8E8] pl-2 shadow-[0_0_12px_rgba(32,200,232,0.06)]"
-                    : "text-[#8A8580] hover:text-[#C5C0B8] hover:bg-[#151A1F]"
+                    ? "bg-[rgba(8,191,215,0.08)] text-[#20252A] font-medium border-l-[3px] border-[#08BFD7] pl-2 shadow-sm"
+                    : "text-[#687078] font-normal hover:text-[#20252A] hover:bg-black/[0.03]"
                 }`}
               >
                 <Icon
                   className={`w-4 h-4 shrink-0 transition-colors duration-150 ${
-                    isActive ? "text-[#20C8E8]" : "text-[#6B6762]"
+                    isActive ? "text-[#08BFD7]" : "text-[#8A9197]"
                   }`}
                 />
                 <span className="truncate">{item.label}</span>
@@ -104,17 +104,17 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
 
               {/* Sub-items for Journey */}
               {item.subItems && isActive && (
-                <div className="ml-5 pl-2.5 border-l border-[#1E2226] space-y-0.5 my-1">
+                <div className="ml-5 pl-2.5 border-l border-[#D9DDD9] space-y-0.5 my-1">
                   {item.subItems.map((sub) => {
                     const isSubActive = pathname === sub.href;
                     return (
                       <Link
                         key={sub.label}
                         href={sub.href}
-                        className={`block h-7 leading-7 px-2 rounded-md text-[11px] font-mono transition-colors duration-150 truncate ${
+                        className={`block h-7 leading-7 px-2 rounded-lg text-[11px] font-mono transition-colors duration-150 truncate ${
                           isSubActive
-                            ? "text-[#20C8E8] font-medium bg-[#20C8E8]/08"
-                            : "text-[#8A8580] hover:text-[#E8E1D3]"
+                            ? "text-[#08BFD7] font-medium bg-[rgba(8,191,215,0.08)]"
+                            : "text-[#687078] font-normal hover:text-[#20252A]"
                         }`}
                       >
                         {sub.label}
@@ -131,31 +131,32 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
       {/* ── 3. SECONDARY NAVIGATION + SYSTEM STATUS ──
           Controlled Spacing:
           Brankas Privasi -> 24px (mt-6) with subtle separator -> Pengaturan -> 16px (space-y-4) -> System Status */}
-      <div className="pt-3.5 mt-6 border-t border-[#1E2226] space-y-4">
+      <div className="pt-3.5 mt-6 border-t border-[#D9DDD9] space-y-3">
         {/* Settings Navigation Item */}
         <Link
           href="/settings"
-          className={`flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+          className={`flex items-center gap-2.5 h-9 px-2.5 rounded-xl text-[13px] transition-all duration-150 ${
             pathname.startsWith("/settings")
-              ? "bg-[#0F171E] text-[#E8E1D3] border-l-2 border-[#20C8E8] pl-2"
-              : "text-[#8A8580] hover:text-[#C5C0B8] hover:bg-[#151A1F]"
+              ? "bg-[rgba(8,191,215,0.08)] text-[#20252A] font-medium border-l-[3px] border-[#08BFD7] pl-2 shadow-sm"
+              : "text-[#687078] font-normal hover:text-[#20252A] hover:bg-black/[0.03]"
           }`}
         >
           <Settings
             className={`w-4 h-4 shrink-0 transition-colors duration-150 ${
-              pathname.startsWith("/settings") ? "text-[#20C8E8]" : "text-[#6B6762]"
+              pathname.startsWith("/settings") ? "text-[#08BFD7]" : "text-[#8A9197]"
             }`}
           />
           <span>{t.nav.settings}</span>
         </Link>
 
         {/* System Status Telemetry Indicator */}
-        <div className="px-2.5 py-2 rounded-lg bg-[#0C1014] border border-[#1E2226] flex items-center justify-between text-[10px] font-mono select-none">
+        <div className="px-3 py-2 rounded-xl bg-white border border-[#D9DDD9] shadow-sm flex items-center justify-between text-[10px] font-mono select-none">
           <div className="flex items-center gap-1.5">
-            <span className="text-[#8A8580]">SYSTEM</span>
-            <span className="text-[#00A982] font-semibold">ONLINE</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
+            <span className="text-[#687078]">SYSTEM</span>
+            <span className="text-[#059669] font-medium tracking-[0.05em]">ONLINE</span>
           </div>
-          <div className="text-[#52575C]">SYNC OK</div>
+          <div className="text-[#8A9197] font-normal">SYNC OK</div>
         </div>
       </div>
     </aside>

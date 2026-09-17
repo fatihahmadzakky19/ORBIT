@@ -1,82 +1,64 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
   /* ══════════════════════════════════════════════════════
-     ORBIT — Black Hole / Deep Space Observatory System
-     Colors naturally extracted from the Black Hole & Accretion Disk
+     ORBIT — Light Cosmic / Space Observatory Design System
+     Palette: Warm Off-White, White Surfaces, Graphite Typography,
+     Cyan Tech Accents & Warm Gold Accretion Light
      ══════════════════════════════════════════════════════ */
 
   /* Primary Backgrounds */
-  --canvas: #070A0D;
-  --canvas-dark: #0A0E12;
-  --surface: #11161B;
-  --surface-hover: #151A1F;
-  --surface-elevated: #1A2025;
-  --surface-highest: #20252A;
+  --canvas: #F4F5F2;
+  --canvas-dark: #ECEEEA;
+  --surface: #FFFFFF;
+  --surface-hover: #F8F9F7;
+  --surface-elevated: #FFFFFF;
+  --surface-highest: #F0F2EE;
 
-  /* Sidebar — slightly darker than canvas */
-  --sidebar: #080B0F;
+  /* Sidebar — warm, airy off-white */
+  --sidebar: #F7F8F5;
 
-  /* Borders — subtle warm & soft grays */
-  --border: #2A2D2D;
-  --border-subtle: #1E2226;
-  --border-card: #252B30;
-  --border-card-hover: #363737;
+  /* Borders — subtle structural hairlines */
+  --border: #D9DDD9;
+  --border-subtle: #E6EAE5;
+  --border-card: #D9DDD9;
+  --border-card-hover: #C5CAC4;
 
-  /* Black Hole / Accretion Disk Accents */
-  --accent-ivory: #E8E1D3;
-  --accent-dust: #A7A29A;
-  --accent-bronze: #9B8060;
-  --accent-gold: #C5A56A;
-  --accent-warm: #C5A56A;
+  /* Black Hole Accretion Disk Warm Cosmic Accents */
+  --accent-ivory: #F5F1E9;
+  --accent-dust: #8A9197;
+  --accent-bronze: #A88F68;
+  --accent-gold: #C8A96B;
+  --accent-warm: #C8A96B;
   --accent-amber: #D6A84F;
 
-  /* Tech / Status Accent — cyan only as a SMALL secondary accent */
-  --primary: #20C8E8;
-  --primary-dark: #087F96;
-  --primary-hover: #1AB0CC;
-  --primary-muted: rgba(32, 200, 232, 0.08);
+  /* Technology & Interaction Accent — Cyan / Turquoise */
+  --primary: #08BFD7;
+  --primary-dark: #069DB1;
+  --primary-hover: #07AEC4;
+  --primary-muted: rgba(8, 191, 215, 0.08);
 
-  /* Text hierarchy */
-  --text-primary: #E8E1D3;
-  --text-secondary: #8A8580;
-  --text-muted: #52575C;
+  /* Typography Hierarchy — Dark Graphite */
+  --text-primary: #20252A;
+  --text-secondary: #687078;
+  --text-muted: #8A9197;
 
-  /* Semantic */
-  --semantic-success: #00A982;
-  --semantic-success-muted: rgba(0, 169, 130, 0.12);
-  --semantic-warning: #D6A84F;
-  --semantic-warning-muted: rgba(214, 168, 79, 0.12);
-  --semantic-danger: #C85C5C;
-  --semantic-danger-muted: rgba(200, 92, 92, 0.12);
+  /* Semantic Telemetry */
+  --semantic-success: #059669;
+  --semantic-success-muted: rgba(5, 150, 105, 0.1);
+  --semantic-warning: #D97706;
+  --semantic-warning-muted: rgba(217, 119, 6, 0.1);
+  --semantic-danger: #DC2626;
+  --semantic-danger-muted: rgba(220, 38, 38, 0.1);
 }
 
-/* Ensure native form controls, date/time pickers and their calendar icons are crisp and bright in dark mode */
+/* Ensure native form controls and date/time pickers look crisp in light mode */
 input[type="date"],
 input[type="time"],
 input[type="datetime-local"] {
-  color-scheme: dark;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator,
-input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  filter: brightness(0) invert(0.85) drop-shadow(0 0 1px rgba(232, 225, 211, 0.4));
-  opacity: 0.85;
-  border-radius: 4px;
-  padding: 2px;
-  transition: opacity 0.2s ease, filter 0.2s ease, transform 0.15s ease;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator:hover,
-input[type="time"]::-webkit-calendar-picker-indicator:hover,
-input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-  filter: brightness(0) invert(1) drop-shadow(0 0 3px rgba(32, 200, 232, 0.7));
-  transform: scale(1.1);
+  color-scheme: light;
 }
 
 body {
@@ -84,6 +66,11 @@ body {
   color: var(--text-primary);
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
+  line-height: 1.5;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* Technical / Data Monospace font helper */
@@ -147,63 +134,54 @@ body {
 .bg-danger-muted { background-color: var(--semantic-danger-muted); }
 
 /* ══════════════════════════════════════════
-   Futuristic Astronomical Observatory Cards
-   Background: #11161B, Border: #252B30, Radius: 16px
-   Subtle internal gradient: charcoal to warmer charcoal
-   Lift 1-2px on hover
+   Space Observatory Cards & Panels
+   Background: #FFFFFF / #FAFAF8, Border: #D9DDD9, Radius: 14-16px
+   Soft ambient shadows with subtle elevation
    ══════════════════════════════════════════ */
 .glass-panel {
-  background: rgba(17, 22, 27, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #FFFFFF;
   border: 1px solid var(--border-card);
-  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
 .glass-card {
   position: relative;
-  background: linear-gradient(145deg, #14191F 0%, #11151A 100%);
-  border: 1px solid #252B30;
+  background: #FFFFFF;
+  border: 1px solid var(--border-card);
   border-radius: 14px;
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
   transition: transform 0.18s cubic-bezier(0.32, 0.72, 0, 1),
               box-shadow 0.18s cubic-bezier(0.32, 0.72, 0, 1),
-              border-color 0.18s cubic-bezier(0.32, 0.72, 0, 1),
-              background 0.18s ease;
+              border-color 0.18s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .glass-card:hover {
-  background: linear-gradient(145deg, #161C22 0%, #12171D 100%);
-  border-color: #363737;
-  box-shadow:
-    0 6px 20px -3px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(197, 165, 106, 0.04);
+  border-color: var(--border-card-hover);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.07), 0 0 0 1px rgba(8, 191, 215, 0.12);
   transform: translateY(-1.5px);
 }
 
-/* Important card subtle accents */
+/* Subtle card accents */
 .card-accent-gold {
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45), 0 0 16px -6px rgba(197, 165, 106, 0.07);
+  border-left: 3px solid var(--accent-gold);
 }
 .card-accent-gold:hover {
-  box-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.55), 0 0 20px -4px rgba(197, 165, 106, 0.12);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.08), 0 0 12px -4px rgba(200, 169, 107, 0.25);
 }
 
 .card-accent-cyan {
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.45), 0 0 16px -6px rgba(32, 200, 232, 0.07);
+  border-left: 3px solid var(--primary);
 }
 .card-accent-cyan:hover {
-  box-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.55), 0 0 20px -4px rgba(32, 200, 232, 0.12);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.08), 0 0 12px -4px rgba(8, 191, 215, 0.25);
 }
 
-/* Hero container — standardized 18px radius */
+/* Hero container — Observatory Command Bay framing the Black Hole */
 .hero-frame {
   border-radius: 18px;
   background: #0A0E12;
-  border: 1px solid #2A2D2D;
-  box-shadow:
-    0 12px 40px -12px rgba(0, 0, 0, 0.75),
-    0 0 35px -15px rgba(197, 165, 106, 0.06);
+  border: 1px solid #D9DDD9;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
   position: relative;
   overflow: hidden;
 }
@@ -214,8 +192,8 @@ body {
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
   border-radius: 9999px;
-  background: rgba(32, 200, 232, 0.05);
-  border: 1px solid rgba(32, 200, 232, 0.12);
+  background: rgba(8, 191, 215, 0.08);
+  border: 1px solid rgba(8, 191, 215, 0.2);
   font-family: var(--font-geist-mono), monospace;
   font-size: 0.6875rem;
   letter-spacing: 0.05em;
@@ -224,15 +202,15 @@ body {
 }
 
 /* ══════════════════════════════════════════
-   Ambient Atmospheric Glows
-   Accretion-disk inspired warm amber & subtle deep cyan
+   Ambient Atmospheric Light Glows
+   Accretion-disk inspired warm gold & subtle cyan
    ══════════════════════════════════════════ */
 .ambient-glow-warm {
   position: absolute;
   width: 560px;
   height: 560px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(197, 165, 106, 0.035) 0%, rgba(155, 128, 96, 0.01) 45%, transparent 70%);
+  background: radial-gradient(circle, rgba(200, 169, 107, 0.08) 0%, rgba(200, 169, 107, 0.015) 45%, transparent 70%);
   pointer-events: none;
   filter: blur(60px);
 }
@@ -242,18 +220,17 @@ body {
   width: 420px;
   height: 420px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(32, 200, 232, 0.018) 0%, rgba(8, 127, 150, 0.005) 50%, transparent 70%);
+  background: radial-gradient(circle, rgba(8, 191, 215, 0.06) 0%, rgba(8, 191, 215, 0.01) 50%, transparent 70%);
   pointer-events: none;
   filter: blur(50px);
 }
 
-/* Legacy aliases for backward compatibility */
 .ambient-glow-indigo {
   position: absolute;
   width: 560px;
   height: 560px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(197, 165, 106, 0.035) 0%, rgba(155, 128, 96, 0.01) 45%, transparent 70%);
+  background: radial-gradient(circle, rgba(200, 169, 107, 0.08) 0%, rgba(200, 169, 107, 0.015) 45%, transparent 70%);
   pointer-events: none;
   filter: blur(60px);
 }
@@ -266,6 +243,83 @@ body {
   background: radial-gradient(circle, rgba(32, 200, 232, 0.018) 0%, rgba(8, 127, 150, 0.005) 50%, transparent 70%);
   pointer-events: none;
   filter: blur(50px);
+}
+
+/* ══════════════════════════════════════════
+   Hero Subtle Space Observatory Animations
+   Quiet, calm, single-pass sweep, warm ambient
+   ══════════════════════════════════════════ */
+@keyframes heroAmbientDrift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.05;
+  }
+  50% {
+    transform: translate3d(8px, -4px, 0) scale(1.05);
+    opacity: 0.09;
+  }
+  100% {
+    transform: translate3d(-4px, 6px, 0) scale(0.98);
+    opacity: 0.06;
+  }
+}
+
+@keyframes heroLightSweep {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.28;
+  }
+  80% {
+    opacity: 0.28;
+  }
+  100% {
+    transform: translateX(250%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes gentleTelemetryPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.22);
+    opacity: 1;
+    box-shadow: 0 0 5px 1px rgba(5, 150, 105, 0.45);
+  }
+}
+
+.animate-hero-ambient {
+  animation: heroAmbientDrift 16s ease-in-out infinite alternate;
+}
+
+.animate-hero-sweep {
+  animation: heroLightSweep 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.55s 1 forwards;
+}
+
+.animate-telemetry-pulse {
+  animation: gentleTelemetryPulse 3.5s ease-in-out infinite;
+}
+
+@keyframes typingCursorBlink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+.animate-typing-cursor {
+  animation: typingCursorBlink 0.75s ease-in-out infinite;
+}
+
+.cursor-warm-glow {
+  box-shadow: 0 0 6px 1px rgba(245, 241, 233, 0.45);
 }
 
 /* Accessible Reduced Motion */

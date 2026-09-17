@@ -10,6 +10,7 @@ export interface Translations {
     reflections: string;
     goals: string;
     habits: string;
+    ibadah: string;
     learning: string;
     finance: string;
     vault: string;
@@ -313,6 +314,7 @@ export const translations: Record<Locale, Translations> = {
       reflections: "Reflections",
       goals: "Goals",
       habits: "Habits",
+      ibadah: "Ibadah",
       learning: "Learning",
       finance: "Finance",
       vault: "Private Vault",
@@ -615,6 +617,7 @@ export const translations: Record<Locale, Translations> = {
       reflections: "Reflexionen",
       goals: "Ziele",
       habits: "Gewohnheiten",
+      ibadah: "Ibadah",
       learning: "Lernen",
       finance: "Finanzen",
       vault: "Privater Tresor",
@@ -917,6 +920,7 @@ export const translations: Record<Locale, Translations> = {
       reflections: "Refleksi",
       goals: "Target",
       habits: "Kebiasaan",
+      ibadah: "Ibadah",
       learning: "Pembelajaran",
       finance: "Keuangan",
       vault: "Brankas Privasi",

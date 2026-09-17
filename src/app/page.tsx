@@ -23,6 +23,7 @@ import { formatCurrency } from "@/lib/format";
 import { FadeIn } from "@/components/motion/FadeIn";
 import { AnimatedCard } from "@/components/motion/AnimatedCard";
 import { StaggerContainer, StaggerItem } from "@/components/motion/StaggerContainer";
+import { motion, useReducedMotion } from "framer-motion";
 import { useProfile } from "@/lib/profile";
 import { getVaultStats } from "@/lib/vault";
 import { getStoredFinanceBalances, ORBIT_DATA_CHANGED_EVENT, notifyDataChanged } from "@/lib/storage";
@@ -80,6 +81,7 @@ interface LearningItem {
 export default function HomePage() {
   const { t, locale } = useLanguage();
   const { profile } = useProfile();
+  const shouldReduceMotion = useReducedMotion();
 
   // Real-time ticking clock for digital OS feel
   const [currentTime, setCurrentTime] = useState<string>("");
@@ -215,31 +217,154 @@ export default function HomePage() {
   // Active Focus item (first focus goal)
   const primaryFocus = focusGoals.length > 0 ? focusGoals[0] : null;
 
+  // ═══════════════════════════════════════════════════════════════
+  // HERO TYPING & SEQUENTIAL REVEAL CONTROLLER
+  // - Step 1: "Selamat malam," types char-by-char with gentle blinking cursor
+  // - Step 2: 200ms delay -> "Fatih Ahmad Zakky" types with warm reflection cursor
+  // - Step 3: 200ms delay -> Date reveals with subtle fade-in
+  // - Step 4: 150ms delay -> Time badge + ONLINE pulse reveals
+  // - Step 5: Mini status indicators reveal, completing OS boot feel
+  // - Respects prefers-reduced-motion (instant display)
+  // - Runs once on mount, no endless looping or text erasure
+  // ═══════════════════════════════════════════════════════════════
+  const greetingFull = `${greetingText},`;
+  const nameFull = profile.name || "Fatih Ahmad Zakky";
+
+  const [displayedGreeting, setDisplayedGreeting] = useState("");
+  const [displayedName, setDisplayedName] = useState("");
+  const [isTypingGreeting, setIsTypingGreeting] = useState(false);
+  const [isTypingName, setIsTypingName] = useState(false);
+  const [showGreetingCursor, setShowGreetingCursor] = useState(false);
+  const [showNameCursor, setShowNameCursor] = useState(false);
+  const [showDate, setShowDate] = useState(false);
+  const [showTelemetry, setShowTelemetry] = useState(false);
+  const [showMetrics, setShowMetrics] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    // If user prefers reduced motion, reveal everything immediately
+    if (shouldReduceMotion) {
+      setDisplayedGreeting(greetingFull);
+      setDisplayedName(nameFull);
+      setShowDate(true);
+      setShowTelemetry(true);
+      setShowMetrics(true);
+      setHasAnimated(true);
+      return;
+    }
+
+    // If animation has already completed once, keep full text displayed
+    if (hasAnimated) {
+      setDisplayedGreeting(greetingFull);
+      setDisplayedName(nameFull);
+      setShowDate(true);
+      setShowTelemetry(true);
+      setShowMetrics(true);
+      return;
+    }
+
+    let isMounted = true;
+    const isMobile = typeof window !== "undefined" && window.innerWidth <= 640;
+    const greetingSpeed = isMobile ? 46 : 58; // 50–70ms per character
+    const nameSpeed = isMobile ? 54 : 68; // 60–80ms per character
+
+    // 1. Begin typing greeting
+    setIsTypingGreeting(true);
+    setShowGreetingCursor(true);
+
+    let gIndex = 0;
+    const gTimer = setInterval(() => {
+      if (!isMounted) return;
+      gIndex++;
+      setDisplayedGreeting(greetingFull.slice(0, gIndex));
+
+      if (gIndex >= greetingFull.length) {
+        clearInterval(gTimer);
+        setIsTypingGreeting(false);
+
+        // Pause 200ms after greeting completes, then start name
+        setTimeout(() => {
+          if (!isMounted) return;
+          setShowGreetingCursor(false);
+
+          // 2. Begin typing name
+          setIsTypingName(true);
+          setShowNameCursor(true);
+
+          let nIndex = 0;
+          const nTimer = setInterval(() => {
+            if (!isMounted) return;
+            nIndex++;
+            setDisplayedName(nameFull.slice(0, nIndex));
+
+            if (nIndex >= nameFull.length) {
+              clearInterval(nTimer);
+              setIsTypingName(false);
+
+              // Pause 200ms after name completes, then reveal date
+              setTimeout(() => {
+                if (!isMounted) return;
+                setShowNameCursor(false);
+                setShowDate(true);
+
+                // Pause 150ms after date, then reveal time badge + ONLINE
+                setTimeout(() => {
+                  if (!isMounted) return;
+                  setShowTelemetry(true);
+
+                  // Reveal mini indicators right after
+                  setTimeout(() => {
+                    if (!isMounted) return;
+                    setShowMetrics(true);
+                    setHasAnimated(true);
+                  }, 120);
+                }, 150);
+              }, 200);
+            }
+          }, nameSpeed);
+        }, 200);
+      }
+    }, greetingSpeed);
+
+    return () => {
+      isMounted = false;
+      clearInterval(gTimer);
+    };
+  }, [greetingFull, nameFull, shouldReduceMotion, hasAnimated]);
+
+  // Keep displayed text in sync if language/profile changes after animation
+  useEffect(() => {
+    if (hasAnimated) {
+      setDisplayedGreeting(greetingFull);
+      setDisplayedName(nameFull);
+    }
+  }, [greetingFull, nameFull, hasAnimated]);
+
   return (
-    <div className="space-y-4 sm:space-y-5 md:space-y-6 pb-4 sm:pb-8">
+    <div className="space-y-6 sm:space-y-7 md:space-y-8 pb-8">
       {/* ═══════════════════════════════════════════════════════════════
-          1. BLACK HOLE HERO — Proportional, Cinematic & Balanced
-          - Reduced height (310px desktop) allows hero + summary cards +
-            actionable content to fit comfortably in viewport
-          - 3D Black hole shines prominently on the RIGHT
-          - LEFT: Darker area for identity & telemetry
+          1. BLACK HOLE HERO — Command Center & Observatory Viewport
+          - The 3D Black Hole visual remains 100% UNTOUCHED on the right
+          - The hero frame acts as an astronomical command center bay
+          - Dominant user name: 36-44px desktop, 28-32px mobile
+          - Mini status indicators: KEBIASAAN, TARGET, KEUANGAN
           ═══════════════════════════════════════════════════════════════ */}
       <FadeIn direction="up" duration={0.35}>
-        <div className="hero-frame">
-          <div className="relative overflow-hidden min-h-[270px] sm:min-h-[295px] md:min-h-[310px]">
-            {/* 3D Background — full-bleed interactive canvas */}
+        <div className="hero-frame border border-[#D9DDD9] shadow-[0_4px_24px_rgba(0,0,0,0.06)] rounded-[20px] overflow-hidden bg-[#0A0E12]">
+          <div className="relative overflow-hidden min-h-[290px] sm:min-h-[320px] md:min-h-[340px]">
+            {/* 3D Interactive Black Hole Canvas (Untouched) */}
             <div className="absolute inset-0 z-0 pointer-events-auto">
               <DashboardScene />
             </div>
 
-            {/* Seamless cinematic overlay:
-                left: deep charcoal overlay keeping text 100% crisp and readable
-                right: transparent so the glowing accretion disk shines unobstructed */}
+            {/* Seamless cinematic gradient overlay:
+                Deep space overlay on the left keeping text 100% crisp and readable,
+                transparent on the right so the glowing accretion disk shines unobstructed */}
             <div
               className="absolute inset-0 z-[1] pointer-events-none"
               style={{
                 background:
-                  "linear-gradient(to right, rgba(7,10,13,0.95) 0%, rgba(10,14,18,0.88) 42%, rgba(17,22,27,0.45) 70%, rgba(17,22,27,0.05) 85%, transparent 100%)",
+                  "linear-gradient(to right, rgba(8,12,16,0.96) 0%, rgba(10,14,18,0.90) 42%, rgba(13,18,24,0.50) 70%, rgba(13,18,24,0.08) 85%, transparent 100%)",
               }}
             />
 
@@ -247,81 +372,160 @@ export default function HomePage() {
             <div
               className="absolute inset-0 z-[1] pointer-events-none"
               style={{
-                background: "linear-gradient(to top, rgba(7,10,13,0.8) 0%, transparent 28%)",
+                background: "linear-gradient(to top, rgba(8,12,16,0.75) 0%, transparent 30%)",
               }}
             />
 
-            {/* Content overlay — left-aligned, tight vertical rhythm */}
+            {/* Subtle Black Hole Ambient Warm Reflection onto Text Area */}
             <div
-              className="relative z-10 p-4 sm:p-5 md:p-6 lg:p-7 flex flex-col justify-center min-h-[270px] sm:min-h-[295px] md:min-h-[310px]"
+              className="absolute inset-y-0 left-0 w-full max-w-xl pointer-events-none z-[2] overflow-hidden"
+              aria-hidden="true"
             >
-              <div className="max-w-md space-y-2.5 sm:space-y-3">
-                {/* 1. System Telemetry (Clock + Online) */}
-                <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-md bg-[#11161B]/90 border border-[#252B30] text-[10px] sm:text-[11px] font-mono shadow-sm backdrop-blur-md w-fit">
-                  <Clock className="w-3 h-3 text-[#20C8E8]" />
-                  <span className="text-[#A7A29A]">{currentTime || "00:00:00"}</span>
-                  <span className="w-px h-2.5 bg-[#252B30]" />
-                  <div className="flex items-center gap-1 text-[10px] text-[#00A982]">
-                    <span className="font-semibold tracking-wider">ONLINE</span>
+              <div
+                className={`absolute -top-12 -bottom-12 right-2 sm:right-6 w-72 sm:w-96 rounded-full blur-3xl pointer-events-none ${
+                  shouldReduceMotion ? "opacity-[0.05]" : "animate-hero-ambient"
+                }`}
+                style={{
+                  background:
+                    "radial-gradient(ellipse at center, rgba(200, 169, 107, 0.38) 0%, rgba(245, 241, 233, 0.20) 40%, transparent 75%)",
+                }}
+              />
+            </div>
+
+            {/* Content overlay — left-aligned, spacious & strong hierarchy */}
+            <div className="relative z-10 p-5 sm:p-7 md:p-8 lg:p-9 flex flex-col justify-center min-h-[290px] sm:min-h-[320px] md:min-h-[340px]">
+              <div className="max-w-lg space-y-3 sm:space-y-4">
+                {/* 1. Telemetry Indicator (Time + ONLINE badge):
+                    Reserved in layout so no layout shift occurs, fades in after date */}
+                <div className="min-h-[28px] flex items-center">
+                  <motion.div
+                    initial={false}
+                    animate={{
+                      opacity: showTelemetry ? 1 : 0,
+                      y: showTelemetry ? 0 : 5,
+                    }}
+                    transition={{
+                      duration: shouldReduceMotion ? 0.05 : 0.45,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    className={`inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[11px] font-mono shadow-sm backdrop-blur-md w-fit ${
+                      showTelemetry ? "pointer-events-auto" : "pointer-events-none"
+                    }`}
+                  >
+                    <Clock className="w-3.5 h-3.5 text-[#08BFD7]" />
+                    <span className="text-[#ECEEEA]">{currentTime || "00:00:00"}</span>
+                    <span className="w-px h-3 bg-white/20" />
+                    <div className="flex items-center gap-1.5 text-[10px] text-[#059669]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-telemetry-pulse" />
+                      <span className="font-medium tracking-[0.05em]">ONLINE</span>
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* 2 & 3. Greeting, Refined User Name, & Date */}
+                <div>
+                  {/* Greeting: typed char-by-char with gentle blinking cursor */}
+                  <p className="text-sm sm:text-[15px] text-[#A7A29A] font-normal leading-normal mb-1 min-h-[22px] flex items-center">
+                    <span>{displayedGreeting}</span>
+                    {showGreetingCursor && (
+                      <span
+                        className={`inline-block w-[1.5px] h-[13px] bg-[#A7A29A] ml-0.5 align-middle transition-opacity duration-200 ${
+                          isTypingGreeting ? "animate-typing-cursor opacity-100" : "opacity-0"
+                        }`}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </p>
+
+                  {/* Name: typed char-by-char with subtle warm-white reflection cursor */}
+                  <div className="min-h-[34px] sm:min-h-[44px] flex items-center">
+                    <h1 className="relative inline-block text-[26px] sm:text-3xl md:text-4xl lg:text-[40px] font-semibold text-white tracking-[-0.01em] leading-[1.15] cursor-default select-none transition-[filter,opacity] duration-200 hover:brightness-110 overflow-hidden">
+                      <span>{displayedName}</span>
+                      {showNameCursor && (
+                        <span
+                          className={`inline-block w-[2px] h-[22px] sm:h-[30px] bg-[#F5F1E9] cursor-warm-glow ml-1 align-middle transition-opacity duration-200 ${
+                            isTypingName ? "animate-typing-cursor opacity-100" : "opacity-0"
+                          }`}
+                          aria-hidden="true"
+                        />
+                      )}
+                      {/* Single soft light sheen sweep across the name once when typing completes */}
+                      {!isTypingName && displayedName.length > 0 && !shouldReduceMotion && (
+                        <span
+                          className="pointer-events-none absolute inset-0 -top-1 -bottom-1 w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent blur-[2px] animate-hero-sweep"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </h1>
+                  </div>
+
+                  {/* Date: appears after name finishes (fade-in + slight reveal) */}
+                  <div className="min-h-[20px] mt-1 flex items-center">
+                    <motion.p
+                      initial={false}
+                      animate={{
+                        opacity: showDate ? 1 : 0,
+                        y: showDate ? 0 : 4,
+                      }}
+                      transition={{
+                        duration: shouldReduceMotion ? 0.05 : 0.45,
+                        ease: [0.16, 1, 0.3, 1],
+                      }}
+                      className="text-[13px] text-[#8A9197] font-normal"
+                    >
+                      <span suppressHydrationWarning>{todayFormatted}</span>
+                    </motion.p>
                   </div>
                 </div>
 
-                {/* 2 & 3. Secondary Greeting & Dominant User Name */}
-                <div>
-                  <p className="text-[11px] sm:text-xs text-[#8A8580] font-medium tracking-wide mb-0.5">
-                    {greetingText},
-                  </p>
-                  <h1
-                    className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight"
-                    style={{
-                      background: "linear-gradient(135deg, #F5F1E9 0%, #E8E1D3 60%, #C5A56A 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    {profile.name || "Fatih Ahmad Zakky"}
-                  </h1>
-                  <p className="text-[10px] sm:text-[11px] text-[#6B6762] font-mono mt-0.5">
-                    <span suppressHydrationWarning>{todayFormatted}</span>
-                  </p>
-                </div>
-
-                {/* 4. Unified Hero Metric Chips (Responsive grid for mobile) */}
-                <div className="pt-0.5 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-2">
+                {/* 4. Mini Status Indicators: appears after badge */}
+                <motion.div
+                  initial={false}
+                  animate={{
+                    opacity: showMetrics ? 1 : 0,
+                    y: showMetrics ? 0 : 6,
+                  }}
+                  transition={{
+                    duration: shouldReduceMotion ? 0.05 : 0.45,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className={`pt-2 grid grid-cols-3 gap-2 sm:gap-3 ${
+                    showMetrics ? "pointer-events-auto" : "pointer-events-none"
+                  }`}
+                >
                   {/* Kebiasaan */}
-                  <div className="flex items-center gap-1.5 h-7 px-2 sm:px-2.5 rounded-md bg-[#11161B]/90 border border-[#252B30] text-[11px] sm:text-xs backdrop-blur-md shadow-sm min-w-0">
-                    <Activity className="w-3 h-3 text-[#00A982] shrink-0" />
-                    <span className="text-[9px] font-mono uppercase tracking-wider text-[#8A8580] truncate">
-                      {t.nav.habits}:
-                    </span>
-                    <span className="font-mono font-semibold text-[#E8E1D3] text-[11px] sm:text-xs truncate">
-                      {completedTodayCount}/{habits.length}
-                    </span>
+                  <div className="px-3 py-2 sm:py-2.5 rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/10 shadow-sm text-left">
+                    <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.03em] text-[#A7A29A] font-normal">
+                      <span className="text-[#059669]">◌</span>
+                      <span className="truncate">{t.nav.habits}</span>
+                    </div>
+                    <div className="text-xs sm:text-[13px] font-mono font-medium text-white mt-0.5 truncate">
+                      {completedTodayCount} / {habits.length}
+                    </div>
                   </div>
 
                   {/* Target */}
-                  <div className="flex items-center gap-1.5 h-7 px-2 sm:px-2.5 rounded-md bg-[#11161B]/90 border border-[#252B30] text-[11px] sm:text-xs backdrop-blur-md shadow-sm min-w-0">
-                    <Target className="w-3 h-3 text-[#20C8E8] shrink-0" />
-                    <span className="text-[9px] font-mono uppercase tracking-wider text-[#8A8580] truncate">
-                      {t.nav.goals}:
-                    </span>
-                    <span className="font-mono font-semibold text-[#E8E1D3] text-[11px] sm:text-xs truncate">
+                  <div className="px-3 py-2 sm:py-2.5 rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/10 shadow-sm text-left">
+                    <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.03em] text-[#A7A29A] font-normal">
+                      <span className="text-[#08BFD7]">◎</span>
+                      <span className="truncate">{t.nav.goals}</span>
+                    </div>
+                    <div className="text-xs sm:text-[13px] font-mono font-medium text-white mt-0.5 truncate">
                       {focusGoals.length} {t.common.active}
-                    </span>
+                    </div>
                   </div>
 
-                  {/* Keuangan — spans 2 columns on small screens, wraps naturally on larger */}
-                  <div className="col-span-2 sm:col-span-1 flex items-center gap-1.5 h-7 px-2 sm:px-2.5 rounded-md bg-[#11161B]/90 border border-[#252B30] text-[11px] sm:text-xs backdrop-blur-md shadow-sm min-w-0">
-                    <Wallet className="w-3 h-3 text-[#C5A56A] shrink-0" />
-                    <span className="text-[9px] font-mono uppercase tracking-wider text-[#8A8580] truncate">
-                      {t.nav.finance}:
-                    </span>
-                    <span className="font-mono font-semibold text-[#E8E1D3] text-[11px] sm:text-xs truncate">
+                  {/* Keuangan */}
+                  <div className="px-3 py-2 sm:py-2.5 rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/10 shadow-sm text-left">
+                    <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.03em] text-[#A7A29A] font-normal">
+                      <span className="text-[#C8A96B]">◇</span>
+                      <span className="truncate">{t.nav.finance}</span>
+                    </div>
+                    <div className="text-xs sm:text-[13px] font-mono font-medium text-white mt-0.5 truncate">
                       {formatCurrency(actualBalance)}
-                    </span>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>
@@ -329,111 +533,113 @@ export default function HomePage() {
       </FadeIn>
 
       {/* ═══════════════════════════════════════════════════════════════
-          2. SUMMARY CARDS ROW — Consistent 4-Card Dashboard System
-          - Uniform height (126px mobile / 132px desktop) and layout: TOP -> MIDDLE -> BOTTOM
-          - Distinct contextual micro-visualizations
+          2. SUMMARY CARDS ROW — 4 Modules (Light Space Observatory)
+          - White surfaces, subtle #D9DDD9 border, soft ambient shadow
+          - 3-tier hierarchy: TOP (label+icon) -> MIDDLE (value) -> BOTTOM (action)
+          - Semantic accents: Hari Ini (cyan), Target (cyan/blue),
+            Pembelajaran (warm gold), Keuangan (warm gold)
           ═══════════════════════════════════════════════════════════════ */}
-      <StaggerContainer staggerDelay={0.04} className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 md:gap-4">
-        {/* Metric 1: HARI INI */}
+      <StaggerContainer staggerDelay={0.04} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+        {/* Module 1: HARI INI */}
         <StaggerItem>
-          <AnimatedCard interactive={true} className="p-3 sm:p-4 glass-card h-[126px] sm:h-[132px] flex flex-col justify-between">
-            <div className="flex items-center justify-between text-[#8A8580]">
-              <span className="text-[10px] font-mono uppercase tracking-wider">{t.home.today}</span>
-              <Activity className="w-4 h-4 text-[#00A982] shrink-0" />
+          <AnimatedCard interactive={true} className="p-4 sm:p-5 bg-white border border-[#D9DDD9] rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between h-[138px] sm:h-[148px]">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium tracking-[0.02em] text-[#687078] uppercase">{t.home.today}</span>
+              <Activity className="w-4 h-4 text-[#08BFD7] shrink-0" />
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-bold font-mono text-[#E8E1D3] tracking-tight leading-none">
+              <div className="text-[24px] sm:text-[28px] font-semibold text-[#20252A] tracking-[-0.01em] leading-none">
                 {habitCompletionRate}%
               </div>
             </div>
             <div>
-              <div className="w-full h-1.5 rounded-full bg-[#0A0E12] overflow-hidden border border-[#1E2226]/60">
+              <div className="w-full h-1.5 rounded-full bg-[#ECEEEA] overflow-hidden">
                 <div
-                  className="h-full bg-[#00A982] rounded-full transition-all duration-700 ease-out"
+                  className="h-full bg-[#08BFD7] rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${habitCompletionRate}%` }}
                 />
               </div>
-              <div className="text-[10px] text-[#6B6762] mt-1.5 flex justify-between font-mono">
+              <div className="text-[11px] sm:text-[12px] text-[#687078] font-normal mt-1.5 flex justify-between">
                 <span>{completedTodayCount} selesai</span>
-                <span>{pendingHabitCount} tersisa</span>
+                <span className="text-[#8A9197]">{pendingHabitCount} tersisa</span>
               </div>
             </div>
           </AnimatedCard>
         </StaggerItem>
 
-        {/* Metric 2: TARGET */}
+        {/* Module 2: TARGET */}
         <StaggerItem>
-          <AnimatedCard interactive={true} className="p-3 sm:p-4 glass-card h-[126px] sm:h-[132px] flex flex-col justify-between">
-            <div className="flex items-center justify-between text-[#8A8580]">
-              <span className="text-[10px] font-mono uppercase tracking-wider">{t.nav.goals}</span>
-              <Target className="w-4 h-4 text-[#20C8E8] shrink-0" />
+          <AnimatedCard interactive={true} className="p-4 sm:p-5 bg-white border border-[#D9DDD9] rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between h-[138px] sm:h-[148px]">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium tracking-[0.02em] text-[#687078] uppercase">{t.nav.goals}</span>
+              <Target className="w-4 h-4 text-[#08BFD7] shrink-0" />
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-bold font-mono text-[#E8E1D3] tracking-tight leading-none">
+              <div className="text-[24px] sm:text-[28px] font-semibold text-[#20252A] tracking-[-0.01em] leading-none">
                 {focusGoals.length}
               </div>
             </div>
             <div>
-              <div className="text-xs text-[#8A8580] truncate leading-none">
+              <div className="text-[13px] font-normal text-[#687078] truncate leading-none">
                 {focusGoals.length > 0 ? focusGoals[0].title : "Belum ada target aktif"}
               </div>
               <Link
                 href="/goals"
-                className="text-[10px] font-mono text-[#20C8E8] hover:underline mt-1.5 inline-flex items-center gap-1"
+                className="text-[11px] font-medium text-[#08BFD7] hover:underline mt-1.5 inline-flex items-center gap-1"
               >
                 <span>{t.home.allGoals}</span>
-                <ArrowRight className="w-2.5 h-2.5" />
+                <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
           </AnimatedCard>
         </StaggerItem>
 
-        {/* Metric 3: PEMBELAJARAN */}
+        {/* Module 3: PEMBELAJARAN */}
         <StaggerItem>
-          <AnimatedCard interactive={true} className="p-3 sm:p-4 glass-card h-[126px] sm:h-[132px] flex flex-col justify-between">
-            <div className="flex items-center justify-between text-[#8A8580]">
-              <span className="text-[10px] font-mono uppercase tracking-wider">{t.nav.learning}</span>
-              <BookOpen className="w-4 h-4 text-[#9B8060] shrink-0" />
+          <AnimatedCard interactive={true} className="p-4 sm:p-5 bg-white border border-[#D9DDD9] rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between h-[138px] sm:h-[148px]">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium tracking-[0.02em] text-[#687078] uppercase">{t.nav.learning}</span>
+              <BookOpen className="w-4 h-4 text-[#C8A96B] shrink-0" />
             </div>
             <div>
-              <div className="text-xs font-medium text-[#E8E1D3] line-clamp-2 leading-snug">
+              <div className="text-[13px] font-normal text-[#20252A] line-clamp-2 leading-snug">
                 {recentLearning ? recentLearning.topic : "Belum ada catatan pembelajaran"}
               </div>
             </div>
             <div className="pt-0.5">
               <Link
                 href="/learning"
-                className="text-[10px] font-mono text-[#20C8E8] hover:underline inline-flex items-center gap-1"
+                className="text-[11px] font-medium text-[#08BFD7] hover:underline inline-flex items-center gap-1"
               >
                 <span>{t.home.viewLearning}</span>
-                <ArrowRight className="w-2.5 h-2.5" />
+                <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
           </AnimatedCard>
         </StaggerItem>
 
-        {/* Metric 4: KEUANGAN */}
+        {/* Module 4: KEUANGAN */}
         <StaggerItem>
-          <AnimatedCard interactive={true} className="p-3 sm:p-4 glass-card card-accent-gold h-[126px] sm:h-[132px] flex flex-col justify-between">
-            <div className="flex items-center justify-between text-[#8A8580]">
-              <span className="text-[10px] font-mono uppercase tracking-wider">{t.nav.finance}</span>
-              <Wallet className="w-4 h-4 text-[#C5A56A] shrink-0" />
+          <AnimatedCard interactive={true} className="p-4 sm:p-5 bg-white border border-[#D9DDD9] rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between h-[138px] sm:h-[148px]">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium tracking-[0.02em] text-[#687078] uppercase">{t.nav.finance}</span>
+              <Wallet className="w-4 h-4 text-[#C8A96B] shrink-0" />
             </div>
             <div>
-              <div className="text-base sm:text-lg md:text-xl font-bold font-mono text-[#E8E1D3] tracking-tight truncate leading-none">
+              <div className="text-[20px] sm:text-[24px] font-semibold text-[#20252A] tracking-[-0.01em] truncate leading-none">
                 {formatCurrency(actualBalance)}
               </div>
             </div>
             <div>
-              <div className="text-[10px] text-[#6B6762] font-mono truncate">
-                Tercatat: <span className="text-[#8A8580]">{formatCurrency(calculatedBalance)}</span>
+              <div className="text-[11px] text-[#8A9197] font-normal truncate">
+                Tercatat: <span className="text-[#687078] font-mono">{formatCurrency(calculatedBalance)}</span>
               </div>
               <Link
                 href="/finance"
-                className="text-[10px] font-mono text-[#20C8E8] hover:underline mt-1.5 inline-flex items-center gap-1"
+                className="text-[11px] font-medium text-[#08BFD7] hover:underline mt-1.5 inline-flex items-center gap-1"
               >
                 <span>{t.home.viewFinance}</span>
-                <ArrowRight className="w-2.5 h-2.5" />
+                <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
           </AnimatedCard>
@@ -441,25 +647,23 @@ export default function HomePage() {
       </StaggerContainer>
 
       {/* ═══════════════════════════════════════════════════════════════
-          3. ACTIONABLE CONTENT — FOKUS SAAT INI & TODAY'S HABITS
-          - Answers "What should I do next?" immediately
-          - High information density with helpful empty states
+          3. ACTIONABLE CONTENT — HARI INI & FOKUS SAAT INI (2-Column)
           ═══════════════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 md:gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 md:gap-6">
         {/* TODAY'S HABITS (HARI INI) */}
-        <div className="lg:col-span-7 space-y-2">
+        <div className="lg:col-span-7 space-y-2.5">
           <SectionHeader
             title={t.home.today}
             icon={Activity}
-            iconColor="text-[#00A982]"
+            iconColor="text-[#08BFD7]"
             countBadge={habits.length > 0 ? `${completedTodayCount}/${habits.length}` : undefined}
           />
 
-          <div className="p-3.5 sm:p-4 glass-card rounded-[14px]">
+          <div className="p-4 sm:p-5 bg-white border border-[#D9DDD9] rounded-2xl shadow-sm">
             {habits.length === 0 ? (
               <EmptyState
                 title="Belum ada aktivitas tercatat"
-                description="Tambahkan catatan atau kebiasaan pertamamu hari ini untuk melacak progres hidupmu."
+                description="Tambahkan catatan atau kebiasaan pertamamu hari ini untuk mulai melacak progres."
                 actionLabel={t.habits.createHabit}
                 actionHref="/habits"
               />
@@ -471,23 +675,23 @@ export default function HomePage() {
                     <button
                       key={habit.id}
                       onClick={() => toggleHabit(habit.id)}
-                      className={`w-full flex items-center justify-between p-2.5 rounded-lg border transition-all duration-150 text-left cursor-pointer group ${
+                      className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-150 text-left cursor-pointer group ${
                         isDone
-                          ? "bg-[#070A0D]/50 border-[#1E2226] text-[#6B6762]"
-                          : "bg-[#14191F] border-[#252B30] hover:border-[#20C8E8]/35 hover:bg-[#171E25]"
+                          ? "bg-[#FAFAF8] border-[#E6EAE5] text-[#8A9197]"
+                          : "bg-white border-[#D9DDD9] hover:border-[#08BFD7]/50 hover:bg-[#F8F9F7]"
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
                         {isDone ? (
-                          <CheckCircle2 className="w-4 h-4 text-[#00A982] shrink-0 transition-transform duration-150 group-hover:scale-105" />
+                          <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 transition-transform duration-150 group-hover:scale-105" />
                         ) : (
-                          <Circle className="w-4 h-4 text-[#6B6762] group-hover:text-[#20C8E8] shrink-0 transition-colors" />
+                          <Circle className="w-4 h-4 text-[#8A9197] group-hover:text-[#08BFD7] shrink-0 transition-colors" />
                         )}
                         <span
                           className={`text-xs sm:text-sm truncate transition-all duration-150 ${
                             isDone
-                              ? "text-[#6B6762] line-through"
-                              : "text-[#E8E1D3] font-medium group-hover:text-white"
+                              ? "text-[#8A9197] line-through font-normal"
+                              : "text-[#20252A] font-medium group-hover:text-[#08BFD7]"
                           }`}
                         >
                           {habit.name}
@@ -496,8 +700,8 @@ export default function HomePage() {
                       <span
                         className={`text-[10px] font-mono px-2 py-0.5 rounded shrink-0 ml-2 transition-opacity ${
                           isDone
-                            ? "text-[#00A982]/80 bg-[#00A982]/10"
-                            : "text-[#8A8580] opacity-0 group-hover:opacity-100 bg-[#1A2025]"
+                            ? "text-[#059669] bg-[#059669]/10"
+                            : "text-[#8A9197] opacity-0 group-hover:opacity-100 bg-[#FAFAF8]"
                         }`}
                       >
                         {isDone ? t.common.done : t.common.markDone}
@@ -511,16 +715,16 @@ export default function HomePage() {
         </div>
 
         {/* FOKUS SAAT INI (ACTIONABLE FOCUS SECTION) */}
-        <div className="lg:col-span-5 space-y-2">
+        <div className="lg:col-span-5 space-y-2.5">
           <SectionHeader
             title="Fokus Saat Ini"
             icon={Target}
-            iconColor="text-[#20C8E8]"
+            iconColor="text-[#08BFD7]"
             actionHref="/goals"
             actionLabel={t.home.allGoals}
           />
 
-          <div className="p-3.5 sm:p-4 glass-card rounded-[14px]">
+          <div className="p-4 sm:p-5 bg-white border border-[#D9DDD9] rounded-2xl shadow-sm">
             {!primaryFocus ? (
               <EmptyState
                 title="Belum ada fokus hari ini"
@@ -532,22 +736,22 @@ export default function HomePage() {
               <div className="space-y-3">
                 <Link
                   href="/goals"
-                  className="p-3 rounded-lg bg-[#070A0D]/70 border border-[#252B30] hover:border-[#20C8E8]/35 transition-all duration-150 block group"
+                  className="p-3.5 rounded-xl bg-[rgba(8,191,215,0.03)] border border-[#08BFD7]/30 hover:border-[#08BFD7] transition-all block group"
                 >
-                  <div className="flex items-center justify-between text-[10px] font-mono text-[#8A8580] mb-1">
-                    <span className="uppercase tracking-wider">TARGET UTAMA</span>
-                    <span className="text-[#20C8E8] font-semibold">{primaryFocus.percent}%</span>
+                  <div className="flex items-center justify-between text-[10px] text-[#687078] mb-1">
+                    <span className="uppercase tracking-[0.04em] font-medium">TARGET UTAMA</span>
+                    <span className="text-[#08BFD7] font-semibold font-mono text-xs">{primaryFocus.percent}%</span>
                   </div>
-                  <h3 className="text-xs font-semibold text-[#E8E1D3] group-hover:text-[#20C8E8] transition-colors line-clamp-1 mb-2">
+                  <h3 className="text-xs sm:text-[13px] font-medium text-[#20252A] group-hover:text-[#08BFD7] transition-colors line-clamp-1 mb-2">
                     {primaryFocus.title}
                   </h3>
-                  <div className="w-full h-1.5 rounded-full bg-[#151A1F] overflow-hidden mb-2 border border-[#1E2226]/40">
+                  <div className="w-full h-2 rounded-full bg-[#ECEEEA] overflow-hidden mb-2.5">
                     <div
-                      className="h-full bg-gradient-to-r from-[#087F96] to-[#20C8E8] rounded-full transition-all duration-700 ease-out"
+                      className="h-full bg-[#08BFD7] rounded-full transition-all duration-700 ease-out"
                       style={{ width: `${Math.min(100, Math.max(0, primaryFocus.percent))}%` }}
                     />
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-[#6B6762] font-mono">
+                  <div className="flex items-center justify-between text-[10px] text-[#8A9197] font-normal">
                     <span>{t.common.inProgress}</span>
                     {primaryFocus.deadline && <span>Batas: {primaryFocus.deadline}</span>}
                   </div>
@@ -555,20 +759,20 @@ export default function HomePage() {
 
                 {/* Additional focus goals if any */}
                 {focusGoals.length > 1 && (
-                  <div className="pt-1 space-y-1.5 border-t border-[#1E2226]">
-                    <div className="text-[10px] font-mono text-[#8A8580] uppercase tracking-wider px-0.5">
+                  <div className="pt-2 space-y-1.5 border-t border-[#D9DDD9]">
+                    <div className="text-[10px] font-normal text-[#8A9197] uppercase tracking-[0.04em] px-0.5">
                       Target Aktif Lainnya
                     </div>
                     {focusGoals.slice(1, 3).map((g) => (
                       <Link
                         key={g.id}
                         href="/goals"
-                        className="flex items-center justify-between p-2 rounded-md bg-[#0C1014] hover:bg-[#14191F] border border-[#1E2226] text-xs transition-colors"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAFAF8] hover:bg-[#F4F5F2] border border-[#D9DDD9] text-xs transition-colors"
                       >
-                        <span className="text-[#A7A29A] hover:text-[#E8E1D3] truncate text-[11px] max-w-[200px]">
+                        <span className="text-[#20252A] font-normal hover:text-[#08BFD7] truncate text-[11px] max-w-[200px]">
                           {g.title}
                         </span>
-                        <span className="text-[10px] font-mono text-[#6B6762] shrink-0 ml-2">
+                        <span className="text-[10px] font-mono font-normal text-[#687078] shrink-0 ml-2">
                           {g.percent}%
                         </span>
                       </Link>
@@ -582,73 +786,73 @@ export default function HomePage() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-          4. SECONDARY INFORMATION — Learning & Weekly Reflection
+          4. SECONDARY INFORMATION — Learning & Weekly Reflection (2-Column)
           ═══════════════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-4 md:gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
         {/* Recent Learning */}
-        <div className="md:col-span-6">
-          <div className="p-3.5 sm:p-4 glass-card rounded-[14px] h-full flex flex-col justify-between">
+        <div>
+          <div className="p-4 sm:p-5 bg-white border border-[#D9DDD9] rounded-2xl shadow-sm h-full flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-1.5 text-[#8A8580]">
-                <BookOpen className="w-3.5 h-3.5 text-[#9B8060] shrink-0" />
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-[#8A8580]">
+              <div className="flex items-center gap-2 mb-2 text-[#C8A96B]">
+                <BookOpen className="w-4 h-4 text-[#C8A96B] shrink-0" />
+                <h2 className="text-[13px] sm:text-[14px] font-semibold tracking-[0.02em] uppercase text-[#20252A]">
                   {t.home.recentLearning}
                 </h2>
               </div>
               {recentLearning ? (
                 <div>
-                  <h3 className="text-xs sm:text-sm font-semibold text-[#E8E1D3] mb-1 line-clamp-1">
+                  <h3 className="text-xs sm:text-[13px] font-semibold text-[#20252A] mb-1 line-clamp-1">
                     {recentLearning.topic}
                   </h3>
-                  <p className="text-xs text-[#A7A29A] line-clamp-2 leading-relaxed">
+                  <p className="text-xs sm:text-[13px] text-[#687078] line-clamp-2 leading-[1.6]">
                     {recentLearning.understood}
                   </p>
                 </div>
               ) : (
-                <p className="text-xs text-[#6B6762] leading-relaxed py-2">
+                <p className="text-xs sm:text-[13px] text-[#8A9197] leading-[1.6] py-2">
                   Belum ada catatan pembelajaran terbaru.
                 </p>
               )}
             </div>
-            <div className="mt-3 pt-2 border-t border-[#1E2226] flex justify-between items-center">
-              <span className="text-[10px] font-mono text-[#6B6762]">
+            <div className="mt-4 pt-3 border-t border-[#D9DDD9] flex justify-between items-center">
+              <span className="text-[10px] font-mono text-[#8A9197]">
                 {recentLearning?.date || todayFormatted}
               </span>
               <Link
                 href="/learning"
-                className="text-xs font-mono text-[#20C8E8] hover:underline flex items-center gap-1"
+                className="text-xs font-medium text-[#08BFD7] hover:underline flex items-center gap-1"
               >
                 <span>{t.home.viewLearning}</span>
-                <ArrowRight className="w-3 h-3" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
         </div>
 
         {/* Weekly Reflection */}
-        <div className="md:col-span-6">
-          <div className="p-3.5 sm:p-4 glass-card rounded-[14px] h-full flex flex-col justify-between">
+        <div>
+          <div className="p-4 sm:p-5 bg-white border border-[#D9DDD9] rounded-2xl shadow-sm h-full flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-2 text-[#C5A56A] mb-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#C5A56A] shrink-0" />
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-[#8A8580]">
+              <div className="flex items-center gap-2 text-[#C8A96B] mb-2">
+                <Sparkles className="w-4 h-4 text-[#C8A96B] shrink-0" />
+                <h2 className="text-[13px] sm:text-[14px] font-semibold tracking-[0.02em] uppercase text-[#20252A]">
                   {t.home.weeklyReflection}
                 </h2>
               </div>
-              <p className="text-[10px] font-mono text-[#6B6762] mb-1">{currentWeekRange}</p>
-              <p className="text-xs text-[#A7A29A] leading-relaxed">
+              <p className="text-[10px] font-mono text-[#8A9197] mb-1.5">{currentWeekRange}</p>
+              <p className="text-xs sm:text-[13px] text-[#687078] leading-[1.6]">
                 {t.home.reflectionPending}
               </p>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-[#1E2226] flex items-center justify-between">
-              <span className="text-[10px] font-mono text-[#6B6762]">{currentWeekRange}</span>
+            <div className="mt-4 pt-3 border-t border-[#D9DDD9] flex items-center justify-between">
+              <span className="text-[10px] font-mono text-[#8A9197]">{currentWeekRange}</span>
               <Link
                 href="/journey/reflections/new"
-                className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-[#151A1F] border border-[#252B30] hover:border-[#C5A56A]/40 text-xs font-medium text-[#E8E1D3] hover:text-[#C5A56A] transition-all duration-150 cursor-pointer shadow-sm"
+                className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-white border border-[#D9DDD9] hover:border-[#C8A96B] text-xs font-medium text-[#20252A] hover:text-[#C8A96B] transition-all shadow-sm cursor-pointer"
               >
                 <span>{t.home.reflectThisWeek}</span>
-                <ArrowRight className="w-3 h-3" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
@@ -656,34 +860,34 @@ export default function HomePage() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
-          5. PRIVATE VAULT BANNER (BRANKAS PRIVASI)
+          5. PRIVATE VAULT BANNER (BRANKAS PRIVASI) — Full Width
           ═══════════════════════════════════════════════════════════════ */}
       <FadeIn direction="up" duration={0.3}>
-        <div className="p-3.5 sm:p-5 rounded-[18px] bg-gradient-to-r from-[#11161B] to-[#14191F] border border-[#252B30] backdrop-blur-md relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-5 shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
+        <div className="p-4 sm:p-6 rounded-2xl bg-white border border-[#D9DDD9] relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 shadow-sm">
           {/* Subtle ambient light */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-[#20C8E8]/[0.02] rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#C5A56A]/[0.02] rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-48 h-48 bg-[#08BFD7]/[0.03] rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#C8A96B]/[0.03] rounded-full blur-3xl pointer-events-none" />
 
-          <div className="flex items-center gap-3 relative z-10 w-full sm:w-auto">
-            <div className="w-9 h-9 rounded-lg bg-[#151A1F] border border-[#252B30] text-[#20C8E8] flex items-center justify-center shadow-sm shrink-0">
-              <Lock className="w-4 h-4" />
+          <div className="flex items-center gap-3.5 relative z-10 w-full sm:w-auto">
+            <div className="w-10 h-10 rounded-xl bg-[#F4F5F2] border border-[#D9DDD9] text-[#08BFD7] flex items-center justify-center shadow-sm shrink-0">
+              <Lock className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 mb-0.5">
-                <h3 className="text-xs sm:text-sm font-semibold text-[#E8E1D3] truncate">{t.vault.title}</h3>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-sm sm:text-[15px] font-semibold text-[#20252A] truncate">{t.vault.title}</h3>
                 <span
-                  className={`text-[9px] font-mono px-2 py-0.5 rounded border shrink-0 ${
+                  className={`text-[9.5px] font-mono font-medium px-2 py-0.5 rounded border shrink-0 ${
                     vaultStats.isUnlocked
-                      ? "bg-[#00A982]/12 text-[#00A982] border-[#00A982]/25"
-                      : "bg-[#D6A84F]/12 text-[#D6A84F] border-[#D6A84F]/25"
+                      ? "bg-[#059669]/10 text-[#059669] border-[#059669]/25"
+                      : "bg-[#C8A96B]/15 text-[#A88540] border-[#C8A96B]/30"
                   }`}
                 >
                   {vaultStats.isUnlocked ? "TERBUKA" : "TERKUNCI"}
                 </span>
               </div>
-              <p className="text-[11px] text-[#8A8580] truncate">
+              <p className="text-xs text-[#687078] truncate">
                 {t.vault.subtitle} ·{" "}
-                <span className="font-mono text-[#6B6762]">
+                <span className="font-mono text-[#8A9197]">
                   {vaultStats.totalFolders} Folder · {vaultStats.totalItems} Berkas
                 </span>
               </p>
@@ -692,7 +896,7 @@ export default function HomePage() {
 
           <Link
             href="/vault"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-lg bg-[#151A1F] hover:bg-[#1A2025] border border-[#20C8E8]/30 hover:border-[#20C8E8] text-xs font-medium text-[#20C8E8] hover:text-[#E8E1D3] transition-all shadow-sm cursor-pointer shrink-0 group relative z-10 text-center"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#08BFD7] hover:bg-[#07AEC4] text-white text-xs font-medium shadow-[0_2px_8px_rgba(8,191,215,0.22)] transition-all cursor-pointer shrink-0 group relative z-10 text-center"
           >
             <span>{vaultStats.isUnlocked ? "Buka Folder Privasi" : "Buka Kunci Brankas"}</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />

@@ -37,6 +37,18 @@ enum HabitSource {
   ACTIVITY
 }
 
+enum IbadahType {
+  WAJIB
+  SUNNAH
+  CUSTOM
+}
+
+enum IbadahMode {
+  DAILY
+  RAMADHAN
+  BOTH
+}
+
 model User {
   id             String          @id @default(cuid())
   email          String          @unique
@@ -46,14 +58,21 @@ model User {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
-  financeProfile FinanceProfile?
-  goals          Goal[]
-  activities     Activity[]
-  learnings      Learning[]
-  habits         Habit[]
-  transactions   Transaction[]
-  budgets        Budget[]
-  reflections    Reflection[]
+  financeProfile        FinanceProfile?
+  goals                 Goal[]
+  activities            Activity[]
+  learnings             Learning[]
+  learningFolders       LearningFolder[]
+  learningDocuments     LearningDocument[]
+  habits                Habit[]
+  transactions          Transaction[]
+  transactionCategories TransactionCategory[]
+  budgets               Budget[]
+  reflections           Reflection[]
+  ibadahActivities      IbadahActivity[]
+  ibadahRecords         IbadahRecord[]
+  ibadahReflections     IbadahDailyReflection[]
+  quranReadings         QuranReading[]
 
   @@map("users")
 }
@@ -152,17 +171,60 @@ model Learning {
   source     String?
 
   activityId String?
-  activity   Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  activity   Activity?       @relation(fields: [activityId], references: [id], onDelete: SetNull)
   goalId     String?
-  goal       Goal?     @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  goal       Goal?           @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  folderId   String?
+  folder     LearningFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  documents  LearningDocument[]
 
   deletedAt  DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
   @@index([userId, date])
+  @@index([userId, folderId])
   @@index([userId, deletedAt])
   @@map("learnings")
+}
+
+model LearningFolder {
+  id        String             @id @default(cuid())
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  parentId  String?
+  parent    LearningFolder?    @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  LearningFolder[]   @relation("FolderHierarchy")
+  learnings Learning[]
+  documents LearningDocument[]
+  deletedAt DateTime?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([userId, parentId])
+  @@map("learning_folders")
+}
+
+model LearningDocument {
+  id         String          @id @default(cuid())
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  content    String?         @db.Text
+  fileType   String          @default("document")
+  fileSize   Int?            @default(0)
+  folderId   String?
+  folder     LearningFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  learningId String?
+  learning   Learning?       @relation(fields: [learningId], references: [id], onDelete: SetNull)
+  deletedAt  DateTime?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([userId, folderId])
+  @@map("learning_documents")
 }
 
 model Habit {
@@ -258,3 +320,97 @@ model Reflection {
   @@index([userId, weekStart])
   @@map("reflections")
 }
+
+model TransactionCategory {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  type      TransactionType @default(EXPENSE)
+  icon      String?         // emoji or lucide icon name
+  color     String?         // hex color code
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([userId, name, type])
+  @@index([userId])
+  @@map("transaction_categories")
+}
+
+model IbadahActivity {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  category  String     @default("SHOLAT_FARDHU") // "SHOLAT_FARDHU", "SHOLAT_SUNNAH", "QURAN", "DZIKIR", "PUASA", "SEDEKAH", "CUSTOM"
+  type      IbadahType @default(WAJIB)
+  mode      IbadahMode @default(BOTH)
+  target    String?
+  unit      String?
+  order     Int        @default(0)
+  isActive  Boolean    @default(true)
+  isCustom  Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  records   IbadahRecord[]
+
+  @@index([userId, type, mode])
+  @@map("ibadah_activities")
+}
+
+model IbadahRecord {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityId  String
+  activity    IbadahActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  date        String         // "YYYY-MM-DD"
+  completed   Boolean        @default(true)
+  completedAt DateTime       @default(now())
+  notes       String?        @db.Text
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([userId, activityId, date])
+  @@index([userId, date])
+  @@map("ibadah_records")
+}
+
+model IbadahDailyReflection {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      String   // "YYYY-MM-DD"
+  content   String?  @db.Text
+  mood      String?  // "GOOD", "NEUTRAL", "BAD"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("ibadah_daily_reflections")
+}
+
+model QuranReading {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date            String   // "YYYY-MM-DD"
+  startSurah      String   // e.g. "Al-Baqarah"
+  startAyah       Int?     // e.g. 1
+  endSurah        String?  // e.g. "Al-Baqarah"
+  endAyah         Int?     // e.g. 25
+  juz             Int?     // 1 - 30
+  startPage       Int?     // e.g. 1
+  endPage         Int?     // e.g. 5
+  pagesRead       Int      @default(1)
+  durationMinutes Int?     // e.g. 20
+  notes           String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId, date])
+  @@map("quran_readings")
+}
+

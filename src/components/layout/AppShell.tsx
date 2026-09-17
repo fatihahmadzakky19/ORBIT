@@ -1,24 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { MobileNav } from "./MobileNav";
 import { GlobalAddModal } from "./GlobalAddModal";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { LanguageProvider } from "@/lib/i18n/context";
 import { PageTransition } from "@/components/motion/PageTransition";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<"success" | "error" | "info">("success");
 
-  const showToast = (message: string) => {
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
     setToastMessage(message);
+    setToastType(type);
     setTimeout(() => {
       setToastMessage(null);
     }, 3000);
   };
+
+  useEffect(() => {
+    const handleToast = (e: Event) => {
+      const customEvent = e as CustomEvent<{ message: string; type?: "success" | "error" | "info" }>;
+      if (customEvent.detail?.message) {
+        showToast(customEvent.detail.message, customEvent.detail.type || "success");
+      }
+    };
+    window.addEventListener("orbit_toast", handleToast);
+    return () => window.removeEventListener("orbit_toast", handleToast);
+  }, []);
 
   return (
     <LanguageProvider>
@@ -51,9 +64,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Toast Notification — observatory telemetry style */}
         {toastMessage && (
-          <div className="fixed bottom-24 md:bottom-6 right-4 sm:right-6 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#11161B]/95 backdrop-blur-md border border-[#252B30] shadow-[0_8px_32px_rgba(0,0,0,0.7)] text-xs text-main animate-in slide-in-from-bottom-2 fade-in duration-200">
-            <CheckCircle2 className="w-4 h-4 text-[#00A982] shrink-0" />
-            <span className="font-medium text-[#E8E1D3]">{toastMessage}</span>
+          <div
+            className={`fixed bottom-24 md:bottom-6 right-4 sm:right-6 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white/95 backdrop-blur-md border shadow-[0_8px_32px_rgba(0,0,0,0.08)] text-xs text-[#20252A] animate-in slide-in-from-bottom-2 fade-in duration-200 ${
+              toastType === "error"
+                ? "border-red-300"
+                : toastType === "info"
+                ? "border-[#08BFD7]/40"
+                : "border-[#D9DDD9]"
+            }`}
+          >
+            {toastType === "error" ? (
+              <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+            ) : toastType === "info" ? (
+              <Info className="w-4 h-4 text-[#08BFD7] shrink-0" />
+            ) : (
+              <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" />
+            )}
+            <span className="font-medium text-[#20252A]">{toastMessage}</span>
           </div>
         )}
       </div>

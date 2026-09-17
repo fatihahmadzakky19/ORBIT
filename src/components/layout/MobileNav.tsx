@@ -26,7 +26,7 @@ export function MobileNav({ onOpenQuickAdd }: MobileNavProps) {
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#080B0F]/95 backdrop-blur-xl border-t border-[#1E2226] select-none shadow-[0_-4px_24px_rgba(0,0,0,0.6)]"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#D9DDD9] select-none shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
       style={{
         paddingBottom: "max(0.5rem, env(safe-area-inset-bottom, 0px))",
       }}
@@ -44,11 +44,11 @@ export function MobileNav({ onOpenQuickAdd }: MobileNavProps) {
               href={item.href}
               className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 px-1 rounded-lg text-[10px] sm:text-[11px] transition-colors duration-150 ${
                 isActive
-                  ? "text-[#20C8E8] font-semibold"
-                  : "text-[#8A8580] hover:text-[#E8E1D3]"
+                  ? "text-[#08BFD7] font-medium"
+                  : "text-[#687078] font-normal hover:text-[#20252A]"
               }`}
             >
-              <Icon className={`w-[18px] h-[18px] mb-1 ${isActive ? "text-[#20C8E8]" : "text-[#7A7570]"}`} />
+              <Icon className={`w-[18px] h-[18px] mb-1 ${isActive ? "text-[#08BFD7]" : "text-[#8A9197]"}`} />
               <span className="truncate max-w-[64px]">{item.label}</span>
             </Link>
           );
@@ -59,7 +59,7 @@ export function MobileNav({ onOpenQuickAdd }: MobileNavProps) {
           <button
             onClick={onOpenQuickAdd}
             aria-label="Tambah Catatan"
-            className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#087F96] via-[#0D5A6B] to-[#20C8E8] hover:from-[#0E5463] hover:to-[#22D3EE] text-white flex items-center justify-center border-2 border-[#070A0D] shadow-[0_0_18px_rgba(32,200,232,0.35)] active:scale-95 transition-all cursor-pointer"
+            className="w-12 h-12 rounded-full bg-[#08BFD7] hover:bg-[#07AEC4] text-white flex items-center justify-center border-2 border-white shadow-[0_2px_12px_rgba(8,191,215,0.35)] active:scale-95 transition-all cursor-pointer"
           >
             <Plus className="w-5 h-5 stroke-[2.5] text-white" />
           </button>
@@ -77,11 +77,11 @@ export function MobileNav({ onOpenQuickAdd }: MobileNavProps) {
               href={item.href}
               className={`flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 px-1 rounded-lg text-[10px] sm:text-[11px] transition-colors duration-150 ${
                 isActive
-                  ? "text-[#20C8E8] font-semibold"
-                  : "text-[#8A8580] hover:text-[#E8E1D3]"
+                  ? "text-[#08BFD7] font-medium"
+                  : "text-[#687078] font-normal hover:text-[#20252A]"
               }`}
             >
-              <Icon className={`w-[18px] h-[18px] mb-1 ${isActive ? "text-[#20C8E8]" : "text-[#7A7570]"}`} />
+              <Icon className={`w-[18px] h-[18px] mb-1 ${isActive ? "text-[#08BFD7]" : "text-[#8A9197]"}`} />
               <span className="truncate max-w-[64px]">{item.label}</span>
             </Link>
           );

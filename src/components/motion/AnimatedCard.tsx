@@ -51,10 +51,10 @@ export const AnimatedCard = forwardRef<HTMLDivElement, AnimatedCardProps>(
               }
             : undefined
         }
-        className={`group relative rounded-[14px] border border-[#252B30] bg-[#11161B] transition-all duration-180 ${
+        className={`group relative rounded-[14px] border border-[#D9DDD9] bg-[#FFFFFF] shadow-sm transition-all duration-180 ${
           glowOnHover
-            ? "hover:border-[#363737] hover:shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
-            : "hover:border-[#363737] hover:shadow-[0_6px_20px_rgba(0,0,0,0.5)]"
+            ? "hover:border-[#08BFD7]/40 hover:shadow-[0_4px_16px_rgba(8,191,215,0.12)]"
+            : "hover:border-[#C5CAC4] hover:shadow-md"
         } ${className}`}
         {...props}
       >

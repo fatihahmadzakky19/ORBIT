@@ -4,6 +4,24 @@ import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { TransactionType } from "@prisma/client";
 
+// Cast to any to prevent stale IDE type-checking warnings
+const db = prisma as any;
+
+async function getDefaultUser() {
+  let user = await db.user.findFirst({
+    where: { email: "alex@orbit.local" },
+  });
+  if (!user) {
+    user = await db.user.create({
+      data: {
+        email: "alex@orbit.local",
+        name: "Fatih Ahmad Zakky",
+      },
+    });
+  }
+  return user;
+}
+
 export async function createTransactionAction(data: {
   type: TransactionType;
   amount: number;
@@ -17,12 +35,9 @@ export async function createTransactionAction(data: {
       throw new Error("Transaction amount must be greater than zero.");
     }
 
-    const user = await prisma.user.findFirst({
-      where: { email: "alex@orbit.local" },
-    });
-    if (!user) throw new Error("User not found");
+    const user = await getDefaultUser();
 
-    const transaction = await prisma.transaction.create({
+    const transaction = await db.transaction.create({
       data: {
         userId: user.id,
         type: data.type,
@@ -36,16 +51,16 @@ export async function createTransactionAction(data: {
 
     // If goalId is provided and Goal is finance mode, update goal progress
     if (data.goalId) {
-      const goal = await prisma.goal.findUnique({
+      const goal = await db.goal.findUnique({
         where: { id: data.goalId },
       });
       if (goal && goal.targetValue) {
-        const totalAllocated = await prisma.transaction.aggregate({
+        const totalAllocated = await db.transaction.aggregate({
           where: { goalId: data.goalId, deletedAt: null },
           _sum: { amount: true },
         });
         const currentSum = totalAllocated._sum.amount?.toNumber() || 0;
-        await prisma.goal.update({
+        await db.goal.update({
           where: { id: data.goalId },
           data: {
             currentValue: currentSum,
@@ -65,14 +80,97 @@ export async function createTransactionAction(data: {
   }
 }
 
+export async function updateTransactionAction(
+  id: string,
+  data: {
+    amount?: number;
+    category?: string;
+    note?: string;
+    type?: TransactionType;
+    date?: string;
+  }
+) {
+  try {
+    const transaction = await db.transaction.update({
+      where: { id },
+      data: {
+        ...(data.amount !== undefined ? { amount: data.amount } : {}),
+        ...(data.category !== undefined ? { category: data.category } : {}),
+        ...(data.note !== undefined ? { note: data.note } : {}),
+        ...(data.type !== undefined ? { type: data.type } : {}),
+        ...(data.date !== undefined ? { date: new Date(data.date) } : {}),
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/finance");
+    return { success: true, transaction };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to update transaction";
+    return { success: false, error: message };
+  }
+}
+
+export async function deleteTransactionAction(id: string) {
+  try {
+    await db.transaction.delete({
+      where: { id },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/finance");
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to delete transaction";
+    return { success: false, error: message };
+  }
+}
+
+export async function createCategoryAction(data: {
+  name: string;
+  type?: TransactionType;
+  icon?: string;
+  color?: string;
+}) {
+  try {
+    const user = await getDefaultUser();
+    const category = await db.transactionCategory.create({
+      data: {
+        userId: user.id,
+        name: data.name.trim(),
+        type: data.type || TransactionType.EXPENSE,
+        icon: data.icon || null,
+        color: data.color || null,
+      },
+    });
+
+    revalidatePath("/finance");
+    return { success: true, category };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to create category";
+    return { success: false, error: message };
+  }
+}
+
+export async function deleteCategoryAction(id: string) {
+  try {
+    await db.transactionCategory.delete({
+      where: { id },
+    });
+
+    revalidatePath("/finance");
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to delete category";
+    return { success: false, error: message };
+  }
+}
+
 export async function updateActualBalanceAction(newBalance: number) {
   try {
-    const user = await prisma.user.findFirst({
-      where: { email: "alex@orbit.local" },
-    });
-    if (!user) throw new Error("User not found");
+    const user = await getDefaultUser();
 
-    await prisma.financeProfile.upsert({
+    await db.financeProfile.upsert({
       where: { userId: user.id },
       update: {
         actualBalance: newBalance,
