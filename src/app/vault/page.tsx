@@ -816,8 +816,8 @@ export default function VaultPage() {
       {/* MODAL: CREATE NEW FOLDER */}
       {/* -------------------------------------------------------- */}
       {isCreateFolderOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md p-6 rounded-2xl bg-surface border border-line shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-md p-4 sm:p-6 rounded-2xl bg-surface border border-line shadow-2xl space-y-4 my-auto max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-main flex items-center gap-2">
                 <FolderPlus className="w-4 h-4 text-accent" />
@@ -928,8 +928,8 @@ export default function VaultPage() {
       {/* MODAL: CREATE SECRET NOTE */}
       {/* -------------------------------------------------------- */}
       {isAddNoteOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg p-6 rounded-2xl bg-surface border border-line shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-lg p-4 sm:p-6 rounded-2xl bg-surface border border-line shadow-2xl space-y-4 my-auto max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-main flex items-center gap-2">
                 <FileText className="w-4 h-4 text-accent" />
@@ -996,8 +996,8 @@ export default function VaultPage() {
       {/* MODAL: ADD CREDENTIAL */}
       {/* -------------------------------------------------------- */}
       {isAddCredentialOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md p-6 rounded-2xl bg-surface border border-line shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-md p-4 sm:p-6 rounded-2xl bg-surface border border-line shadow-2xl space-y-4 my-auto max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-main flex items-center gap-2">
                 <Key className="w-4 h-4 text-amber-400" />
@@ -1091,8 +1091,8 @@ export default function VaultPage() {
       {/* MODAL: PREVIEW ITEM */}
       {/* -------------------------------------------------------- */}
       {previewItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-xl max-h-[85vh] flex flex-col p-6 rounded-2xl bg-surface border border-line shadow-2xl space-y-4 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-xl max-h-[90dvh] flex flex-col p-4 sm:p-6 rounded-2xl bg-surface border border-line shadow-2xl space-y-4 my-auto overflow-hidden">
             <div className="flex items-center justify-between border-b border-border-subtle pb-3">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-surface-elevated border border-border-subtle flex items-center justify-center text-accent shrink-0">

@@ -78,9 +78,18 @@ export function ProfileMenu() {
         />
       </button>
 
+      {/* Mobile backdrop overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] md:hidden"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Profile Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_12px_36px_rgba(0,0,0,0.08)] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_12px_36px_rgba(0,0,0,0.12)] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
           {/* Header Card */}
           <div className="px-3.5 py-3 border-b border-[#D9DDD9] flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#F4F5F2] border border-[#D9DDD9] overflow-hidden shrink-0 shadow-sm">

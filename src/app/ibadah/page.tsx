@@ -27,8 +27,21 @@ import {
   Star,
   Eye,
   EyeOff,
+  Lock,
+  Pencil,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
+import {
+  getTodayInTimezone,
+  getCurrentTimeInTimezone,
+  getMsUntilNextMidnight,
+} from "@/lib/date";
+import {
+  PrayerSchedule,
+  getPrayerScheduleForDate,
+  getPrayerTimeForActivity,
+  getPrayerStatus,
+} from "@/features/ibadah/services/prayerTimes";
 import {
   getStoredIbadahMode,
   setStoredIbadahMode,
@@ -105,11 +118,20 @@ function formatHijriDate(date: Date): string {
   }
 }
 
-function getIsoDateString(d: Date): string {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
+function parseLocalDateSafe(dateStr?: string): Date {
+  if (!dateStr) return new Date();
+  const parts = dateStr.split("-").map(Number);
+  if (parts.length >= 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  }
+  return new Date(dateStr);
+}
+
+function formatLocalDateSafe(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return `${y}-${m}-${day}`;
 }
 
 const MOOD_OPTIONS = [
@@ -123,9 +145,27 @@ const MOOD_OPTIONS = [
 export default function IbadahPage() {
   const { t } = useLanguage();
 
+  // Real Today String in Asia/Jakarta (e.g. "2026-09-17")
+  const [todayDateStr, setTodayDateStr] = useState<string>(() => getTodayInTimezone("Asia/Jakarta"));
+  const [currentTimeStr, setCurrentTimeStr] = useState<string>(() => getCurrentTimeInTimezone("Asia/Jakarta"));
+
   // State: Selected Date
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const selectedDateStr = useMemo(() => getIsoDateString(currentDate), [currentDate]);
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(() => getTodayInTimezone("Asia/Jakarta"));
+  const currentDate = useMemo(() => parseLocalDateSafe(selectedDateStr), [selectedDateStr]);
+
+  // Derived date states
+  const isToday = selectedDateStr === todayDateStr;
+  const isPast = selectedDateStr < todayDateStr;
+  const isFuture = selectedDateStr > todayDateStr;
+  const isReadOnly = !isToday;
+
+  // Real-time prayer schedule for selected date
+  const prayerSchedule = useMemo(() => {
+    return getPrayerScheduleForDate(selectedDateStr, { timezone: "Asia/Jakarta" });
+  }, [selectedDateStr]);
+
+  // Double-click and concurrency protection
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
 
   // State: Mode (Harian vs Ramadhan)
   const [mode, setMode] = useState<"DAILY" | "RAMADHAN">("DAILY");
@@ -204,22 +244,22 @@ export default function IbadahPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load data from storage
-  const loadLocalData = () => {
+  const loadLocalData = (targetDateStr: string = selectedDateStr) => {
     const currentMode = getStoredIbadahMode();
     setMode(currentMode);
 
     const allActs = getStoredIbadahActivities();
     setActivities(allActs);
 
-    const todayRecs = getStoredIbadahRecords(selectedDateStr);
+    const todayRecs = getStoredIbadahRecords(targetDateStr);
     setRecords(todayRecs);
 
-    const ref = getStoredIbadahReflection(selectedDateStr);
+    const ref = getStoredIbadahReflection(targetDateStr);
     setReflection(ref);
     setReflectionText(ref?.content || "");
     setSelectedMood(ref?.mood || "");
 
-    const tToday = getStoredQuranReadings(selectedDateStr);
+    const tToday = getStoredQuranReadings(targetDateStr);
     setTodayTilawah(tToday);
 
     const tAll = getStoredQuranReadings();
@@ -230,12 +270,18 @@ export default function IbadahPage() {
   };
 
   useEffect(() => {
-    loadLocalData();
+    loadLocalData(selectedDateStr);
 
     // Background sync with database server actions
     getIbadahInitialDataAction(selectedDateStr)
       .then((res) => {
         if (res.success) {
+          if (res.serverToday) {
+            setTodayDateStr(res.serverToday);
+          }
+          if (res.serverTime) {
+            setCurrentTimeStr(res.serverTime);
+          }
           if (res.activities && res.activities.length > 0) {
             setActivities(res.activities as any);
           }
@@ -260,12 +306,67 @@ export default function IbadahPage() {
       });
   }, [selectedDateStr]);
 
+  // Midnight transition detector & visibility listener
+  useEffect(() => {
+    let midnightTimer: NodeJS.Timeout | null = null;
+
+    const scheduleMidnightCheck = () => {
+      const ms = getMsUntilNextMidnight("Asia/Jakarta");
+      midnightTimer = setTimeout(() => {
+        const newToday = getTodayInTimezone("Asia/Jakarta");
+        setTodayDateStr((prevToday) => {
+          if (newToday !== prevToday) {
+            setSelectedDateStr((prevSelected) => {
+              if (prevSelected === prevToday) return newToday;
+              return prevSelected;
+            });
+            showOrbitToast(`Hari telah berganti ke ${newToday}. Lembar ibadah hari ini siap dicatat.`, "info");
+          }
+          return newToday;
+        });
+        setCurrentTimeStr(getCurrentTimeInTimezone("Asia/Jakarta"));
+        scheduleMidnightCheck();
+      }, ms);
+    };
+
+    scheduleMidnightCheck();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        const currentToday = getTodayInTimezone("Asia/Jakarta");
+        setTodayDateStr((prevToday) => {
+          if (currentToday !== prevToday) {
+            setSelectedDateStr((prevSelected) => {
+              if (prevSelected === prevToday) return currentToday;
+              return prevSelected;
+            });
+            showOrbitToast(`Hari telah berganti ke ${currentToday}.`, "info");
+          }
+          return currentToday;
+        });
+        setCurrentTimeStr(getCurrentTimeInTimezone("Asia/Jakarta"));
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    const minuteInterval = setInterval(() => {
+      setCurrentTimeStr(getCurrentTimeInTimezone("Asia/Jakarta"));
+    }, 60000);
+
+    return () => {
+      if (midnightTimer) clearTimeout(midnightTimer);
+      clearInterval(minuteInterval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   // Listen to cross-module storage updates
   useEffect(() => {
     const handleDataChanged = (e: Event) => {
       const customEvent = e as CustomEvent<{ module?: string }>;
       if (!customEvent.detail?.module || customEvent.detail?.module === "ibadah") {
-        loadLocalData();
+        loadLocalData(selectedDateStr);
       }
     };
     window.addEventListener(ORBIT_DATA_CHANGED_EVENT, handleDataChanged);
@@ -285,25 +386,24 @@ export default function IbadahPage() {
 
   // Date Navigation Handlers
   const handlePrevDay = () => {
-    const next = new Date(currentDate);
-    next.setDate(next.getDate() - 1);
-    setCurrentDate(next);
+    const parts = selectedDateStr.split("-").map(Number);
+    const d = new Date(parts[0], parts[1] - 1, parts[2] - 1);
+    setSelectedDateStr(formatLocalDateSafe(d));
   };
 
   const handleNextDay = () => {
-    const next = new Date(currentDate);
-    next.setDate(next.getDate() + 1);
-    setCurrentDate(next);
+    const parts = selectedDateStr.split("-").map(Number);
+    const d = new Date(parts[0], parts[1] - 1, parts[2] + 1);
+    setSelectedDateStr(formatLocalDateSafe(d));
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date());
+    setSelectedDateStr(todayDateStr);
   };
 
   const handleDateSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value) {
-      const parts = e.target.value.split("-").map(Number);
-      setCurrentDate(new Date(parts[0], parts[1] - 1, parts[2]));
+      setSelectedDateStr(e.target.value);
     }
   };
 
@@ -370,30 +470,64 @@ export default function IbadahPage() {
   const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay();
   const startOffset = (firstDayOfWeek + 6) % 7;
 
-  // Toggle Amalan Checklist
-  const handleToggle = (activityId: string) => {
-    const updated = toggleStoredIbadahRecord(activityId, selectedDateStr);
-    setRecords((prev) => {
-      const idx = prev.findIndex((r) => r.activityId === activityId);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = updated;
-        return copy;
+  // Toggle Amalan Checklist with strict date-locking & double-click protection
+  const handleToggle = async (activityId: string) => {
+    if (isReadOnly) {
+      if (isPast) {
+        showOrbitToast("Catatan ibadah untuk tanggal yang sudah berlalu tidak dapat diubah.", "error");
+      } else {
+        showOrbitToast("Ibadah untuk tanggal mendatang belum dapat dicatat.", "error");
       }
-      return [...prev, updated];
-    });
+      return;
+    }
 
-    toggleIbadahRecordAction({
-      activityId,
-      date: selectedDateStr,
-      completed: updated.completed,
-    }).catch((err) => {
+    if (togglingIds.has(activityId)) return;
+
+    setTogglingIds((prev) => new Set(prev).add(activityId));
+
+    try {
+      const updated = toggleStoredIbadahRecord(activityId, selectedDateStr);
+      if (updated) {
+        setRecords((prev) => {
+          const idx = prev.findIndex((r) => r.activityId === activityId && r.date === selectedDateStr);
+          if (idx >= 0) {
+            const copy = [...prev];
+            copy[idx] = updated;
+            return copy;
+          }
+          return [...prev, updated];
+        });
+
+        const res = await toggleIbadahRecordAction({
+          activityId,
+          date: selectedDateStr,
+          completed: updated.completed,
+        });
+
+        if (!res.success) {
+          showOrbitToast(res.error || "Gagal memperbarui catatan ibadah", "error");
+          loadLocalData(selectedDateStr);
+        }
+      }
+    } catch (err) {
       console.warn("Server action toggle error:", err);
-    });
+      loadLocalData(selectedDateStr);
+    } finally {
+      setTogglingIds((prev) => {
+        const copy = new Set(prev);
+        copy.delete(activityId);
+        return copy;
+      });
+    }
   };
 
   // Reset Hari Ini
   const handleConfirmReset = () => {
+    if (isReadOnly) {
+      showOrbitToast("Hanya amalan hari ini yang dapat di-reset.", "error");
+      setIsResetConfirmOpen(false);
+      return;
+    }
     resetStoredIbadahForDate(selectedDateStr);
     setRecords([]);
     setIsResetConfirmOpen(false);
@@ -700,7 +834,7 @@ export default function IbadahPage() {
             <span>Pilih Tanggal</span>
           </label>
 
-          <div className="flex items-center gap-2 ml-1 text-xs">
+          <div className="flex items-center gap-2 ml-1 text-xs flex-wrap">
             <span className="font-semibold text-[#181E24]">
               {formatGregorianFull(currentDate)}
             </span>
@@ -709,15 +843,43 @@ export default function IbadahPage() {
               <Moon className="w-3 h-3 text-[#C8A96B]" />
               {formatHijriDate(currentDate)}
             </span>
+            <span className="text-[#8A9197]">•</span>
+            {isToday ? (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Hari Ini (Aktif)
+              </span>
+            ) : isPast ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-100 text-neutral-600 border border-neutral-200">
+                <Lock className="w-2.5 h-2.5 text-neutral-500" />
+                Mode Riwayat (Terkunci)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                <Clock className="w-2.5 h-2.5 text-amber-600" />
+                Mendatang (Belum Terbuka)
+              </span>
+            )}
           </div>
         </div>
 
         {/* Action Buttons: Secondary Tools + Primary + Tambah Amalan */}
         <div className="flex items-center gap-1.5 w-full md:w-auto justify-end border-t md:border-t-0 pt-2.5 md:pt-0 border-[#E5E7EB]">
           <button
-            onClick={() => setIsResetConfirmOpen(true)}
-            className="p-1.5 rounded-lg border border-[#D9DDD9] hover:bg-red-50 hover:border-red-200 text-[#6A7282] hover:text-red-600 transition-colors"
-            title="Reset amalan hari ini"
+            onClick={() => {
+              if (isReadOnly) {
+                showOrbitToast("Hanya amalan hari ini yang dapat di-reset.", "error");
+                return;
+              }
+              setIsResetConfirmOpen(true);
+            }}
+            disabled={isReadOnly}
+            className={`p-1.5 rounded-lg border transition-colors ${
+              isReadOnly
+                ? "border-[#E5E7EB] text-neutral-300 cursor-not-allowed opacity-50"
+                : "border-[#D9DDD9] hover:bg-red-50 hover:border-red-200 text-[#6A7282] hover:text-red-600"
+            }`}
+            title={isReadOnly ? "Reset hanya tersedia untuk hari ini" : "Reset amalan hari ini"}
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
@@ -920,11 +1082,21 @@ export default function IbadahPage() {
           <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
             <div>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#059669]" />
+                <span className={`w-2 h-2 rounded-full ${isToday ? "bg-[#059669]" : "bg-neutral-400"}`} />
                 <h2 className="text-sm font-semibold text-[#181E24]">Ibadah Wajib</h2>
+                {isReadOnly && (
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200 inline-flex items-center gap-1">
+                    <Lock className="w-2.5 h-2.5" />
+                    {isPast ? "Riwayat — tidak dapat diubah" : "Belum masuk waktu"}
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-[#6A7282] mt-0.5">
-                Amalan utama yang menjadi fondasi hari ini.
+                {isToday
+                  ? "Amalan utama yang menjadi fondasi hari ini."
+                  : isPast
+                  ? "Data rekaman ibadah masa lalu (hanya-baca)."
+                  : "Jadwal ibadah fardhu masa mendatang."}
               </p>
             </div>
             <span className="text-xs font-mono font-medium text-[#059669] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/50">
@@ -936,54 +1108,135 @@ export default function IbadahPage() {
             {wajibList.map((item) => {
               const rec = recordMap.get(item.id);
               const isDone = Boolean(rec?.completed);
+              const prayerInfo = getPrayerTimeForActivity(item.name, prayerSchedule);
+              const prayerStatus = getPrayerStatus(
+                item.name,
+                prayerSchedule,
+                currentTimeStr,
+                isToday,
+                isPast,
+                isFuture,
+                isDone
+              );
 
               return (
                 <div
                   key={item.id}
-                  onClick={() => handleToggle(item.id)}
-                  className={`flex items-center justify-between p-2.5 sm:p-3 rounded-xl border transition-all duration-150 cursor-pointer ${
-                    isDone
-                      ? "bg-[#FAFDF9] border-[#A7F3D0]/70"
-                      : "bg-[#FAFBF8] border-[#E5E7EB] hover:border-[#CBD5E1] hover:bg-white"
+                  onClick={() => {
+                    if (isReadOnly) {
+                      if (isPast) {
+                        showOrbitToast("Catatan ibadah untuk tanggal yang sudah berlalu tidak dapat diubah.", "error");
+                      } else {
+                        showOrbitToast("Ibadah untuk tanggal mendatang belum dapat dicatat.", "error");
+                      }
+                      return;
+                    }
+                    handleToggle(item.id);
+                  }}
+                  className={`group flex items-center justify-between p-3 sm:p-3.5 rounded-xl border transition-all duration-150 select-none ${
+                    isReadOnly
+                      ? isDone
+                        ? "bg-[#FAFDF9] border-[#A7F3D0]/60 opacity-90 cursor-not-allowed"
+                        : "bg-[#FAFBF8] border-[#E5E7EB] opacity-75 cursor-not-allowed"
+                      : isDone
+                      ? "bg-[#FAFDF9] border-[#A7F3D0]/80 cursor-pointer shadow-xs"
+                      : "bg-white border-[#E5E7EB] hover:border-[#CBD5E1] hover:bg-[#FAFBF8] cursor-pointer shadow-xs"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  {/* Sisi Kiri: Checkbox & Informasi Nama + Waktu Catat */}
+                  <div className="flex items-center gap-3 min-w-0">
                     <button
                       type="button"
+                      disabled={isReadOnly}
                       aria-label={`Tandai ${item.name}`}
-                      className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${
+                      className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
                         isDone
-                          ? "bg-[#059669] text-white"
-                          : "border border-[#CBD5E1] hover:border-[#059669] text-transparent"
+                          ? isReadOnly
+                            ? "bg-[#059669]/80 text-white cursor-not-allowed"
+                            : "bg-[#059669] text-white shadow-xs"
+                          : isReadOnly
+                          ? "border border-neutral-300 text-neutral-400 cursor-not-allowed bg-neutral-100/60"
+                          : "border border-[#CBD5E1] hover:border-[#059669] text-transparent hover:bg-emerald-50/50"
                       }`}
                     >
-                      <Check className="w-3 h-3 stroke-[3]" />
+                      {isDone ? (
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      ) : isPast ? (
+                        <Lock className="w-2.5 h-2.5 text-neutral-400" />
+                      ) : null}
                     </button>
-                    <div>
-                      <span
-                        className={`text-xs sm:text-sm font-medium transition-colors ${
-                          isDone
-                            ? "text-[#6A7282] line-through decoration-[#059669]/40"
-                            : "text-[#181E24]"
-                        }`}
-                      >
-                        {item.name}
-                      </span>
-                      {rec?.completedAt && isDone && (
-                        <span className="text-[10px] text-[#8A9197] ml-2 font-mono">
-                          {new Date(rec.completedAt).toLocaleTimeString("id-ID", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}{" "}
-                          WIB
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-xs sm:text-sm font-medium transition-colors truncate ${
+                            isDone
+                              ? "text-[#6A7282] line-through decoration-[#059669]/40"
+                              : "text-[#181E24]"
+                          }`}
+                        >
+                          {item.name}
                         </span>
-                      )}
+
+                        {/* Current Active Prayer Badge */}
+                        {isToday && !isDone && prayerStatus.status === "ACTIVE" && (
+                          <span className="text-[9px] font-medium px-1.5 py-0.2 rounded bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+                            Waktu Masuk
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Secondary line: waktu selesai dicatat */}
+                      <div className="text-[11px] mt-0.5 flex items-center gap-1.5">
+                        {isDone && rec?.completedAt ? (
+                          <span className="text-[#059669] font-medium inline-flex items-center gap-1">
+                            <span>✓ Selesai</span>
+                            <span className="text-[#8A9197] font-normal">·</span>
+                            <span className="text-[#6A7282] font-mono">
+                              dicatat {new Date(rec.completedAt).toLocaleTimeString("id-ID", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}{" "}
+                              WIB
+                            </span>
+                          </span>
+                        ) : isPast ? (
+                          <span className="text-neutral-400 text-[10px] inline-flex items-center gap-1">
+                            <Lock className="w-2.5 h-2.5" />
+                            <span>Belum dicatat · Waktu terlewat</span>
+                          </span>
+                        ) : isFuture ? (
+                          <span className="text-neutral-400 text-[10px]">
+                            Belum masuk waktu
+                          </span>
+                        ) : (
+                          <span className="text-[#8A9197] text-[10px]">
+                            {prayerStatus.status === "ACTIVE"
+                              ? "Sedang berlangsung"
+                              : prayerStatus.status === "EXPIRED"
+                              ? "Waktu utama lewat · dapat dicatat"
+                              : "Belum dicatat"}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  <span className="text-[10px] font-medium text-[#6A7282] bg-white px-2 py-0.5 rounded-md border border-[#E5E7EB]">
-                    {item.targetCount} {item.unit}
-                  </span>
+                  {/* Sisi Kanan: JADWAL SHOLAT (Prayer Schedule Time) */}
+                  <div className="shrink-0 text-right ml-3">
+                    {prayerInfo ? (
+                      <div className="inline-flex items-center gap-1 font-mono text-xs font-medium text-[#181E24] bg-[#F7F8F5] px-2.5 py-1 rounded-lg border border-[#E5E7EB]">
+                        <span>{prayerInfo.time}</span>
+                        <span className="text-[10px] text-[#6A7282] font-sans">
+                          {prayerSchedule?.timezoneAbbr || "WIB"}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-[#8A9197] bg-[#F7F8F5] px-2 py-0.5 rounded border border-[#E5E7EB]">
+                        {item.targetCount} {item.unit}
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -995,13 +1248,23 @@ export default function IbadahPage() {
           <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
             <div>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#08BFD7]" />
+                <span className={`w-2 h-2 rounded-full ${isToday ? "bg-[#08BFD7]" : "bg-neutral-400"}`} />
                 <h2 className="text-sm font-semibold text-[#181E24]">
                   Sunnah & Amalan Tambahan
                 </h2>
+                {isReadOnly && (
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200 inline-flex items-center gap-1">
+                    <Lock className="w-2.5 h-2.5" />
+                    {isPast ? "Riwayat" : "Mendatang"}
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-[#6A7282] mt-0.5">
-                Amalan penyempurna untuk memperkaya kualitas spiritual.
+                {isToday
+                  ? "Amalan penyempurna untuk memperkaya kualitas spiritual."
+                  : isPast
+                  ? "Rekaman amalan sunnah masa lalu (hanya-baca)."
+                  : "Target amalan sunnah masa mendatang."}
               </p>
             </div>
             <span className="text-xs font-mono font-medium text-[#08BFD7] bg-cyan-50 px-2 py-0.5 rounded-md border border-cyan-200/50">
@@ -1017,31 +1280,55 @@ export default function IbadahPage() {
               return (
                 <div
                   key={item.id}
-                  className={`flex items-center justify-between p-2.5 sm:p-3 rounded-xl border transition-all duration-150 ${
-                    isDone
-                      ? "bg-[#FAFDF9] border-[#A7F3D0]/70"
-                      : "bg-[#FAFBF8] border-[#E5E7EB] hover:border-[#CBD5E1] hover:bg-white"
+                  className={`group flex items-center justify-between p-2.5 sm:p-3 rounded-xl border transition-all duration-150 select-none ${
+                    isReadOnly
+                      ? isDone
+                        ? "bg-[#FAFDF9] border-[#A7F3D0]/60 opacity-90 cursor-not-allowed"
+                        : "bg-[#FAFBF8] border-[#E5E7EB] opacity-75 cursor-not-allowed"
+                      : isDone
+                      ? "bg-[#FAFDF9] border-[#A7F3D0]/80 cursor-pointer shadow-xs"
+                      : "bg-[#FAFBF8] border-[#E5E7EB] hover:border-[#CBD5E1] hover:bg-white cursor-pointer shadow-xs"
                   }`}
                 >
                   <div
-                    onClick={() => handleToggle(item.id)}
-                    className="flex items-center gap-3 flex-1 cursor-pointer"
+                    onClick={() => {
+                      if (isReadOnly) {
+                        if (isPast) {
+                          showOrbitToast("Catatan ibadah untuk tanggal yang sudah berlalu tidak dapat diubah.", "error");
+                        } else {
+                          showOrbitToast("Ibadah untuk tanggal mendatang belum dapat dicatat.", "error");
+                        }
+                        return;
+                      }
+                      handleToggle(item.id);
+                    }}
+                    className="flex items-center gap-3 flex-1 min-w-0"
                   >
                     <button
                       type="button"
+                      disabled={isReadOnly}
                       aria-label={`Tandai ${item.name}`}
-                      className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${
+                      className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
                         isDone
-                          ? "bg-[#059669] text-white"
-                          : "border border-[#CBD5E1] hover:border-[#059669] text-transparent"
+                          ? isReadOnly
+                            ? "bg-[#059669]/80 text-white cursor-not-allowed"
+                            : "bg-[#059669] text-white"
+                          : isReadOnly
+                          ? "border border-neutral-300 text-neutral-400 cursor-not-allowed bg-neutral-100/60"
+                          : "border border-[#CBD5E1] hover:border-[#059669] text-transparent hover:bg-emerald-50/50"
                       }`}
                     >
-                      <Check className="w-3 h-3 stroke-[3]" />
+                      {isDone ? (
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      ) : isPast ? (
+                        <Lock className="w-2.5 h-2.5 text-neutral-400" />
+                      ) : null}
                     </button>
-                    <div>
+
+                    <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span
-                          className={`text-xs sm:text-sm font-medium transition-colors ${
+                          className={`text-xs sm:text-sm font-medium transition-colors truncate ${
                             isDone
                               ? "text-[#6A7282] line-through decoration-[#059669]/40"
                               : "text-[#181E24]"
@@ -1055,23 +1342,38 @@ export default function IbadahPage() {
                           </span>
                         )}
                       </div>
-                      {rec?.completedAt && isDone && (
-                        <span className="text-[10px] text-[#8A9197] font-mono">
-                          {new Date(rec.completedAt).toLocaleTimeString("id-ID", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}{" "}
-                          WIB
-                        </span>
-                      )}
+
+                      <div className="text-[11px] mt-0.5">
+                        {isDone && rec?.completedAt ? (
+                          <span className="text-[#059669] font-medium inline-flex items-center gap-1">
+                            <span>✓ Selesai</span>
+                            <span className="text-[#8A9197] font-normal">·</span>
+                            <span className="text-[#6A7282] font-mono">
+                              dicatat {new Date(rec.completedAt).toLocaleTimeString("id-ID", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}{" "}
+                              WIB
+                            </span>
+                          </span>
+                        ) : isPast ? (
+                          <span className="text-neutral-400 text-[10px] inline-flex items-center gap-1">
+                            <Lock className="w-2.5 h-2.5" />
+                            <span>Belum dicatat · Terkunci</span>
+                          </span>
+                        ) : (
+                          <span className="text-[#8A9197] text-[10px]">Belum dicatat</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
                     <span className="text-[10px] font-medium text-[#6A7282] bg-white px-2 py-0.5 rounded-md border border-[#E5E7EB]">
                       {item.targetCount} {item.unit}
                     </span>
-                    {item.isCustom && (
+
+                    {item.isCustom && !isReadOnly && (
                       <div className="flex items-center">
                         <button
                           onClick={(e) => {
@@ -1082,7 +1384,7 @@ export default function IbadahPage() {
                           className="p-1 rounded text-[#8A9197] hover:text-[#181E24]"
                           title="Edit amalan"
                         >
-                          <Edit2 className="w-3 h-3" />
+                          <Pencil className="w-3 h-3" />
                         </button>
                         <button
                           onClick={(e) => {
@@ -1148,8 +1450,7 @@ export default function IbadahPage() {
                   <div
                     key={d.date}
                     onClick={() => {
-                      const parts = d.date.split("-").map(Number);
-                      setCurrentDate(new Date(parts[0], parts[1] - 1, parts[2]));
+                      setSelectedDateStr(d.date);
                     }}
                     className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end cursor-pointer group"
                   >
@@ -1271,7 +1572,7 @@ export default function IbadahPage() {
             </div>
 
             {/* Heatmap Legend */}
-            <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-[#6A7282]">
+            <div className="flex items-center gap-1.5 text-[10px] text-[#6A7282] mt-1 sm:mt-0">
               <span>Kurang</span>
               <span className="w-2.5 h-2.5 rounded bg-[#E5E7EB]" />
               <span className="w-2.5 h-2.5 rounded bg-[#A7F3D0]" />
@@ -1309,7 +1610,7 @@ export default function IbadahPage() {
                 <button
                   key={dateStr}
                   onClick={() => {
-                    setCurrentDate(new Date(viewYear, viewMonth, dayNum));
+                    setSelectedDateStr(dateStr);
                   }}
                   className={`h-8 sm:h-9 rounded-lg flex flex-col items-center justify-center text-xs transition-all duration-150 relative cursor-pointer ${bgClass} ${
                     isSelected ? "ring-2 ring-offset-1 ring-[#181E24] font-bold shadow-sm" : ""

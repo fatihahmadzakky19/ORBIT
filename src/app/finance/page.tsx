@@ -1327,9 +1327,9 @@ export default function FinancePage() {
       {/* MODAL: ADD / EDIT TRANSACTION */}
       {/* --------------------------------------------------------- */}
       {isAddingTx && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
           <div
-            className="w-full max-w-md rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative"
+            className="w-full max-w-md rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-4 sm:p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative my-auto max-h-[90dvh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#F0F2EE]">
@@ -1478,9 +1478,9 @@ export default function FinancePage() {
       {/* MODAL: UPDATE ACTUAL BALANCE */}
       {/* --------------------------------------------------------- */}
       {isUpdatingActual && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
           <div
-            className="w-full max-w-sm rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative"
+            className="w-full max-w-sm rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-4 sm:p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative my-auto max-h-[90dvh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#F0F2EE]">
@@ -1535,9 +1535,9 @@ export default function FinancePage() {
       {/* MODAL: CREATE CUSTOM CATEGORY */}
       {/* --------------------------------------------------------- */}
       {isAddingCategory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
           <div
-            className="w-full max-w-sm rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative"
+            className="w-full max-w-sm rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-4 sm:p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative my-auto max-h-[90dvh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#F0F2EE]">

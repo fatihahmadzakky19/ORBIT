@@ -185,3 +185,75 @@ export function getCurrentWeekDays(now: Date = new Date()): WeekDayInfo[] {
   }
   return days;
 }
+
+/**
+ * Returns today's date formatted as YYYY-MM-DD in the specified timezone (default: Asia/Jakarta)
+ */
+export function getTodayInTimezone(timeZone: string = DEFAULT_TIMEZONE): string {
+  try {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return formatter.format(new Date());
+  } catch {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return formatter.format(new Date());
+  }
+}
+
+/**
+ * Returns current time formatted as HH:mm in the specified timezone (default: Asia/Jakarta)
+ */
+export function getCurrentTimeInTimezone(timeZone: string = DEFAULT_TIMEZONE): string {
+  try {
+    const formatter = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    return formatter.format(new Date());
+  } catch {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  }
+}
+
+/**
+ * Compares dateStr with today in the specified timezone
+ */
+export function compareDateWithToday(
+  dateStr: string,
+  timeZone: string = DEFAULT_TIMEZONE
+): "TODAY" | "PAST" | "FUTURE" {
+  const todayStr = getTodayInTimezone(timeZone);
+  if (dateStr === todayStr) return "TODAY";
+  if (dateStr < todayStr) return "PAST";
+  return "FUTURE";
+}
+
+/**
+ * Calculates milliseconds remaining until next midnight (00:00:01) in the specified timezone
+ */
+export function getMsUntilNextMidnight(timeZone: string = DEFAULT_TIMEZONE): number {
+  try {
+    const timeStr = getCurrentTimeInTimezone(timeZone);
+    const [curH, curM] = timeStr.split(":").map(Number);
+    const curSec = new Date().getSeconds();
+
+    const elapsedSecondsToday = curH * 3600 + curM * 60 + curSec;
+    const totalSecondsInDay = 86400;
+    const remainingSeconds = Math.max(1, totalSecondsInDay - elapsedSecondsToday + 1);
+    return remainingSeconds * 1000;
+  } catch {
+    return 3600 * 1000; // fallback 1 hour
+  }
+}
+

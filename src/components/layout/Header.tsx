@@ -52,16 +52,15 @@ export function Header({ onOpenQuickAdd }: HeaderProps) {
           <Lock className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
         </Link>
 
-        {/* Primary Action Button — Desktop only */}
-        <Button
+        {/* Primary Action Button ("+ Catatan") — accessible on mobile and desktop */}
+        <button
+          type="button"
           onClick={onOpenQuickAdd}
-          variant="primary"
-          size="sm"
-          className="hidden md:inline-flex"
+          className="inline-flex items-center gap-1 sm:gap-1.5 h-8 sm:h-9 px-2.5 sm:px-3.5 rounded-xl bg-[#08BFD7] hover:bg-[#07AEC4] text-white text-[11px] sm:text-xs font-medium shadow-[0_2px_8px_rgba(8,191,215,0.22)] active:scale-95 transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5] text-white" />
           <span>{t.nav.addRecord}</span>
-        </Button>
+        </button>
 
         {/* Interactive Profile Control with Dropdown Menu & Real Avatar */}
         <ProfileMenu />

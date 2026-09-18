@@ -35,7 +35,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <LanguageProvider>
-      <div className="min-h-screen flex bg-canvas text-main font-sans selection:bg-accent/25 relative overflow-x-hidden">
+      <div className="min-h-[100dvh] flex bg-canvas text-main font-sans selection:bg-accent/25 relative overflow-x-hidden">
         {/* Subtle deep space atmospheric ambient glows — warm accretion disk top-right, subtle cyan bottom-left */}
         <div className="fixed -top-32 -right-32 ambient-glow-warm z-0 opacity-70 pointer-events-none" />
         <div className="fixed top-1/2 -left-32 ambient-glow-deep z-0 opacity-50 pointer-events-none" />
@@ -44,7 +44,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Sidebar onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0 relative z-10">
+        <div className="flex-1 flex flex-col min-w-0 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0 relative z-10">
           <Header onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
 
           <main className="flex-1 px-3.5 sm:px-5 md:px-8 py-3.5 sm:py-5 md:py-6 max-w-5xl mx-auto w-full">

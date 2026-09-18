@@ -1322,9 +1322,9 @@ export default function LearningPage() {
       {/* MODAL: CREATE FOLDER */}
       {/* --------------------------------------------------------- */}
       {isCreatingFolder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
           <div
-            className="w-full max-w-sm rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative"
+            className="w-full max-w-sm rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-4 sm:p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative my-auto max-h-[90dvh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#F0F2EE]">
@@ -1386,9 +1386,9 @@ export default function LearningPage() {
       {/* MODAL: CREATE DOCUMENT */}
       {/* --------------------------------------------------------- */}
       {isCreatingDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
           <div
-            className="w-full max-w-lg rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative flex flex-col max-h-[85vh]"
+            className="w-full max-w-lg rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-4 sm:p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative flex flex-col my-auto max-h-[90dvh]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#F0F2EE]">
@@ -1475,9 +1475,9 @@ export default function LearningPage() {
       {/* MODAL: CREATE LEARNING NOTE */}
       {/* --------------------------------------------------------- */}
       {isCreatingNote && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
           <div
-            className="w-full max-w-md rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative"
+            className="w-full max-w-md rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-4 sm:p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative my-auto max-h-[90dvh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#F0F2EE]">
@@ -1560,9 +1560,9 @@ export default function LearningPage() {
       {/* MODAL: DOCUMENT PREVIEW */}
       {/* --------------------------------------------------------- */}
       {previewDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
           <div
-            className="w-full max-w-xl rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative flex flex-col max-h-[85vh]"
+            className="w-full max-w-xl rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-4 sm:p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative flex flex-col my-auto max-h-[90dvh]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#F0F2EE]">
@@ -1601,13 +1601,20 @@ export default function LearningPage() {
               </pre>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-[#F0F2EE] text-xs">
-              <span className="text-[11px] text-[#8F96A3]">
-                Dibuat: {new Date(previewDoc.createdAt).toLocaleDateString("id-ID")}
-              </span>
+            <div className="flex items-center justify-between pt-3 border-t border-[#F0F2EE]">
+              <button
+                onClick={() => {
+                  triggerFileDownload(previewDoc.name, previewDoc.content || "");
+                  showOrbitToast(`Mengunduh ${previewDoc.name}`);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#08BFD7] bg-[#08BFD7]/10 hover:bg-[#08BFD7]/20 transition-all cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Unduh File</span>
+              </button>
               <button
                 onClick={() => setPreviewDoc(null)}
-                className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-[#20252A] bg-[#F4F5F2] hover:bg-[#EAECE8]"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-[#20252A] bg-[#F4F5F2] hover:bg-[#EAECE8] cursor-pointer"
               >
                 Tutup
               </button>
@@ -1620,9 +1627,9 @@ export default function LearningPage() {
       {/* MODAL: NOTE DETAIL */}
       {/* --------------------------------------------------------- */}
       {selectedNote && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
           <div
-            className="w-full max-w-lg rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative flex flex-col max-h-[85vh]"
+            className="w-full max-w-lg rounded-2xl bg-white border border-[#D9DDD9] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-4 sm:p-5 text-[#20252A] animate-in zoom-in-95 duration-150 relative flex flex-col my-auto max-h-[90dvh]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#F0F2EE]">

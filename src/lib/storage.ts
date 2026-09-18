@@ -1,5 +1,7 @@
 "use client";
 
+import { getTodayInTimezone } from "@/lib/date";
+
 export const ORBIT_DATA_CHANGED_EVENT = "orbit_data_changed";
 export const ORBIT_TOAST_EVENT = "orbit_toast";
 
@@ -842,7 +844,17 @@ export function getStoredIbadahRecords(dateStr?: string): StoredIbadahRecord[] {
   }
 }
 
-export function toggleStoredIbadahRecord(activityId: string, dateStr: string): StoredIbadahRecord {
+export function toggleStoredIbadahRecord(activityId: string, dateStr: string): StoredIbadahRecord | null {
+  const todayStr = getTodayInTimezone("Asia/Jakarta");
+  if (dateStr < todayStr) {
+    showOrbitToast("Catatan ibadah untuk tanggal yang sudah berlalu tidak dapat diubah.", "error");
+    return null;
+  }
+  if (dateStr > todayStr) {
+    showOrbitToast("Ibadah untuk tanggal mendatang belum dapat dicatat.", "error");
+    return null;
+  }
+
   const records = getStoredIbadahRecords();
   const existingIndex = records.findIndex((r) => r.activityId === activityId && r.date === dateStr);
   const nowIso = new Date().toISOString();
@@ -884,6 +896,11 @@ export function toggleStoredIbadahRecord(activityId: string, dateStr: string): S
 
 export function resetStoredIbadahForDate(dateStr: string): boolean {
   if (typeof window === "undefined") return false;
+  const todayStr = getTodayInTimezone("Asia/Jakarta");
+  if (dateStr !== todayStr) {
+    showOrbitToast("Hanya amalan hari ini yang dapat di-reset.", "error");
+    return false;
+  }
   try {
     const records = getStoredIbadahRecords();
     const filtered = records.filter((r) => r.date !== dateStr);
@@ -980,13 +997,13 @@ export function calculateIbadahStreak(): { currentStreak: number; bestStreak: nu
     let tempStreak = 0;
 
     // Check backwards from today or yesterday
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
+    const todayStr = getTodayInTimezone("Asia/Jakarta");
+    const today = parseLocalDateSafe(todayStr);
     
     // Check if today is completed
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split("T")[0];
+    const yesterdayStr = formatLocalDateSafe(yesterday);
 
     let checkDate = new Date(today);
     if (!dateCompletions[todayStr] && dateCompletions[yesterdayStr]) {
@@ -995,7 +1012,7 @@ export function calculateIbadahStreak(): { currentStreak: number; bestStreak: nu
     }
 
     while (true) {
-      const dStr = checkDate.toISOString().split("T")[0];
+      const dStr = formatLocalDateSafe(checkDate);
       if (dateCompletions[dStr] && dateCompletions[dStr] > 0) {
         currentStreak++;
         checkDate.setDate(checkDate.getDate() - 1);

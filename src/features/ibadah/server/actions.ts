@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { getTodayInTimezone, getCurrentTimeInTimezone } from "@/lib/date";
+import { getPrayerScheduleForDate } from "@/features/ibadah/services/prayerTimes";
 
 // Cast to any to prevent stale IDE type-checking warnings
 const db = prisma as any;
@@ -127,8 +129,15 @@ export async function getIbadahInitialDataAction(dateStr: string) {
       },
     });
 
+    const serverToday = getTodayInTimezone("Asia/Jakarta");
+    const serverTime = getCurrentTimeInTimezone("Asia/Jakarta");
+    const prayerSchedule = getPrayerScheduleForDate(dateStr, { timezone: "Asia/Jakarta" });
+
     return {
       success: true,
+      serverToday,
+      serverTime,
+      prayerSchedule,
       activities,
       records,
       reflection,
@@ -148,7 +157,35 @@ export async function toggleIbadahRecordAction(data: {
   completed?: boolean;
 }) {
   try {
+    // SERVER-SIDE DATE VALIDATION (Asia/Jakarta timezone)
+    const todayStr = getTodayInTimezone("Asia/Jakarta");
+
+    if (data.date < todayStr) {
+      return {
+        success: false,
+        error: "Catatan ibadah untuk tanggal yang sudah berlalu tidak dapat diubah.",
+      };
+    }
+
+    if (data.date > todayStr) {
+      return {
+        success: false,
+        error: "Ibadah untuk tanggal mendatang belum dapat dicatat.",
+      };
+    }
+
     const user = await getDefaultUser();
+
+    // Verify activity exists and belongs to user
+    const activity = await db.ibadahActivity.findFirst({
+      where: {
+        id: data.activityId,
+        userId: user.id,
+      },
+    });
+    if (!activity) {
+      return { success: false, error: "Aktivitas tidak ditemukan atau tidak memiliki akses." };
+    }
 
     const existing = await db.ibadahRecord.findUnique({
       where: {
@@ -373,6 +410,15 @@ export async function saveIbadahReflectionAction(data: {
 
 export async function resetIbadahDailyAction(dateStr: string) {
   try {
+    const todayStr = getTodayInTimezone("Asia/Jakarta");
+
+    if (dateStr !== todayStr) {
+      return {
+        success: false,
+        error: "Hanya amalan hari ini yang dapat di-reset. Data riwayat terkunci.",
+      };
+    }
+
     const user = await getDefaultUser();
 
     await db.ibadahRecord.deleteMany({

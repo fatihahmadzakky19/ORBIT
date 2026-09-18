@@ -364,7 +364,15 @@ export default function HomePage() {
               className="absolute inset-0 z-[1] pointer-events-none"
               style={{
                 background:
-                  "linear-gradient(to right, rgba(8,12,16,0.96) 0%, rgba(10,14,18,0.90) 42%, rgba(13,18,24,0.50) 70%, rgba(13,18,24,0.08) 85%, transparent 100%)",
+                  "linear-gradient(to right, rgba(8,12,16,0.96) 0%, rgba(10,14,18,0.90) 45%, rgba(13,18,24,0.55) 72%, rgba(13,18,24,0.15) 88%, transparent 100%)",
+              }}
+            />
+
+            {/* Mobile-specific vertical gradient for top-text clarity */}
+            <div
+              className="absolute inset-0 z-[1] pointer-events-none sm:hidden"
+              style={{
+                background: "linear-gradient(to bottom, rgba(8,12,16,0.85) 0%, rgba(8,12,16,0.3) 65%, transparent 100%)",
               }}
             />
 
@@ -393,7 +401,7 @@ export default function HomePage() {
             </div>
 
             {/* Content overlay — left-aligned, spacious & strong hierarchy */}
-            <div className="relative z-10 p-5 sm:p-7 md:p-8 lg:p-9 flex flex-col justify-center min-h-[290px] sm:min-h-[320px] md:min-h-[340px]">
+            <div className="relative z-10 p-4 sm:p-7 md:p-8 lg:p-9 flex flex-col justify-center min-h-[290px] sm:min-h-[320px] md:min-h-[340px]">
               <div className="max-w-lg space-y-3 sm:space-y-4">
                 {/* 1. Telemetry Indicator (Time + ONLINE badge):
                     Reserved in layout so no layout shift occurs, fades in after date */}
@@ -439,11 +447,11 @@ export default function HomePage() {
 
                   {/* Name: typed char-by-char with subtle warm-white reflection cursor */}
                   <div className="min-h-[34px] sm:min-h-[44px] flex items-center">
-                    <h1 className="relative inline-block text-[26px] sm:text-3xl md:text-4xl lg:text-[40px] font-semibold text-white tracking-[-0.01em] leading-[1.15] cursor-default select-none transition-[filter,opacity] duration-200 hover:brightness-110 overflow-hidden">
+                    <h1 className="relative inline-block text-[22px] xs:text-[25px] sm:text-3xl md:text-4xl lg:text-[40px] font-semibold text-white tracking-[-0.01em] leading-[1.15] cursor-default select-none transition-[filter,opacity] duration-200 hover:brightness-110 overflow-hidden">
                       <span>{displayedName}</span>
                       {showNameCursor && (
                         <span
-                          className={`inline-block w-[2px] h-[22px] sm:h-[30px] bg-[#F5F1E9] cursor-warm-glow ml-1 align-middle transition-opacity duration-200 ${
+                          className={`inline-block w-[2px] h-[20px] sm:h-[30px] bg-[#F5F1E9] cursor-warm-glow ml-1 align-middle transition-opacity duration-200 ${
                             isTypingName ? "animate-typing-cursor opacity-100" : "opacity-0"
                           }`}
                           aria-hidden="true"
@@ -471,7 +479,7 @@ export default function HomePage() {
                         duration: shouldReduceMotion ? 0.05 : 0.45,
                         ease: [0.16, 1, 0.3, 1],
                       }}
-                      className="text-[13px] text-[#8A9197] font-normal"
+                      className="text-[12px] sm:text-[13px] text-[#8A9197] font-normal"
                     >
                       <span suppressHydrationWarning>{todayFormatted}</span>
                     </motion.p>
@@ -489,39 +497,39 @@ export default function HomePage() {
                     duration: shouldReduceMotion ? 0.05 : 0.45,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  className={`pt-2 grid grid-cols-3 gap-2 sm:gap-3 ${
+                  className={`pt-2 grid grid-cols-3 gap-1.5 sm:gap-3 ${
                     showMetrics ? "pointer-events-auto" : "pointer-events-none"
                   }`}
                 >
                   {/* Kebiasaan */}
-                  <div className="px-3 py-2 sm:py-2.5 rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/10 shadow-sm text-left">
-                    <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.03em] text-[#A7A29A] font-normal">
+                  <div className="px-2 sm:px-3 py-1.5 sm:py-2.5 rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/10 shadow-sm text-left">
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[11px] uppercase tracking-[0.03em] text-[#A7A29A] font-normal">
                       <span className="text-[#059669]">◌</span>
                       <span className="truncate">{t.nav.habits}</span>
                     </div>
-                    <div className="text-xs sm:text-[13px] font-mono font-medium text-white mt-0.5 truncate">
+                    <div className="text-[11px] sm:text-[13px] font-mono font-medium text-white mt-0.5 truncate">
                       {completedTodayCount} / {habits.length}
                     </div>
                   </div>
 
                   {/* Target */}
-                  <div className="px-3 py-2 sm:py-2.5 rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/10 shadow-sm text-left">
-                    <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.03em] text-[#A7A29A] font-normal">
+                  <div className="px-2 sm:px-3 py-1.5 sm:py-2.5 rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/10 shadow-sm text-left">
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[11px] uppercase tracking-[0.03em] text-[#A7A29A] font-normal">
                       <span className="text-[#08BFD7]">◎</span>
                       <span className="truncate">{t.nav.goals}</span>
                     </div>
-                    <div className="text-xs sm:text-[13px] font-mono font-medium text-white mt-0.5 truncate">
+                    <div className="text-[11px] sm:text-[13px] font-mono font-medium text-white mt-0.5 truncate">
                       {focusGoals.length} {t.common.active}
                     </div>
                   </div>
 
                   {/* Keuangan */}
-                  <div className="px-3 py-2 sm:py-2.5 rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/10 shadow-sm text-left">
-                    <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.03em] text-[#A7A29A] font-normal">
+                  <div className="px-2 sm:px-3 py-1.5 sm:py-2.5 rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/10 shadow-sm text-left">
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[11px] uppercase tracking-[0.03em] text-[#A7A29A] font-normal">
                       <span className="text-[#C8A96B]">◇</span>
                       <span className="truncate">{t.nav.finance}</span>
                     </div>
-                    <div className="text-xs sm:text-[13px] font-mono font-medium text-white mt-0.5 truncate">
+                    <div className="text-[11px] sm:text-[13px] font-mono font-medium text-white mt-0.5 truncate">
                       {formatCurrency(actualBalance)}
                     </div>
                   </div>

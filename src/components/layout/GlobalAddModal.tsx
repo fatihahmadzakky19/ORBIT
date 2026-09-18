@@ -181,11 +181,11 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-2xl overflow-hidden text-main">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
+      <div className="w-full max-w-md bg-surface border border-line rounded-2xl shadow-2xl overflow-hidden text-main my-auto max-h-[90dvh] flex flex-col">
         {/* Step 1: Selection Menu */}
         {selectedType === "NONE" && (
-          <div className="p-6">
+          <div className="p-5 sm:p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-main">{t.quickAdd.title}</h2>
               <button

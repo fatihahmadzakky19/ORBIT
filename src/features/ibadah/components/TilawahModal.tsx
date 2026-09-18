@@ -137,7 +137,7 @@ export function TilawahModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
-      <div className="bg-white rounded-2xl border border-[#D9DDD9] shadow-xl w-full max-w-lg p-5 sm:p-6 space-y-4 animate-in zoom-in-95 duration-150 my-auto">
+      <div className="bg-white rounded-2xl border border-[#D9DDD9] shadow-xl w-full max-w-lg p-5 sm:p-6 space-y-4 animate-in zoom-in-95 duration-150 my-auto max-h-[90dvh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
           <div className="flex items-center gap-2.5">
