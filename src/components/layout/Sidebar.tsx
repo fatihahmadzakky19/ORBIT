@@ -47,9 +47,12 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-60 border-r border-[#D9DDD9] bg-[#F7F8F5] min-h-screen px-3.5 py-4 select-none shrink-0 relative z-20">
-      {/* ── 1. BRAND + PRIMARY ACTION ── */}
-      <div className="px-2 mb-4 pt-1">
+    <aside
+      aria-label="Sidebar navigation"
+      className="hidden md:flex flex-col fixed top-0 left-0 bottom-0 w-60 h-[100dvh] max-h-[100dvh] z-30 border-r border-[#D9DDD9] bg-[#F7F8F5] select-none shrink-0 overflow-hidden"
+    >
+      {/* ── 1. BRAND + PRIMARY ACTION (Pinned at top: shrink-0) ── */}
+      <div className="shrink-0 px-4 pt-4 pb-3">
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-xl bg-white border border-[#D9DDD9] flex items-center justify-center text-[#08BFD7] shadow-sm group-hover:border-[#08BFD7]/40 group-hover:shadow-[0_2px_8px_rgba(8,191,215,0.18)] transition-all duration-150 shrink-0">
             <span className="text-xs font-semibold font-mono">O</span>
@@ -66,8 +69,9 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
       </div>
 
       {/* Primary Action Button ("Tambah Catatan") */}
-      <div className="mb-4 px-0.5">
+      <div className="shrink-0 mb-3 px-3.5">
         <button
+          type="button"
           onClick={onOpenQuickAdd}
           className="w-full flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[#08BFD7] hover:bg-[#07AEC4] text-white font-medium text-[13px] shadow-[0_2px_8px_rgba(8,191,215,0.22)] hover:shadow-[0_4px_14px_rgba(8,191,215,0.32)] active:scale-[0.98] transition-all duration-150 cursor-pointer"
         >
@@ -76,8 +80,8 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
         </button>
       </div>
 
-      {/* ── 2. MAIN NAVIGATION (Controlled vertical flow without arbitrary expansion) ── */}
-      <nav className="space-y-1">
+      {/* ── 2. MAIN NAVIGATION (Scrolls internally if viewport is short) ── */}
+      <nav className="flex-1 min-h-0 overflow-y-auto px-3.5 py-1 space-y-1 orbit-scrollbar">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -128,10 +132,8 @@ export function Sidebar({ onOpenQuickAdd }: SidebarProps) {
         })}
       </nav>
 
-      {/* ── 3. SECONDARY NAVIGATION + SYSTEM STATUS ──
-          Controlled Spacing:
-          Brankas Privasi -> 24px (mt-6) with subtle separator -> Pengaturan -> 16px (space-y-4) -> System Status */}
-      <div className="pt-3.5 mt-6 border-t border-[#D9DDD9] space-y-3">
+      {/* ── 3. SECONDARY NAVIGATION + SYSTEM STATUS (Pinned at bottom: mt-auto) ── */}
+      <div className="shrink-0 px-3.5 pt-3 pb-4 mt-auto border-t border-[#D9DDD9] space-y-2.5 bg-[#F7F8F5]">
         {/* Settings Navigation Item */}
         <Link
           href="/settings"

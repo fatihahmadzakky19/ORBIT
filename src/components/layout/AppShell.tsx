@@ -43,8 +43,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Desktop Sidebar */}
         <Sidebar onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0 relative z-10">
+        {/* Main Content Area (offset by sidebar width on desktop: md:ml-60) */}
+        <div className="flex-1 flex flex-col min-w-0 md:ml-60 min-h-[100dvh] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0 relative z-10">
           <Header onOpenQuickAdd={() => setIsQuickAddOpen(true)} />
 
           <main className="flex-1 px-3.5 sm:px-5 md:px-8 py-3.5 sm:py-5 md:py-6 max-w-5xl mx-auto w-full">

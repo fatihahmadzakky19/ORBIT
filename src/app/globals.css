@@ -97,6 +97,25 @@ body {
   background: var(--text-muted);
 }
 
+/* Subtle sidebar navigation scrollbar */
+.orbit-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #D9DDD9 transparent;
+}
+.orbit-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.orbit-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.orbit-scrollbar::-webkit-scrollbar-thumb {
+  background: #D9DDD9;
+  border-radius: 9999px;
+}
+.orbit-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #8A9197;
+}
+
 /* Base utility classes */
 .bg-canvas { background-color: var(--canvas); }
 .bg-surface { background-color: var(--surface); }

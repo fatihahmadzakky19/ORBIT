@@ -18,11 +18,11 @@ export function Header({ onOpenQuickAdd }: HeaderProps) {
   const todayStr = formatShortDate(new Date());
 
   return (
-    <header className="sticky top-0 z-30 h-14 border-b border-[#D9DDD9] bg-white/95 backdrop-blur-md px-3.5 sm:px-5 md:px-8 flex items-center justify-between select-none shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-      {/* ── LEFT: Logo & Brand ── */}
+    <header className="sticky top-0 z-20 h-14 border-b border-[#D9DDD9] bg-white/95 backdrop-blur-md px-3.5 sm:px-5 md:px-8 flex items-center justify-between select-none shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+      {/* ── LEFT: Logo & Brand (Mobile only) + Desktop Telemetry ── */}
       <div className="flex items-center gap-3">
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
+        {/* Brand Logo - visible on mobile where desktop sidebar is hidden */}
+        <Link href="/" className="flex md:hidden items-center gap-2 group">
           <div className="w-7 h-7 rounded-lg bg-white border border-[#D9DDD9] flex items-center justify-center text-[#08BFD7] shadow-sm group-hover:border-[#08BFD7]/50 transition-all">
             <span className="text-[11px] font-semibold font-mono">O</span>
           </div>
