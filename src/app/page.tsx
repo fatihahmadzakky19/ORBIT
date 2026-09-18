@@ -17,7 +17,8 @@ import {
   Lock,
   Compass,
 } from "lucide-react";
-import { formatWeekRange, getMondayOfWeek, getTodayDateString } from "@/lib/date";
+import { formatWeekRange, getMondayOfWeek, getTodayInJakarta, formatDateIndonesia } from "@/lib/date";
+import { useLiveJakartaTime } from "@/hooks/useLiveJakartaTime";
 import { useLanguage } from "@/lib/i18n/context";
 import { formatCurrency } from "@/lib/format";
 import { FadeIn } from "@/components/motion/FadeIn";
@@ -83,24 +84,8 @@ export default function HomePage() {
   const { profile } = useProfile();
   const shouldReduceMotion = useReducedMotion();
 
-  // Real-time ticking clock for digital OS feel
-  const [currentTime, setCurrentTime] = useState<string>("");
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleTimeString(locale === "id" ? "id-ID" : locale === "de" ? "de-DE" : "en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        })
-      );
-    };
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
-  }, [locale]);
+  // Real-time ticking clock anchored strictly to Asia/Jakarta (WIB)
+  const liveTime = useLiveJakartaTime();
 
   // Data states connected to localStorage
   const [habits, setHabits] = useState<HabitItem[]>([]);
@@ -110,7 +95,7 @@ export default function HomePage() {
   const [calculatedBalance, setCalculatedBalance] = useState<number>(0);
   const [vaultStats, setVaultStats] = useState({ totalFolders: 0, totalItems: 0, isUnlocked: false });
 
-  const todayStr = getTodayDateString(new Date());
+  const todayStr = liveTime.isMounted ? liveTime.dateStr : getTodayInJakarta();
 
   const loadDashboardData = () => {
     try {
@@ -196,21 +181,26 @@ export default function HomePage() {
   const habitCompletionRate =
     habits.length > 0 ? Math.round((completedTodayCount / habits.length) * 100) : 0;
 
-  const dateLocaleStr = locale === "id" ? "id-ID" : locale === "de" ? "de-DE" : "en-US";
-  const todayFormatted = new Intl.DateTimeFormat(dateLocaleStr, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date());
+  const todayFormatted = liveTime.isMounted
+    ? (locale === "id"
+        ? liveTime.formattedDate
+        : new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-US", {
+            timeZone: "Asia/Jakarta",
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          }).format(new Date()))
+    : formatDateIndonesia();
 
-  const hour = new Date().getHours();
-  const greetingText =
-    hour < 12
-      ? t.home.greetingMorning
-      : hour < 17
-      ? t.home.greetingAfternoon
-      : t.home.greetingEvening;
+  const greetingText = (() => {
+    if (locale === "id") return liveTime.greeting;
+    const h = liveTime.hour;
+    if (h >= 5 && h < 11) return t.home.greetingMorning;
+    if (h >= 11 && h < 15) return t.home.greetingAfternoon;
+    if (h >= 15 && h < 18) return t.home.greetingAfternoon;
+    return t.home.greetingEvening;
+  })();
 
   const currentWeekRange = formatWeekRange(getMondayOfWeek(new Date()));
 
@@ -421,7 +411,9 @@ export default function HomePage() {
                     }`}
                   >
                     <Clock className="w-3.5 h-3.5 text-[#08BFD7]" />
-                    <span className="text-[#ECEEEA]">{currentTime || "00:00:00"}</span>
+                    <span suppressHydrationWarning className="text-[#ECEEEA] font-mono">
+                      {liveTime.isMounted ? `${liveTime.timeWithSecStr} WIB` : `${liveTime.timeStr} WIB`}
+                    </span>
                     <span className="w-px h-3 bg-white/20" />
                     <div className="flex items-center gap-1.5 text-[10px] text-[#059669]">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-telemetry-pulse" />

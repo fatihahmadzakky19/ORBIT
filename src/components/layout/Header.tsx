@@ -2,11 +2,10 @@
 
 import { Plus, Lock } from "lucide-react";
 import Link from "next/link";
-import { formatShortDate } from "@/lib/date";
 import { LanguageSelector } from "@/components/ui/LanguageSelector";
 import { useLanguage } from "@/lib/i18n/context";
 import { StatusIndicator } from "@/components/ui/StatusIndicator";
-import { Button } from "@/components/ui/Button";
+import { useLiveJakartaTime } from "@/hooks/useLiveJakartaTime";
 import { ProfileMenu } from "./ProfileMenu";
 
 interface HeaderProps {
@@ -15,7 +14,7 @@ interface HeaderProps {
 
 export function Header({ onOpenQuickAdd }: HeaderProps) {
   const { t } = useLanguage();
-  const todayStr = formatShortDate(new Date());
+  const live = useLiveJakartaTime();
 
   return (
     <header className="sticky top-0 z-20 h-14 border-b border-[#D9DDD9] bg-white/95 backdrop-blur-md px-3.5 sm:px-5 md:px-8 flex items-center justify-between select-none shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
@@ -29,9 +28,22 @@ export function Header({ onOpenQuickAdd }: HeaderProps) {
           <span className="font-semibold text-[#20252A] text-xs tracking-wider group-hover:text-[#08BFD7] transition-colors">ORBIT</span>
         </Link>
 
-        {/* Desktop System Status Telemetry */}
+        {/* Compact telemetry for mobile viewports */}
+        <div className="flex md:hidden items-center">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#F4F6F4] text-[10px] font-mono text-[#57606A]">
+            <span suppressHydrationWarning>
+              {live.isMounted ? `${live.day} ${live.monthNameShort}` : "18 Sep"}
+            </span>
+            <span className="text-[#A0A8B0]">•</span>
+            <span suppressHydrationWarning className="text-[#20252A] font-medium">
+              {live.isMounted ? live.timeStr : "09:20"}
+            </span>
+          </div>
+        </div>
+
+        {/* Desktop System Status Telemetry: 18 Sep 2026 | 09:20 WIB | ● ONLINE */}
         <div className="hidden md:flex items-center">
-          <StatusIndicator date={todayStr} isOnline={true} />
+          <StatusIndicator isOnline={true} />
         </div>
       </div>
 

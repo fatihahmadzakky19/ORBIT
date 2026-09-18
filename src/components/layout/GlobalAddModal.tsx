@@ -10,7 +10,7 @@ import {
   ArrowUpCircle,
   ChevronDown,
 } from "lucide-react";
-import { getCalendarDateString } from "@/lib/date";
+import { getTodayInJakarta, getCurrentTimeInJakarta } from "@/lib/date";
 import { createActivityAction } from "@/features/activities/server/actions";
 import { createLearningAction } from "@/features/learning/server/actions";
 import { createTransactionAction } from "@/features/finance/server/actions";
@@ -32,8 +32,8 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
 
   // Activity State
   const [activityTitle, setActivityTitle] = useState("");
-  const [activityDate, setActivityDate] = useState(getCalendarDateString());
-  const [activityTime, setActivityTime] = useState("19:30");
+  const [activityDate, setActivityDate] = useState(() => getTodayInJakarta());
+  const [activityTime, setActivityTime] = useState(() => getCurrentTimeInJakarta());
   const [activityDuration, setActivityDuration] = useState("60");
   const [showActivityContext, setShowActivityContext] = useState(false);
   const [activityNote, setActivityNote] = useState("");
@@ -46,11 +46,8 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
   // Transaction State
   const [txAmount, setTxAmount] = useState("");
   const [txCategory, setTxCategory] = useState("Food");
-  const [txDate, setTxDate] = useState(getCalendarDateString());
-  const [txTime, setTxTime] = useState(() => {
-    const now = new Date();
-    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  });
+  const [txDate, setTxDate] = useState(() => getTodayInJakarta());
+  const [txTime, setTxTime] = useState(() => getCurrentTimeInJakarta());
   const [txNote, setTxNote] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,9 +63,10 @@ export function GlobalAddModal({ isOpen, onClose, onSuccess }: GlobalAddModalPro
     setLearningUnderstood("");
     setLearningSource("");
     setTxAmount("");
-    setTxDate(getCalendarDateString());
-    const now = new Date();
-    setTxTime(`${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`);
+    setTxDate(getTodayInJakarta());
+    setTxTime(getCurrentTimeInJakarta());
+    setActivityDate(getTodayInJakarta());
+    setActivityTime(getCurrentTimeInJakarta());
     setTxNote("");
     setIsSubmitting(false);
     onClose();

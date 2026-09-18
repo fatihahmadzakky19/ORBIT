@@ -28,6 +28,7 @@ import {
   Filter,
 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency } from "@/lib/format";
+import { getTodayInJakarta, getCurrentTimeInJakarta, formatDateIndonesia } from "@/lib/date";
 import { useLanguage } from "@/lib/i18n/context";
 import {
   getStoredFinanceTransactions,
@@ -53,20 +54,13 @@ import {
 } from "@/features/finance/server/actions";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
-// Date & Time Helpers
+// Date & Time Helpers (Anchored to Asia/Jakarta / WIB)
 function getTodayDateString(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return getTodayInJakarta();
 }
 
 function getCurrentTimeString(): string {
-  const now = new Date();
-  const h = String(now.getHours()).padStart(2, "0");
-  const min = String(now.getMinutes()).padStart(2, "0");
-  return `${h}:${min}`;
+  return getCurrentTimeInJakarta();
 }
 
 function parseTxDate(tx: StoredTransaction): Date {

@@ -19,7 +19,9 @@ import {
   getCurrentWeekDays,
   WeekDayInfo,
   formatFullDate,
+  formatDateIndonesia,
 } from "@/lib/date";
+import { useLiveJakartaTime } from "@/hooks/useLiveJakartaTime";
 import { format } from "date-fns";
 
 export interface HabitItem {
@@ -34,25 +36,15 @@ const INITIAL_HABITS: HabitItem[] = [];
 
 export default function HabitsPage() {
   const { t, locale } = useLanguage();
-
-  // Real-time ticking clock
-  const [mounted, setMounted] = useState(false);
-  const [now, setNow] = useState<Date>(new Date());
-  useEffect(() => {
-    setMounted(true);
-    const timer = setInterval(() => {
-      setNow(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const live = useLiveJakartaTime();
 
   const [habits, setHabits] = useState<HabitItem[]>(INITIAL_HABITS);
   const [selectedHabit, setSelectedHabit] = useState<HabitItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [newHabitName, setNewHabitName] = useState("");
 
-  const todayStr = getTodayDateString(now);
-  const currentWeekDays = getCurrentWeekDays(now);
+  const todayStr = live.isMounted ? live.dateStr : getTodayDateString();
+  const currentWeekDays = getCurrentWeekDays();
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -132,7 +124,7 @@ export default function HabitsPage() {
       return;
     }
 
-    const timeString = format(now, "HH:mm");
+    const timeString = live.timeStr;
     const updated = habits.map((h) => {
       if (h.id !== habitId) return h;
 
@@ -214,7 +206,7 @@ export default function HabitsPage() {
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
           <span className="font-mono text-sub font-medium">HARI INI:</span>
           <span className="font-mono text-main font-semibold" suppressHydrationWarning>
-            {mounted ? format(now, "EEEE, d MMM yyyy · HH:mm:ss") : "--:--:--"}
+            {live.isMounted ? `${live.formattedDate} · ${live.formattedTimeWithSec}` : "Jumat, 18 September 2026 · 09:20:00 WIB"}
           </span>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-accent font-medium">

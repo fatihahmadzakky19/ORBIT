@@ -27,6 +27,7 @@ import {
   Copy,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
+import { formatShortDateIndonesia, formatDateTimeIndonesia } from "@/lib/date";
 import {
   VaultFolder,
   VaultItem,
@@ -772,11 +773,7 @@ export default function VaultPage() {
                       )}
 
                       <div className="text-[10px] font-mono text-dim mt-2">
-                        {new Date(item.createdAt).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                        {formatShortDateIndonesia(item.createdAt)}
                       </div>
                     </div>
                   </div>
@@ -1109,7 +1106,7 @@ export default function VaultPage() {
                     {previewItem.title}
                   </h3>
                   <p className="text-[10px] font-mono text-dim">
-                    {new Date(previewItem.createdAt).toLocaleString("id-ID")}
+                    {formatDateTimeIndonesia(previewItem.createdAt)}
                   </p>
                 </div>
               </div>
