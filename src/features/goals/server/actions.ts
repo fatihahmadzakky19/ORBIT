@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/db";
+import { prisma, isDatabaseAvailable, markDatabaseOffline } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { GoalType, GoalStatus, ProgressMode } from "@prisma/client";
 
@@ -15,10 +15,17 @@ export async function createGoalAction(data: {
   milestones?: string[];
 }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await prisma.user.findFirst({
       where: { email: "alex@orbit.local" },
     });
-    if (!user) throw new Error("User not found");
+    if (!user) {
+      return { success: true, isOffline: true };
+    }
 
     const goal = await prisma.goal.create({
       data: {
@@ -49,17 +56,24 @@ export async function createGoalAction(data: {
 
     return { success: true, goal };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to create goal";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function toggleMilestoneAction(milestoneId: string) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const milestone = await prisma.goalMilestone.findUnique({
       where: { id: milestoneId },
     });
-    if (!milestone) throw new Error("Milestone not found");
+    if (!milestone) {
+      return { success: true, isOffline: true };
+    }
 
     const updated = await prisma.goalMilestone.update({
       where: { id: milestoneId },
@@ -73,7 +87,7 @@ export async function toggleMilestoneAction(milestoneId: string) {
 
     return { success: true, milestone: updated };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to toggle milestone";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }

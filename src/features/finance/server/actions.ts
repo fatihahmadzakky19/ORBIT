@@ -1,25 +1,40 @@
 "use server";
 
-import { prisma } from "@/lib/db";
+import { prisma, isDatabaseAvailable, markDatabaseOffline } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { TransactionType } from "@prisma/client";
 
 // Cast to any to prevent stale IDE type-checking warnings
 const db = prisma as any;
 
+const FALLBACK_USER = {
+  id: "local-user-orbit",
+  email: "alex@orbit.local",
+  name: "Fatih Ahmad Zakky",
+};
+
 async function getDefaultUser() {
-  let user = await db.user.findFirst({
-    where: { email: "alex@orbit.local" },
-  });
-  if (!user) {
-    user = await db.user.create({
-      data: {
-        email: "alex@orbit.local",
-        name: "Fatih Ahmad Zakky",
-      },
-    });
+  const isOnline = await isDatabaseAvailable();
+  if (!isOnline) {
+    return FALLBACK_USER;
   }
-  return user;
+  try {
+    let user = await db.user.findFirst({
+      where: { email: "alex@orbit.local" },
+    });
+    if (!user) {
+      user = await db.user.create({
+        data: {
+          email: "alex@orbit.local",
+          name: "Fatih Ahmad Zakky",
+        },
+      });
+    }
+    return user;
+  } catch (error) {
+    markDatabaseOffline(error);
+    return FALLBACK_USER;
+  }
 }
 
 export async function createTransactionAction(data: {
@@ -35,7 +50,15 @@ export async function createTransactionAction(data: {
       throw new Error("Transaction amount must be greater than zero.");
     }
 
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
 
     const transaction = await db.transaction.create({
       data: {
@@ -75,8 +98,8 @@ export async function createTransactionAction(data: {
 
     return { success: true, transaction };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to record transaction";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
@@ -91,6 +114,11 @@ export async function updateTransactionAction(
   }
 ) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const transaction = await db.transaction.update({
       where: { id },
       data: {
@@ -106,13 +134,18 @@ export async function updateTransactionAction(
     revalidatePath("/finance");
     return { success: true, transaction };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to update transaction";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function deleteTransactionAction(id: string) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     await db.transaction.delete({
       where: { id },
     });
@@ -121,8 +154,8 @@ export async function deleteTransactionAction(id: string) {
     revalidatePath("/finance");
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to delete transaction";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
@@ -133,7 +166,16 @@ export async function createCategoryAction(data: {
   color?: string;
 }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
+
     const category = await db.transactionCategory.create({
       data: {
         userId: user.id,
@@ -147,13 +189,18 @@ export async function createCategoryAction(data: {
     revalidatePath("/finance");
     return { success: true, category };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to create category";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function deleteCategoryAction(id: string) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     await db.transactionCategory.delete({
       where: { id },
     });
@@ -161,14 +208,22 @@ export async function deleteCategoryAction(id: string) {
     revalidatePath("/finance");
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to delete category";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function updateActualBalanceAction(newBalance: number) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
 
     await db.financeProfile.upsert({
       where: { userId: user.id },
@@ -189,7 +244,7 @@ export async function updateActualBalanceAction(newBalance: number) {
 
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to update actual balance";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }

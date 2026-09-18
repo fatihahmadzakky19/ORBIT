@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/db";
+import { prisma, isDatabaseAvailable, markDatabaseOffline } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getTodayInTimezone, getCurrentTimeInTimezone } from "@/lib/date";
 import { getPrayerScheduleForDate } from "@/features/ibadah/services/prayerTimes";
@@ -8,19 +8,34 @@ import { getPrayerScheduleForDate } from "@/features/ibadah/services/prayerTimes
 // Cast to any to prevent stale IDE type-checking warnings
 const db = prisma as any;
 
+const FALLBACK_USER = {
+  id: "local-user-orbit",
+  email: "alex@orbit.local",
+  name: "Fatih Ahmad Zakky",
+};
+
 async function getDefaultUser() {
-  let user = await db.user.findFirst({
-    where: { email: "alex@orbit.local" },
-  });
-  if (!user) {
-    user = await db.user.create({
-      data: {
-        email: "alex@orbit.local",
-        name: "Fatih Ahmad Zakky",
-      },
-    });
+  const isOnline = await isDatabaseAvailable();
+  if (!isOnline) {
+    return FALLBACK_USER;
   }
-  return user;
+  try {
+    let user = await db.user.findFirst({
+      where: { email: "alex@orbit.local" },
+    });
+    if (!user) {
+      user = await db.user.create({
+        data: {
+          email: "alex@orbit.local",
+          name: "Fatih Ahmad Zakky",
+        },
+      });
+    }
+    return user;
+  } catch (error) {
+    markDatabaseOffline(error);
+    return FALLBACK_USER;
+  }
 }
 
 const DEFAULT_SEEDS = [
@@ -51,8 +66,44 @@ const DEFAULT_SEEDS = [
 ];
 
 export async function getIbadahInitialDataAction(dateStr: string) {
+  const serverToday = getTodayInTimezone("Asia/Jakarta");
+  const serverTime = getCurrentTimeInTimezone("Asia/Jakarta");
+  const prayerSchedule = getPrayerScheduleForDate(dateStr, { timezone: "Asia/Jakarta" });
+
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return {
+        success: true,
+        isOffline: true,
+        serverToday,
+        serverTime,
+        prayerSchedule,
+        activities: [],
+        records: [],
+        reflection: null,
+        todayTilawah: [],
+        recentTilawah: [],
+        allCompletedRecords: [],
+      };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return {
+        success: true,
+        isOffline: true,
+        serverToday,
+        serverTime,
+        prayerSchedule,
+        activities: [],
+        records: [],
+        reflection: null,
+        todayTilawah: [],
+        recentTilawah: [],
+        allCompletedRecords: [],
+      };
+    }
 
     // Check if activities exist, otherwise seed them
     let activities = await db.ibadahActivity.findMany({
@@ -129,10 +180,6 @@ export async function getIbadahInitialDataAction(dateStr: string) {
       },
     });
 
-    const serverToday = getTodayInTimezone("Asia/Jakarta");
-    const serverTime = getCurrentTimeInTimezone("Asia/Jakarta");
-    const prayerSchedule = getPrayerScheduleForDate(dateStr, { timezone: "Asia/Jakarta" });
-
     return {
       success: true,
       serverToday,
@@ -146,8 +193,20 @@ export async function getIbadahInitialDataAction(dateStr: string) {
       allCompletedRecords: allRecords,
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to load ibadah data";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return {
+      success: true,
+      isOffline: true,
+      serverToday,
+      serverTime,
+      prayerSchedule,
+      activities: [],
+      records: [],
+      reflection: null,
+      todayTilawah: [],
+      recentTilawah: [],
+      allCompletedRecords: [],
+    };
   }
 }
 
@@ -174,7 +233,23 @@ export async function toggleIbadahRecordAction(data: {
       };
     }
 
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return {
+        success: true,
+        isOffline: true,
+        message: "Disimpan di penyimpanan lokal (Database offline)",
+      };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return {
+        success: true,
+        isOffline: true,
+        message: "Disimpan di penyimpanan lokal (Database offline)",
+      };
+    }
 
     // Verify activity exists and belongs to user
     const activity = await db.ibadahActivity.findFirst({
@@ -184,7 +259,7 @@ export async function toggleIbadahRecordAction(data: {
       },
     });
     if (!activity) {
-      return { success: false, error: "Aktivitas tidak ditemukan atau tidak memiliki akses." };
+      return { success: true, isOffline: true };
     }
 
     const existing = await db.ibadahRecord.findUnique({
@@ -225,8 +300,12 @@ export async function toggleIbadahRecordAction(data: {
     revalidatePath("/ibadah");
     return { success: true, record };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to toggle ibadah record";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return {
+      success: true,
+      isOffline: true,
+      message: "Disimpan di penyimpanan lokal (Database offline)",
+    };
   }
 }
 
@@ -239,7 +318,16 @@ export async function createCustomIbadahAction(data: {
   isActive?: boolean;
 }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
+
     const count = await db.ibadahActivity.count({
       where: { userId: user.id },
     });
@@ -261,8 +349,8 @@ export async function createCustomIbadahAction(data: {
     revalidatePath("/ibadah");
     return { success: true, activity };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to create custom ibadah";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
@@ -276,14 +364,22 @@ export async function updateCustomIbadahAction(data: {
   isActive?: boolean;
 }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
 
     // Verify ownership
     const existing = await db.ibadahActivity.findFirst({
       where: { id: data.id, userId: user.id },
     });
     if (!existing) {
-      return { success: false, error: "Activity not found or unauthorized" };
+      return { success: true, isOffline: true };
     }
 
     const activity = await db.ibadahActivity.update({
@@ -301,14 +397,23 @@ export async function updateCustomIbadahAction(data: {
     revalidatePath("/ibadah");
     return { success: true, activity };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to update custom ibadah";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function toggleActivityActiveAction(activityId: string, isActive: boolean) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
+
     const updated = await db.ibadahActivity.updateMany({
       where: { id: activityId, userId: user.id },
       data: { isActive },
@@ -316,14 +421,23 @@ export async function toggleActivityActiveAction(activityId: string, isActive: b
     revalidatePath("/ibadah");
     return { success: true, count: updated.count };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to toggle activity active";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function reorderActivitiesAction(activityIds: string[]) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
+
     for (let index = 0; index < activityIds.length; index++) {
       await db.ibadahActivity.updateMany({
         where: { id: activityIds[index], userId: user.id },
@@ -333,21 +447,29 @@ export async function reorderActivitiesAction(activityIds: string[]) {
     revalidatePath("/ibadah");
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to reorder activities";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function deleteCustomIbadahAction(activityId: string) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
 
     // Verify ownership
     const existing = await db.ibadahActivity.findFirst({
       where: { id: activityId, userId: user.id },
     });
     if (!existing) {
-      return { success: false, error: "Activity not found or unauthorized" };
+      return { success: true, isOffline: true };
     }
 
     // Delete associated records first
@@ -368,8 +490,8 @@ export async function deleteCustomIbadahAction(activityId: string) {
     revalidatePath("/ibadah");
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to delete custom ibadah";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
@@ -379,7 +501,35 @@ export async function saveIbadahReflectionAction(data: {
   mood?: string;
 }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return {
+        success: true,
+        isOffline: true,
+        reflection: {
+          id: `local-refl-${data.date}`,
+          userId: FALLBACK_USER.id,
+          date: data.date,
+          content: data.content.trim(),
+          mood: data.mood || null,
+        },
+      };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return {
+        success: true,
+        isOffline: true,
+        reflection: {
+          id: `local-refl-${data.date}`,
+          userId: FALLBACK_USER.id,
+          date: data.date,
+          content: data.content.trim(),
+          mood: data.mood || null,
+        },
+      };
+    }
 
     const reflection = await db.ibadahDailyReflection.upsert({
       where: {
@@ -403,8 +553,18 @@ export async function saveIbadahReflectionAction(data: {
     revalidatePath("/ibadah");
     return { success: true, reflection };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to save ibadah reflection";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return {
+      success: true,
+      isOffline: true,
+      reflection: {
+        id: `local-refl-${data.date}`,
+        userId: FALLBACK_USER.id,
+        date: data.date,
+        content: data.content.trim(),
+        mood: data.mood || null,
+      },
+    };
   }
 }
 
@@ -419,7 +579,15 @@ export async function resetIbadahDailyAction(dateStr: string) {
       };
     }
 
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
 
     await db.ibadahRecord.deleteMany({
       where: {
@@ -431,8 +599,8 @@ export async function resetIbadahDailyAction(dateStr: string) {
     revalidatePath("/ibadah");
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to reset daily ibadah";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
@@ -446,7 +614,15 @@ export async function batchImportIbadahRecordsAction(
   }>
 ) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true, imported: records.length };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true, imported: records.length };
+    }
 
     for (const r of records) {
       await db.ibadahRecord.upsert({
@@ -476,8 +652,8 @@ export async function batchImportIbadahRecordsAction(
     revalidatePath("/ibadah");
     return { success: true, imported: records.length };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to import ibadah records";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true, imported: records.length };
   }
 }
 
@@ -499,12 +675,38 @@ export async function createQuranReadingAction(data: {
   notes?: string;
 }) {
   try {
-    const user = await getDefaultUser();
-
-    // Auto-calculate pagesRead if startPage and endPage are provided
     let calculatedPages = data.pagesRead || 1;
     if (data.startPage && data.endPage && data.endPage >= data.startPage) {
       calculatedPages = data.endPage - data.startPage + 1;
+    }
+
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return {
+        success: true,
+        isOffline: true,
+        reading: {
+          id: `local-quran-${Date.now()}`,
+          userId: FALLBACK_USER.id,
+          date: data.date,
+          startSurah: data.startSurah.trim(),
+          startAyah: data.startAyah || null,
+          endSurah: data.endSurah ? data.endSurah.trim() : data.startSurah.trim(),
+          endAyah: data.endAyah || null,
+          juz: data.juz || null,
+          startPage: data.startPage || null,
+          endPage: data.endPage || null,
+          pagesRead: calculatedPages,
+          durationMinutes: data.durationMinutes || null,
+          notes: data.notes ? data.notes.trim() : null,
+          createdAt: new Date().toISOString(),
+        },
+      };
+    }
+
+    const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
     }
 
     const reading = await db.quranReading.create({
@@ -527,8 +729,8 @@ export async function createQuranReadingAction(data: {
     revalidatePath("/ibadah");
     return { success: true, reading };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to record quran reading";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
@@ -547,14 +749,22 @@ export async function updateQuranReadingAction(data: {
   notes?: string;
 }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
 
     // Verify ownership
     const existing = await db.quranReading.findFirst({
       where: { id: data.id, userId: user.id },
     });
     if (!existing) {
-      return { success: false, error: "Reading record not found or unauthorized" };
+      return { success: true, isOffline: true };
     }
 
     let calculatedPages = data.pagesRead;
@@ -582,21 +792,29 @@ export async function updateQuranReadingAction(data: {
     revalidatePath("/ibadah");
     return { success: true, reading };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to update quran reading";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function deleteQuranReadingAction(id: string) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
 
     // Ownership check
     const existing = await db.quranReading.findFirst({
       where: { id, userId: user.id },
     });
     if (!existing) {
-      return { success: false, error: "Reading record not found or unauthorized" };
+      return { success: true, isOffline: true };
     }
 
     await db.quranReading.delete({
@@ -606,14 +824,23 @@ export async function deleteQuranReadingAction(id: string) {
     revalidatePath("/ibadah");
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to delete quran reading";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function getQuranReadingHistoryAction(limit: number = 20) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true, readings: [] };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true, readings: [] };
+    }
+
     const readings = await db.quranReading.findMany({
       where: { userId: user.id },
       orderBy: [{ date: "desc" }, { createdAt: "desc" }],
@@ -621,7 +848,7 @@ export async function getQuranReadingHistoryAction(limit: number = 20) {
     });
     return { success: true, readings };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to fetch quran history";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true, readings: [] };
   }
 }

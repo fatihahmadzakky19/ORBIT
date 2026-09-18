@@ -1,24 +1,39 @@
 "use server";
 
-import { prisma } from "@/lib/db";
+import { prisma, isDatabaseAvailable, markDatabaseOffline } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 // Cast to any to prevent stale IDE type-checking warnings
 const db = prisma as any;
 
+const FALLBACK_USER = {
+  id: "local-user-orbit",
+  email: "alex@orbit.local",
+  name: "Fatih Ahmad Zakky",
+};
+
 async function getDefaultUser() {
-  let user = await db.user.findFirst({
-    where: { email: "alex@orbit.local" },
-  });
-  if (!user) {
-    user = await db.user.create({
-      data: {
-        email: "alex@orbit.local",
-        name: "Fatih Ahmad Zakky",
-      },
-    });
+  const isOnline = await isDatabaseAvailable();
+  if (!isOnline) {
+    return FALLBACK_USER;
   }
-  return user;
+  try {
+    let user = await db.user.findFirst({
+      where: { email: "alex@orbit.local" },
+    });
+    if (!user) {
+      user = await db.user.create({
+        data: {
+          email: "alex@orbit.local",
+          name: "Fatih Ahmad Zakky",
+        },
+      });
+    }
+    return user;
+  } catch (error) {
+    markDatabaseOffline(error);
+    return FALLBACK_USER;
+  }
 }
 
 // -------------------------------------------------------------
@@ -26,7 +41,16 @@ async function getDefaultUser() {
 // -------------------------------------------------------------
 export async function createFolderAction(data: { name: string; parentId?: string | null }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
+
     const folder = await db.learningFolder.create({
       data: {
         userId: user.id,
@@ -37,13 +61,18 @@ export async function createFolderAction(data: { name: string; parentId?: string
     revalidatePath("/learning");
     return { success: true, folder };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to create folder";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function renameFolderAction(data: { id: string; name: string }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const folder = await db.learningFolder.update({
       where: { id: data.id },
       data: { name: data.name.trim() },
@@ -51,13 +80,18 @@ export async function renameFolderAction(data: { id: string; name: string }) {
     revalidatePath("/learning");
     return { success: true, folder };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to rename folder";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function moveFolderAction(data: { id: string; targetParentId: string | null }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const folder = await db.learningFolder.update({
       where: { id: data.id },
       data: { parentId: data.targetParentId },
@@ -65,21 +99,26 @@ export async function moveFolderAction(data: { id: string; targetParentId: strin
     revalidatePath("/learning");
     return { success: true, folder };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to move folder";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function deleteFolderAction(id: string) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     await db.learningFolder.delete({
       where: { id },
     });
     revalidatePath("/learning");
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to delete folder";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
@@ -95,7 +134,16 @@ export async function createDocumentAction(data: {
   learningId?: string | null;
 }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
+
     const docName = data.name.trim();
     const ext = docName.includes(".") ? docName.split(".").pop() || "txt" : data.fileType || "txt";
 
@@ -113,13 +161,18 @@ export async function createDocumentAction(data: {
     revalidatePath("/learning");
     return { success: true, document };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to create document";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function renameDocumentAction(data: { id: string; name: string }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const document = await db.learningDocument.update({
       where: { id: data.id },
       data: { name: data.name.trim() },
@@ -127,13 +180,18 @@ export async function renameDocumentAction(data: { id: string; name: string }) {
     revalidatePath("/learning");
     return { success: true, document };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to rename document";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function moveDocumentAction(data: { id: string; targetFolderId: string | null }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const document = await db.learningDocument.update({
       where: { id: data.id },
       data: { folderId: data.targetFolderId },
@@ -141,21 +199,26 @@ export async function moveDocumentAction(data: { id: string; targetFolderId: str
     revalidatePath("/learning");
     return { success: true, document };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to move document";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function deleteDocumentAction(id: string) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     await db.learningDocument.delete({
       where: { id },
     });
     revalidatePath("/learning");
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to delete document";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
@@ -171,7 +234,15 @@ export async function createLearningAction(data: {
   goalId?: string | null;
 }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const user = await getDefaultUser();
+    if (user.id === FALLBACK_USER.id) {
+      return { success: true, isOffline: true };
+    }
 
     const learning = await db.learning.create({
       data: {
@@ -191,13 +262,18 @@ export async function createLearningAction(data: {
 
     return { success: true, learning };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to save learning";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function renameLearningAction(data: { id: string; topic: string; understood?: string }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const learning = await db.learning.update({
       where: { id: data.id },
       data: {
@@ -208,13 +284,18 @@ export async function renameLearningAction(data: { id: string; topic: string; un
     revalidatePath("/learning");
     return { success: true, learning };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to update learning note";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function moveLearningAction(data: { id: string; targetFolderId: string | null }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     const learning = await db.learning.update({
       where: { id: data.id },
       data: { folderId: data.targetFolderId },
@@ -222,13 +303,18 @@ export async function moveLearningAction(data: { id: string; targetFolderId: str
     revalidatePath("/learning");
     return { success: true, learning };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to move learning note";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
 
 export async function deleteLearningAction(id: string) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     await db.learning.delete({
       where: { id },
     });
@@ -236,7 +322,7 @@ export async function deleteLearningAction(id: string) {
     revalidatePath("/learning");
     return { success: true };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to delete learning note";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }

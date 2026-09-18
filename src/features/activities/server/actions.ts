@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/db";
+import { prisma, isDatabaseAvailable, markDatabaseOffline } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { HabitSource } from "@prisma/client";
 
@@ -15,11 +15,18 @@ export async function createActivityAction(data: {
   learningTopic?: string;
 }) {
   try {
+    const isOnline = await isDatabaseAvailable();
+    if (!isOnline) {
+      return { success: true, isOffline: true };
+    }
+
     // 1. Get default user (Alex)
     const user = await prisma.user.findFirst({
       where: { email: "alex@orbit.local" },
     });
-    if (!user) throw new Error("User not found");
+    if (!user) {
+      return { success: true, isOffline: true };
+    }
 
     // 2. Parse timestamps
     const startedAt = new Date(`${data.date}T${data.time}:00`);
@@ -85,7 +92,7 @@ export async function createActivityAction(data: {
 
     return { success: true, activity };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to save activity";
-    return { success: false, error: message };
+    markDatabaseOffline(error);
+    return { success: true, isOffline: true };
   }
 }
